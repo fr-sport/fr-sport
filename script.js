@@ -106,11 +106,24 @@ function closeModalAnim(id) {
     }, 280);
 }
 
+// === CSS التشكيلات المُدمج ===
 const styleSheet = document.createElement("style");
 styleSheet.innerText = `
     @keyframes slideDownModal { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(100%); } }
     @keyframes popOut { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.8); } }
     @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
+    
+    /* تصميم التشكيلة */
+    .lineups-container { margin-top: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 15px; padding: 15px; }
+    .lineups-header { text-align: center; color: var(--accent-color); font-weight: bold; margin-bottom: 10px; font-size: 14px; text-shadow: var(--accent-glow);}
+    .lineups-formations { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 15px; padding: 0 5px; font-weight:bold;}
+    .lineup-row { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 0; }
+    .lineup-row:last-child { border-bottom: none; }
+    .lineup-player { display: flex; align-items: center; gap: 8px; width: 48%; font-size: 11px; color: #fff; overflow: hidden; }
+    .home-player { justify-content: flex-start; }
+    .away-player { justify-content: flex-end; flex-direction: row-reverse; text-align: right; }
+    .player-num { background: rgba(204,204,204,0.1); border: 1px solid rgba(204,204,204,0.3); color: var(--accent-color); width: 22px; height: 22px; display: flex; justify-content: center; align-items: center; border-radius: 50%; font-size: 10px; font-weight: bold; flex-shrink: 0;}
+    .player-name { text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
 `;
 document.head.appendChild(styleSheet);
 
@@ -163,6 +176,7 @@ async function openMatchDetails(fixtureId) {
         const m = data.response[0];
         if(!m) return;
 
+        // === 1. جلب أحداث المباراة ===
         let eventsHTML = '<div class="timeline-container">';
         if(m.events && m.events.length > 0) {
             m.events.forEach(ev => {
@@ -198,13 +212,57 @@ async function openMatchDetails(fixtureId) {
         } else { eventsHTML += '<p class="empty-msg">لا توجد أحداث مسجلة بعد.</p>'; }
         eventsHTML += '</div>';
 
+        // === 2. جلب التشكيلة الأساسية (Lineups) ===
+        let lineupsHTML = '';
+        if (m.lineups && m.lineups.length > 0) {
+            const hLineup = m.lineups[0];
+            const aLineup = m.lineups.length > 1 ? m.lineups[1] : null;
+            
+            lineupsHTML = `
+            <div class="lineups-container">
+                <div class="lineups-header">التشكيلة الأساسية 👕</div>
+                <div class="lineups-formations">
+                    <span dir="ltr">${hLineup.formation || '-'}</span>
+                    <span>الخطة</span>
+                    <span dir="ltr">${aLineup ? (aLineup.formation || '-') : '-'}</span>
+                </div>
+                <div class="lineups-grid">
+            `;
+            
+            for(let i=0; i<11; i++) {
+                const hPlayer = hLineup.startXI && hLineup.startXI[i] ? hLineup.startXI[i].player : null;
+                const aPlayer = (aLineup && aLineup.startXI && aLineup.startXI[i]) ? aLineup.startXI[i].player : null;
+                
+                if(!hPlayer && !aPlayer) break;
+                
+                lineupsHTML += `
+                    <div class="lineup-row">
+                        <div class="lineup-player home-player">
+                            <span class="player-num">${hPlayer?.number || '-'}</span>
+                            <span class="player-name">${hPlayer?.name || '-'}</span>
+                        </div>
+                        <div class="lineup-player away-player">
+                            <span class="player-num">${aPlayer?.number || '-'}</span>
+                            <span class="player-name">${aPlayer?.name || '-'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            lineupsHTML += `</div></div>`;
+        } else {
+            lineupsHTML = '<div class="lineups-container"><p class="empty-msg">التشكيلة غير متوفرة لهذه المباراة حالياً</p></div>';
+        }
+
+        // === 3. دمج كل شيء في الشاشة ===
         container.innerHTML = `
             <div class="match-hero">
                 <div style="text-align:center; cursor:pointer;" onclick="showTeamInfo(event, ${m.teams.home.id})"><img src="${m.teams.home.logo}" width="60"><br><span class="hero-team-name">${m.teams.home.name}</span></div>
-                <div style="text-align:center"><div style="font-size:38px; font-weight:900; color:var(--accent-color); text-shadow:var(--accent-glow);" dir="ltr">${m.goals.home} - ${m.goals.away}</div><div style="background:var(--accent-color); color:#000; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:bold;">${m.fixture.status.long}</div></div>
+                <div style="text-align:center"><div style="font-size:38px; font-weight:900; color:var(--accent-color); text-shadow:var(--accent-glow);" dir="ltr">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</div><div style="background:var(--accent-color); color:#000; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:bold;">${m.fixture.status.long}</div></div>
                 <div style="text-align:center; cursor:pointer;" onclick="showTeamInfo(event, ${m.teams.away.id})"><img src="${m.teams.away.logo}" width="60"><br><span class="hero-team-name">${m.teams.away.name}</span></div>
             </div>
-            ${eventsHTML}`;
+            ${eventsHTML}
+            ${lineupsHTML}
+        `;
     } catch (e) { container.innerHTML = '<p class="empty-msg">خطأ في جلب تفاصيل المباراة</p>'; }
 }
 
