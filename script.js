@@ -1,4 +1,4 @@
-// === المفاتيح السحرية لـ Firebase الخاصة بتطبيق FR SPORT ===
+// === المفاتيح السحرية لـ Firebase ===
 const firebaseConfig = {
     apiKey: "AIzaSyCEGxx2tlEsw09VJPWyL1Dd_-n6mziatuA",
     authDomain: "fr-sport.firebaseapp.com",
@@ -9,7 +9,6 @@ const firebaseConfig = {
     measurementId: "G-W1K6K94HDL"
 };
 
-// تشغيل محرك Firebase
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const analytics = firebase.analytics();
@@ -71,7 +70,6 @@ function toggleLive(element) {
     }
 }
 
-// === 🛠️ نظام الرجوع الحديدي للهواتف (Hash System) ===
 window.addEventListener('hashchange', function() {
     if (window.location.hash !== '#open') {
         const teamModal = document.getElementById('team-modal');
@@ -82,40 +80,42 @@ window.addEventListener('hashchange', function() {
 });
 
 function closeModal(id) {
-    if(window.location.hash === '#open') {
-        history.back(); 
-    } else {
-        closeModalAnim(id);
-    }
+    if(window.location.hash === '#open') { history.back(); } else { closeModalAnim(id); }
 }
 
 function closeModalAnim(id) {
     const modal = document.getElementById(id);
     if(!modal || modal.classList.contains('hidden')) return;
-    
-    if(id === 'match-modal') {
-        modal.style.animation = 'slideDownModal 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-    } else {
-        modal.querySelector('.modal-content').style.animation = 'popOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards';
-        modal.style.animation = 'fadeOut 0.3s ease forwards';
-    }
+    if(id === 'match-modal') { modal.style.animation = 'slideDownModal 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'; } 
+    else { modal.querySelector('.modal-content').style.animation = 'popOut 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards'; modal.style.animation = 'fadeOut 0.3s ease forwards'; }
     setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.style.animation = '';
+        modal.classList.add('hidden'); modal.style.animation = '';
         if(modal.querySelector('.modal-content')) modal.querySelector('.modal-content').style.animation = '';
     }, 280);
 }
 
-// === CSS التشكيلات المُدمج ===
+// === CSS التشكيلات والملعب المُدمج ===
 const styleSheet = document.createElement("style");
 styleSheet.innerText = `
     @keyframes slideDownModal { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(100%); } }
     @keyframes popOut { 0% { opacity: 1; transform: scale(1); } 100% { opacity: 0; transform: scale(0.8); } }
     @keyframes fadeOut { 0% { opacity: 1; } 100% { opacity: 0; } }
     
-    /* تصميم التشكيلة */
-    .lineups-container { margin-top: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 15px; padding: 15px; }
-    .lineups-header { text-align: center; color: var(--accent-color); font-weight: bold; margin-bottom: 10px; font-size: 14px; text-shadow: var(--accent-glow);}
+    /* تصميم الملعب الأخضر */
+    .pitch-container { width: 100%; height: 500px; background: linear-gradient(180deg, #1b5e20 0%, #2e7d32 50%, #1b5e20 100%); border: 2px solid rgba(255,255,255,0.4); position: relative; margin: 20px 0; overflow: hidden; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+    .pitch-container::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 2px; background: rgba(255,255,255,0.4); }
+    .pitch-container::after { content: ''; position: absolute; top: 50%; left: 50%; width: 80px; height: 80px; border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; transform: translate(-50%, -50%); }
+    .penalty-box-top { position: absolute; top: 0; left: 25%; width: 50%; height: 16%; border: 2px solid rgba(255,255,255,0.4); border-top: none; }
+    .penalty-box-bottom { position: absolute; bottom: 0; left: 25%; width: 50%; height: 16%; border: 2px solid rgba(255,255,255,0.4); border-bottom: none; }
+    
+    .pitch-player { position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; width: 60px; z-index: 10; }
+    .pitch-player img { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #fff; background: #222; object-fit: cover; box-shadow: 0 2px 5px rgba(0,0,0,0.8); }
+    .player-num-pitch { position: absolute; top: -5px; right: 5px; background: var(--accent-color); color: #000; font-weight: 900; font-size: 10px; width: 16px; height: 16px; border-radius: 50%; display: flex; justify-content: center; align-items: center; border: 1px solid #000; }
+    .player-name-pitch { background: rgba(0,0,0,0.7); color: #fff; font-size: 9px; font-weight: bold; padding: 2px 5px; border-radius: 4px; margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 58px; text-align: center; }
+    
+    /* الاحتياط */
+    .lineups-container { margin-top: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--glass-border); border-radius: 15px; padding: 15px; }
+    .lineups-header { text-align: center; color: var(--accent-color); font-weight: bold; margin-bottom: 10px; font-size: 16px; text-shadow: var(--accent-glow);}
     .lineups-formations { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); margin-bottom: 15px; padding: 0 5px; font-weight:bold;}
     .lineup-row { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 8px 0; }
     .lineup-row:last-child { border-bottom: none; }
@@ -162,6 +162,56 @@ async function showTeamInfo(event, teamId) {
     } catch { container.innerHTML = '<p class="empty-msg" style="color:#ff3b30;">حدث خطأ في جلب البيانات</p>'; }
 }
 
+// === خوارزمية رسم الملعب ===
+function buildPitchHTML(lineup, isHome) {
+    if (!lineup || !lineup.startXI) return '';
+    let rows = {};
+    lineup.startXI.forEach(item => {
+        let grid = item.player.grid || "1:1";
+        let r = grid.split(':')[0];
+        if(!rows[r]) rows[r] = [];
+        rows[r].push(item);
+    });
+    
+    let html = '';
+    const rowKeys = Object.keys(rows).sort((a,b) => Number(a) - Number(b));
+    let totalRows = rowKeys.length;
+    
+    rowKeys.forEach((rowNum, rowIndex) => {
+        let playersInRow = rows[rowNum];
+        // ترتيب اللاعبين من اليسار لليمين
+        playersInRow.sort((a,b) => {
+            let cA = a.player.grid ? Number(a.player.grid.split(':')[1]) : 0;
+            let cB = b.player.grid ? Number(b.player.grid.split(':')[1]) : 0;
+            return cA - cB;
+        });
+        
+        // حساب المحور الصادي (Y) بناءً على الفريق
+        let rowY;
+        if (isHome) {
+            rowY = 88 - (rowIndex * (38 / Math.max(1, totalRows - 1))); // الفريق المضيف من الأسفل للأعلى
+        } else {
+            rowY = 12 + (rowIndex * (38 / Math.max(1, totalRows - 1))); // الفريق الضيف من الأعلى للأسفل
+        }
+        
+        playersInRow.forEach((item, index) => {
+            let colX = (100 / (playersInRow.length + 1)) * (index + 1);
+            let p = item.player;
+            let imgUrl = `https://media.api-sports.io/football/players/${p.id}.png`;
+            let shortName = p.name.split(' ').pop(); // الاسم الأخير
+            
+            html += `
+                <div class="pitch-player" style="top: ${rowY}%; left: ${colX}%;">
+                    <img src="${imgUrl}" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'">
+                    <div class="player-num-pitch">${p.number || '-'}</div>
+                    <div class="player-name-pitch" dir="ltr">${shortName}</div>
+                </div>
+            `;
+        });
+    });
+    return html;
+}
+
 async function openMatchDetails(fixtureId) {
     if(window.location.hash !== '#open') { window.location.hash = 'open'; }
 
@@ -176,7 +226,7 @@ async function openMatchDetails(fixtureId) {
         const m = data.response[0];
         if(!m) return;
 
-        // === 1. جلب أحداث المباراة ===
+        // === 1. جلب الأحداث ===
         let eventsHTML = '<div class="timeline-container">';
         if(m.events && m.events.length > 0) {
             m.events.forEach(ev => {
@@ -185,75 +235,60 @@ async function openMatchDetails(fixtureId) {
                 let eventBody = `<span class="event-pname">${ev.player.name}</span>`;
                 let icon = '';
 
-                if (ev.type === 'Goal') {
-                    icon = svgIcons.goal;
-                    if(ev.assist.name) eventBody += `<span class="assist-text">بمساعدة: ${ev.assist.name}</span>`;
-                } else if (ev.type === 'Card') {
-                    icon = ev.detail.includes('Yellow') ? svgIcons.yellowCard : svgIcons.redCard;
-                } else if (ev.type === 'subst') {
-                    eventBody = `
-                        <div style="display:flex; flex-direction:column; gap:2px;">
-                            <div style="display:flex; align-items:center; gap:4px;">${ev.player.name} ${svgIcons.subIn}</div>
-                            <div style="font-size:9px; color:gray; display:flex; align-items:center; gap:4px;">${ev.assist.name} ${svgIcons.subOut}</div>
-                        </div>`;
+                if (ev.type === 'Goal') { icon = svgIcons.goal; if(ev.assist.name) eventBody += `<span class="assist-text">بمساعدة: ${ev.assist.name}</span>`; } 
+                else if (ev.type === 'Card') { icon = ev.detail.includes('Yellow') ? svgIcons.yellowCard : svgIcons.redCard; } 
+                else if (ev.type === 'subst') {
+                    eventBody = `<div style="display:flex; flex-direction:column; gap:2px;"><div style="display:flex; align-items:center; gap:4px;">${ev.player.name} ${svgIcons.subIn}</div><div style="font-size:9px; color:gray; display:flex; align-items:center; gap:4px;">${ev.assist.name} ${svgIcons.subOut}</div></div>`;
                 }
 
                 eventsHTML += `
                     <div class="event-row">
-                        <div class="event-side event-home">
-                            ${isHome ? `<div class="event-player">${eventBody}</div><img src="${playerImg}" class="event-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"> ${icon}` : ''}
-                        </div>
+                        <div class="event-side event-home">${isHome ? `<div class="event-player">${eventBody}</div><img src="${playerImg}" class="event-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"> ${icon}` : ''}</div>
                         <div class="event-time">'${ev.time.elapsed}</div>
-                        <div class="event-side event-away">
-                            ${!isHome ? `${icon} <img src="${playerImg}" class="event-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"><div class="event-player">${eventBody}</div>` : ''}
-                        </div>
+                        <div class="event-side event-away">${!isHome ? `${icon} <img src="${playerImg}" class="event-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"><div class="event-player">${eventBody}</div>` : ''}</div>
                     </div>`;
             });
         } else { eventsHTML += '<p class="empty-msg">لا توجد أحداث مسجلة بعد.</p>'; }
         eventsHTML += '</div>';
 
-        // === 2. جلب التشكيلة الأساسية (Lineups) ===
-        let lineupsHTML = '';
+        // === 2. رسم الملعب (التشكيلة الأساسية) ===
+        let pitchAreaHTML = '';
+        let subsHTML = '';
         if (m.lineups && m.lineups.length > 0) {
             const hLineup = m.lineups[0];
             const aLineup = m.lineups.length > 1 ? m.lineups[1] : null;
             
-            lineupsHTML = `
-            <div class="lineups-container">
-                <div class="lineups-header">التشكيلة الأساسية 👕</div>
-                <div class="lineups-formations">
-                    <span dir="ltr">${hLineup.formation || '-'}</span>
-                    <span>الخطة</span>
-                    <span dir="ltr">${aLineup ? (aLineup.formation || '-') : '-'}</span>
-                </div>
-                <div class="lineups-grid">
-            `;
+            pitchAreaHTML = `
+            <div class="lineups-header" style="margin-top:20px; font-size:18px;">التشكيلة الأساسية 👕</div>
+            <div class="lineups-formations">
+                <span dir="ltr">${hLineup.formation || '-'}</span><span>الخطة</span><span dir="ltr">${aLineup ? (aLineup.formation || '-') : '-'}</span>
+            </div>
+            <div class="pitch-container">
+                <div class="penalty-box-top"></div>
+                <div class="penalty-box-bottom"></div>
+                ${buildPitchHTML(hLineup, true)}
+                ${aLineup ? buildPitchHTML(aLineup, false) : ''}
+            </div>`;
             
-            for(let i=0; i<11; i++) {
-                const hPlayer = hLineup.startXI && hLineup.startXI[i] ? hLineup.startXI[i].player : null;
-                const aPlayer = (aLineup && aLineup.startXI && aLineup.startXI[i]) ? aLineup.startXI[i].player : null;
-                
-                if(!hPlayer && !aPlayer) break;
-                
-                lineupsHTML += `
+            // === 3. قائمة الاحتياط ===
+            subsHTML = `<div class="lineups-container"><div class="lineups-header">قائمة البدلاء 🔄</div><div class="lineups-grid">`;
+            let maxSubs = Math.max(hLineup.substitutes?.length || 0, aLineup?.substitutes?.length || 0);
+            for(let i=0; i<maxSubs; i++) {
+                const hSub = hLineup.substitutes && hLineup.substitutes[i] ? hLineup.substitutes[i].player : null;
+                const aSub = (aLineup && aLineup.substitutes && aLineup.substitutes[i]) ? aLineup.substitutes[i].player : null;
+                if(!hSub && !aSub) break;
+                subsHTML += `
                     <div class="lineup-row">
-                        <div class="lineup-player home-player">
-                            <span class="player-num">${hPlayer?.number || '-'}</span>
-                            <span class="player-name">${hPlayer?.name || '-'}</span>
-                        </div>
-                        <div class="lineup-player away-player">
-                            <span class="player-num">${aPlayer?.number || '-'}</span>
-                            <span class="player-name">${aPlayer?.name || '-'}</span>
-                        </div>
-                    </div>
-                `;
+                        <div class="lineup-player home-player"><span class="player-num">${hSub?.number || '-'}</span><span class="player-name">${hSub?.name || '-'}</span></div>
+                        <div class="lineup-player away-player"><span class="player-num">${aSub?.number || '-'}</span><span class="player-name">${aSub?.name || '-'}</span></div>
+                    </div>`;
             }
-            lineupsHTML += `</div></div>`;
+            subsHTML += `</div></div>`;
         } else {
-            lineupsHTML = '<div class="lineups-container"><p class="empty-msg">التشكيلة غير متوفرة لهذه المباراة حالياً</p></div>';
+            pitchAreaHTML = '<p class="empty-msg">التشكيلة غير متوفرة لهذه المباراة حالياً</p>';
         }
 
-        // === 3. دمج كل شيء في الشاشة ===
+        // === 4. دمج الشاشة ===
         container.innerHTML = `
             <div class="match-hero">
                 <div style="text-align:center; cursor:pointer;" onclick="showTeamInfo(event, ${m.teams.home.id})"><img src="${m.teams.home.logo}" width="60"><br><span class="hero-team-name">${m.teams.home.name}</span></div>
@@ -261,7 +296,8 @@ async function openMatchDetails(fixtureId) {
                 <div style="text-align:center; cursor:pointer;" onclick="showTeamInfo(event, ${m.teams.away.id})"><img src="${m.teams.away.logo}" width="60"><br><span class="hero-team-name">${m.teams.away.name}</span></div>
             </div>
             ${eventsHTML}
-            ${lineupsHTML}
+            ${pitchAreaHTML}
+            ${subsHTML}
         `;
     } catch (e) { container.innerHTML = '<p class="empty-msg">خطأ في جلب تفاصيل المباراة</p>'; }
 }
@@ -269,24 +305,16 @@ async function openMatchDetails(fixtureId) {
 async function fetchFotMobStyle(selectedDate = null) {
     const targetDate = selectedDate || new Date().toISOString().split('T')[0];
     const container = document.getElementById('tab-matches');
-    
     const liveBtn = document.querySelector('.live-btn');
     if (liveBtn) liveBtn.classList.remove('active');
     container.classList.remove('live-mode');
-    
     container.innerHTML = '<div class="loader-container"><div class="spinner"></div></div>';
     
     try {
         const response = await fetch(`${SERVER_URL}/fixtures?date=${targetDate}`);
         const data = await response.json();
-
-        if (data.errors && data.errors.requests) { 
-            container.innerHTML = `<div class="empty-msg" style="color:#ff3b30;">انتهت الباقة. تأكد من مفتاح API في السيرفر.</div>`; return; 
-        }
-
-        globalMatches = data.response || []; 
-        renderMatchesUI(); 
-        
+        if (data.errors && data.errors.requests) { container.innerHTML = `<div class="empty-msg" style="color:#ff3b30;">انتهت الباقة. تأكد من مفتاح API.</div>`; return; }
+        globalMatches = data.response || []; renderMatchesUI(); 
     } catch (error) { container.innerHTML = "<p class='empty-msg'>حدث خطأ بالاتصال بالسيرفر</p>"; }
 }
 
@@ -329,7 +357,6 @@ function renderMatchesUI() {
             const s = m.fixture.status.short;
             const isLive = isLiveMatch(s);
             const isNotStarted = ['NS', 'TBD'].includes(s);
-            
             let matchClass = isLive ? 'is-live-match' : 'not-live-match';
             let centerText = ''; let rightStatus = '';
             
@@ -352,29 +379,17 @@ function renderMatchesUI() {
                     <div class="match-status-right" dir="ltr">${rightStatus}</div>
                 </div>`;
         });
-        leagueHTML += `</div>`;
-        container.innerHTML += leagueHTML;
+        leagueHTML += `</div>`; container.innerHTML += leagueHTML;
     });
 }
 
 function filterMatches() {
     const query = document.getElementById('match-search').value.toLowerCase();
-    document.querySelectorAll('.match-row').forEach(row => {
-        if (row.innerText.toLowerCase().includes(query)) {
-            row.classList.remove('hidden-by-search');
-        } else {
-            row.classList.add('hidden-by-search');
-        }
-    });
+    document.querySelectorAll('.match-row').forEach(row => { row.classList.toggle('hidden-by-search', !row.innerText.toLowerCase().includes(query)); });
     document.querySelectorAll('.league-group').forEach(group => {
         const hasVisible = Array.from(group.querySelectorAll('.match-row')).some(m => !m.classList.contains('hidden-by-search'));
-        if (hasVisible) {
-            group.classList.remove('hidden-by-search');
-        } else {
-            group.classList.add('hidden-by-search');
-        }
+        group.classList.toggle('hidden-by-search', !hasVisible);
     });
 }
 
-setupDatesBar();
-fetchFotMobStyle();
+setupDatesBar(); fetchFotMobStyle();
