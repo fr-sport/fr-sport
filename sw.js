@@ -1,4 +1,4 @@
-const CACHE_NAME = 'fr-sport-v1';
+const CACHE_NAME = 'fr-sport-v2';
 const urlsToCache = [
   '/fr-sport/',
   '/fr-sport/index.html',
