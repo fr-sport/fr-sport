@@ -14,7 +14,6 @@ const SERVER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
 const TOP_LEAGUES = [2, 3, 39, 140, 135, 78, 61, 307, 1, 4, 17, 12];
 let globalMatches = []; 
 
-// تم استبدال الكتابة والإيموجي بأيقونات (SVG) احترافية
 const svgIcons = {
     subIn: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#00e676" stroke-width="3"><path d="M5 12h14M12 5l7 7-7 7"/></svg>`,
     subOut: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" stroke-width="3"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>`,
@@ -23,30 +22,6 @@ const svgIcons = {
     redCard: `<svg width="12" height="16" viewBox="0 0 24 24"><rect x="5" y="2" width="14" height="20" rx="3" fill="#f44336" stroke="#d32f2f" stroke-width="1"/></svg>`,
     stadium: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"></path><path d="M2 17l10 5 10-5"></path><path d="M2 12l10 5 10-5"></path></svg>`
 };
-
-const styleSheet = document.createElement("style");
-styleSheet.innerText = `
-    .pitch-container { width: 100%; aspect-ratio: 2/3; background: linear-gradient(180deg, #2e7d32 0%, #388e3c 50%, #2e7d32 100%); border: 3px solid rgba(255,255,255,0.6); position: relative; margin: 25px 0; overflow: hidden; border-radius: 12px; box-shadow: 0 8px 20px rgba(0,0,0,0.6); display: flex; flex-direction: column; }
-    .pitch-container::before { content: ''; position: absolute; top: 50%; left: 0; width: 100%; height: 3px; background: rgba(255,255,255,0.5); transform: translateY(-50%); }
-    .pitch-container::after { content: ''; position: absolute; top: 50%; left: 50%; width: 22%; padding-bottom: 22%; border: 3px solid rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%); }
-    .penalty-box-top { position: absolute; top: 0; left: 22%; width: 56%; height: 16%; border: 3px solid rgba(255,255,255,0.5); border-top: none; }
-    .penalty-box-bottom { position: absolute; bottom: 0; left: 22%; width: 56%; height: 16%; border: 3px solid rgba(255,255,255,0.5); border-bottom: none; }
-    .team-half { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; padding: 10px 0; position: relative; z-index: 5;}
-    .home-half { flex-direction: column-reverse; }
-    .pitch-row { display: flex; justify-content: space-evenly; align-items: center; width: 100%; }
-    .pitch-player-box { display: flex; flex-direction: column; align-items: center; position: relative; width: 20%; }
-    .player-name-pitch { background: rgba(0,0,0,0.75); color: #fff; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 10px; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70px; text-align: center; }
-    .lineups-container { margin-top: 15px; background: rgba(255,255,255,0.03); border: 1px solid rgba(204,204,204,0.2); border-radius: 15px; padding: 15px; }
-    .lineups-header { text-align: center; color: #cccccc; font-weight: 900; margin-bottom: 12px; font-size: 17px; text-shadow: 0 0 15px rgba(204,204,204,0.3);}
-    .lineups-formations { display: flex; justify-content: center; gap: 15px; font-size: 13px; color: #fff; margin-bottom: 15px; padding: 5px; font-weight:bold; background: rgba(0,0,0,0.2); border-radius: 20px; width: fit-content; margin-left: auto; margin-right: auto;}
-    .formation-badge { background: #cccccc; color: #000; padding: 2px 8px; border-radius: 8px; }
-    .lineup-row { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.05); padding: 10px 0; }
-    .lineup-player { display: flex; align-items: center; gap: 10px; width: 48%; font-size: 12px; color: #fff; overflow: hidden; }
-    .home-player { justify-content: flex-start; } .away-player { justify-content: flex-end; flex-direction: row-reverse; text-align: right; }
-    .player-num { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); color: #cccccc; width: 24px; height: 24px; display: flex; justify-content: center; align-items: center; border-radius: 50%; font-size: 11px; font-weight: bold; flex-shrink: 0;}
-    .player-name { text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
-`;
-document.head.appendChild(styleSheet);
 
 function setupDatesBar() {
     const container = document.getElementById('dates-container');
@@ -91,7 +66,6 @@ function toggleLive(element) {
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-// إضافة ذاكرة مؤقتة (Cache) لتسريع جلب المباريات
 async function fetchFotMobStyle(selectedDate = null) {
     const targetDate = selectedDate || new Date().toISOString().split('T')[0];
     const container = document.getElementById('tab-matches');
@@ -99,28 +73,28 @@ async function fetchFotMobStyle(selectedDate = null) {
     if (liveBtn) liveBtn.classList.remove('active');
     container.classList.remove('live-mode');
     
+    container.innerHTML = '<div class="loader-container"><div class="spinner"></div></div>';
+    
     const cacheKey = `matches_${targetDate}`;
     const cachedData = sessionStorage.getItem(cacheKey);
     
     if (cachedData) {
         globalMatches = JSON.parse(cachedData);
         renderMatchesUI();
-    } else {
-        container.innerHTML = '<div class="loader-container"><div class="spinner"></div></div>';
     }
     
     try {
         const response = await fetch(`${SERVER_URL}/fixtures?date=${targetDate}`);
         const data = await response.json();
         if (data.errors && data.errors.requests) { 
-            if(!cachedData) container.innerHTML = `<div class="empty-msg">انتهت الباقة.</div>`; 
+            if(!cachedData) container.innerHTML = `<div class="empty-msg">انتهت الباقة اليومية.</div>`; 
             return; 
         }
         globalMatches = data.response || []; 
         sessionStorage.setItem(cacheKey, JSON.stringify(globalMatches));
         renderMatchesUI(); 
     } catch (error) { 
-        if(!cachedData) container.innerHTML = "<p class='empty-msg'>حدث خطأ بالاتصال بالسيرفر</p>"; 
+        if(!cachedData) container.innerHTML = "<p class='empty-msg'>حدث خطأ بالاتصال بالسيرفر، تأكد من الإنترنت.</p>"; 
     }
 }
 
@@ -203,30 +177,67 @@ async function showTeamInfo(event, teamId) {
     const modal = document.getElementById('team-modal'); 
     const container = document.getElementById('team-info-container');
     modal.classList.remove('hidden'); 
-    container.innerHTML = '<div class="loader-container"><div class="spinner"></div></div>';
+    
+    container.innerHTML = '<div class="loader-container"><div class="spinner"></div></div><div style="text-align:center; color:gray; font-size:12px; margin-top:-20px;">جاري جلب بيانات النادي واللاعبين...</div>';
+    
     try {
-        const response = await fetch(`${SERVER_URL}/teams?id=${teamId}`);
-        const data = await response.json();
-        if (data.response && data.response.length > 0) {
-            const team = data.response[0].team, venue = data.response[0].venue;
-            container.innerHTML = `
+        const teamRes = await fetch(`${SERVER_URL}/teams?id=${teamId}`);
+        const teamData = await teamRes.json();
+        const squadRes = await fetch(`${SERVER_URL}/players/squads?team=${teamId}`);
+        const squadData = await squadRes.json();
+
+        if (teamData.response && teamData.response.length > 0) {
+            const team = teamData.response[0].team;
+            const venue = teamData.response[0].venue;
+            
+            let html = `
                 <div style="text-align:center; margin-bottom:15px;">
-                    <img src="${team.logo}" width="80" style="filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5));">
+                    <img src="${team.logo}" width="80" style="filter: drop-shadow(0 5px 15px rgba(0,0,0,0.5)); max-width:100%;">
                     <h2 style="color:#fff; margin:10px 0 0 0;">${team.name}</h2>
                 </div>
                 <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; text-align:center;">
                     <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px;"><span style="font-size:10px; color:gray;">البلد</span><br><strong style="color:#ccc;">${team.country || '-'}</strong></div>
                     <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:10px;"><span style="font-size:10px; color:gray;">التأسيس</span><br><strong style="color:#ccc;">${team.founded || '-'}</strong></div>
                 </div>
-                <div style="margin-top:15px; background:rgba(30,30,35,0.6); padding:15px; border-radius:10px; display:flex; align-items:center; gap:10px;">
+                <div style="margin-top:15px; background:rgba(30,30,35,0.6); padding:15px; border-radius:10px; display:flex; align-items:center; gap:10px; border: 1px solid rgba(255,255,255,0.05);">
                     ${svgIcons.stadium}
-                    <div><div style="color:#fff; font-size:12px; font-weight:bold;">${venue.name || 'غير متوفر'}</div><div style="color:gray; font-size:10px;">المدينة: ${venue.city || '-'}</div></div>
+                    <div>
+                        <div style="color:#fff; font-size:12px; font-weight:bold;">${venue.name || 'ملعب غير معروف'}</div>
+                        <div style="color:gray; font-size:10px;">المدينة: ${venue.city || '-'} | السعة: ${venue.capacity ? venue.capacity.toLocaleString() : '-'}</div>
+                    </div>
                 </div>`;
+
+            if (squadData.response && squadData.response.length > 0) {
+                const players = squadData.response[0].players;
+                if (players && players.length > 0) {
+                    html += `
+                        <div style="margin-top:20px;">
+                            <h3 style="color:#cccccc; font-size:14px; text-align:center; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:8px; margin-bottom:15px;">قائمة لاعبي الفريق</h3>
+                            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(70px, 1fr)); gap:10px; max-height: 350px; overflow-y: auto; padding-right:5px; scrollbar-width: none;">`;
+                    
+                    players.forEach(p => {
+                        let fallbackImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
+                        html += `
+                            <div style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.05); border-radius:10px; padding:10px 5px; text-align:center; position:relative;">
+                                <div style="position:absolute; top:4px; left:4px; background:#cccccc; color:#000; font-size:9px; font-weight:900; width:16px; height:16px; display:flex; justify-content:center; align-items:center; border-radius:50%; border:1px solid #000;">${p.number || '-'}</div>
+                                <img src="${p.photo}" onerror="this.src='${fallbackImg}'" style="width:45px; height:45px; border-radius:50%; object-fit:cover; border:2px solid rgba(255,255,255,0.1); margin-bottom:6px; background:#eee; max-width:100%;">
+                                <div style="font-size:9px; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:bold;" dir="ltr">${p.name}</div>
+                                <div style="font-size:8px; color:#999; margin-top:3px;">${p.position || '-'}</div>
+                            </div>`;
+                    });
+                    html += `</div></div>`;
+                }
+            } else {
+                html += `<div style="margin-top:20px; text-align:center; color:gray; font-size:12px;">قائمة اللاعبين غير متوفرة حالياً</div>`;
+            }
+
+            container.innerHTML = html;
         }
-    } catch { container.innerHTML = '<p class="empty-msg" style="color:#ff3b30;">حدث خطأ في جلب البيانات</p>'; }
+    } catch (e) { 
+        container.innerHTML = '<p class="empty-msg" style="color:#ff3b30;">حدث خطأ في جلب بيانات النادي</p>'; 
+    }
 }
 
-// تم إصلاح صور اللاعبين هنا لتظهر بشكل مثالي
 function buildPitchHTML(lineup, isHome) {
     if (!lineup || !lineup.startXI) return '';
     let lines = { GK: [], DEF: [], MID: [], FWD: [] };
@@ -249,7 +260,7 @@ function buildPitchHTML(lineup, isHome) {
         players.forEach(item => {
             let p = item.player;
             let imgUrl = `https://media.api-sports.io/football/players/${p.id}.png`;
-            let fallbackImg = "https://cdn-icons-png.flaticon.com/512/149/149071.png";
+            let fallbackImg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23999'%3E%3Cpath d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/%3E%3C/svg%3E";
             let shortName = p.name.split(' ').pop();
             rowHTML += `
                 <div class="pitch-player-box">
@@ -288,7 +299,6 @@ async function openMatchDetails(fixtureId) {
                 let eventBody = `<span class="event-pname">${ev.player.name}</span>`;
                 let icon = '';
 
-                // استخدام أيقونات فقط بدون أي كتابة
                 if (ev.type === 'Goal') { 
                     icon = svgIcons.goal; 
                     if(ev.assist.name) eventBody += `<div style="font-size:9px; color:gray; margin-top:2px;">${ev.assist.name}</div>`; 
@@ -302,9 +312,9 @@ async function openMatchDetails(fixtureId) {
 
                 eventsHTML += `
                     <div class="event-row">
-                        <div class="event-side event-home">${isHome ? `<div class="event-player">${eventBody}</div><img src="${playerImg}" class="event-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"> ${icon}` : ''}</div>
+                        <div class="event-side event-home">${isHome ? `<div class="event-player">${eventBody}</div><img src="${playerImg}" class="event-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%23999\\'%3E%3Cpath d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/%3E%3C/svg%3E'"> ${icon}` : ''}</div>
                         <div class="event-time">'${ev.time.elapsed}</div>
-                        <div class="event-side event-away">${!isHome ? `${icon} <img src="${playerImg}" class="event-avatar" onerror="this.src='https://cdn-icons-png.flaticon.com/512/149/149071.png'"><div class="event-player">${eventBody}</div>` : ''}</div>
+                        <div class="event-side event-away">${!isHome ? `${icon} <img src="${playerImg}" class="event-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'%23999\\'%3E%3Cpath d=\\'M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z\\'/%3E%3C/svg%3E'"><div class="event-player">${eventBody}</div>` : ''}</div>
                     </div>`;
             });
         } else { eventsHTML += '<p class="empty-msg">لا توجد أحداث مسجلة بعد.</p>'; }
@@ -343,9 +353,9 @@ async function openMatchDetails(fixtureId) {
 
         container.innerHTML = `
             <div class="match-hero">
-                <div style="text-align:center; cursor:pointer;" onclick="showTeamInfo(event, ${m.teams.home.id})"><img src="${m.teams.home.logo}" width="60"><br><span class="hero-team-name">${m.teams.home.name}</span></div>
+                <div style="text-align:center; cursor:pointer;" onclick="showTeamInfo(event, ${m.teams.home.id})"><img src="${m.teams.home.logo}" width="60" style="max-width:100%;"><br><span class="hero-team-name">${m.teams.home.name}</span></div>
                 <div style="text-align:center"><div style="font-size:38px; font-weight:900; color:#cccccc; text-shadow:0 0 15px rgba(204,204,204,0.3);" dir="ltr">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</div><div style="background:#cccccc; color:#000; padding:2px 8px; border-radius:10px; font-size:10px; font-weight:bold;">${m.fixture.status.long}</div></div>
-                <div style="text-align:center; cursor:pointer;" onclick="showTeamInfo(event, ${m.teams.away.id})"><img src="${m.teams.away.logo}" width="60"><br><span class="hero-team-name">${m.teams.away.name}</span></div>
+                <div style="text-align:center; cursor:pointer;" onclick="showTeamInfo(event, ${m.teams.away.id})"><img src="${m.teams.away.logo}" width="60" style="max-width:100%;"><br><span class="hero-team-name">${m.teams.away.name}</span></div>
             </div>
             ${eventsHTML} ${pitchAreaHTML} ${subsHTML}
         `;
