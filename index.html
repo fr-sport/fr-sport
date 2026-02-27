@@ -5,13 +5,63 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>FR SPORT</title>
     
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=999">
 
     <link rel="manifest" href="manifest.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FR SPORT">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+
+    <style>
+        /* كود إجباري ومحصن لشريط التواريخ والهيدر */
+        #dates-container { 
+            display: flex !important; 
+            flex-direction: row !important; 
+            flex-wrap: nowrap !important; 
+            overflow-x: auto !important; 
+            padding: 10px 15px !important; 
+            gap: 10px !important; 
+            background: #050505 !important; 
+            border-bottom: 1px solid rgba(204, 204, 204, 0.1) !important;
+            width: 100% !important; 
+            box-sizing: border-box !important;
+            -webkit-overflow-scrolling: touch !important; 
+            scrollbar-width: none !important;
+            direction: rtl !important;
+            align-items: center !important;
+        }
+        #dates-container::-webkit-scrollbar { display: none !important; }
+        .date-item { 
+            display: inline-flex !important; 
+            justify-content: center !important; 
+            align-items: center !important;
+            font-size: 12px !important; 
+            color: rgba(255, 255, 255, 0.5) !important; 
+            white-space: nowrap !important; 
+            font-weight: bold !important; 
+            padding: 8px 18px !important; 
+            border-radius: 20px !important; 
+            background: rgba(255, 255, 255, 0.05) !important; 
+            border: 1px solid rgba(255, 255, 255, 0.05) !important; 
+            flex-shrink: 0 !important; 
+        }
+        .date-item.active { 
+            color: #000 !important; 
+            background: #cccccc !important; 
+            border-color: #cccccc !important; 
+            box-shadow: 0 0 15px rgba(204, 204, 204, 0.3) !important; 
+            transform: scale(1.05) !important;
+        }
+        
+        .top-header { display: flex !important; justify-content: space-between !important; align-items: center !important; padding: 12px 15px !important; position: sticky !important; top: 0 !important; z-index: 100 !important; background: rgba(10, 10, 15, 0.85) !important; backdrop-filter: blur(25px) !important; border-bottom: 1px solid rgba(204, 204, 204, 0.2) !important; width: 100% !important; box-sizing: border-box !important; }
+        .logo { font-size: 18px !important; font-weight: 900 !important; letter-spacing: 2px !important; color: #cccccc !important; text-transform: uppercase !important; text-shadow: 0 0 15px rgba(204, 204, 204, 0.3) !important; font-style: italic !important; margin: 0 !important;}
+        .header-actions { display: flex !important; align-items: center !important; gap: 10px !important; flex-direction: row !important; }
+        .calendar-btn { display: flex !important; align-items: center !important; justify-content: center !important; width: 32px !important; height: 32px !important; color: #cccccc !important; border-radius: 8px !important; background: rgba(204, 204, 204, 0.1) !important; border: 1px solid rgba(204, 204, 204, 0.2) !important; }
+        .live-btn { display: flex !important; align-items: center !important; gap: 6px !important; background: rgba(204, 204, 204, 0.1) !important; border: 1px solid rgba(204, 204, 204, 0.2) !important; padding: 5px 12px !important; border-radius: 20px !important; font-size: 11px !important; font-weight: bold !important; color: #fff !important; }
+        .live-btn.active { background: #cccccc !important; color: #000 !important; border-color: #cccccc !important; box-shadow: 0 0 15px rgba(204, 204, 204, 0.3) !important; }
+        .live-dot { width: 6px !important; height: 6px !important; background: currentColor !important; border-radius: 50% !important; box-shadow: 0 0 5px currentColor !important; }
+    </style>
 </head>
 <body>
 
@@ -27,7 +77,7 @@
         <div class="logo">FR SPORT</div>
     </header>
 
-    <div id="dates-container" class="dates-slider"></div>
+    <div id="dates-container"></div>
 
     <div class="search-container">
         <input type="text" id="match-search" class="search-input" placeholder="ابحث عن مباراة أو فريق..." onkeyup="filterMatches()">
@@ -85,8 +135,12 @@
 
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/fr-sport/sw.js');
+        navigator.serviceWorker.getRegistrations().then(function(registrations) {
+          for(let registration of registrations) {
+            registration.unregister(); 
+          }
+        }).then(() => {
+            navigator.serviceWorker.register('/fr-sport/sw.js'); 
         });
       }
     </script>
