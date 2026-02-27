@@ -13,19 +13,21 @@
     <meta name="apple-mobile-web-app-title" content="FR SPORT">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/149/149071.png">
 </head>
-<body style="background-color: #000; color: #fff; margin: 0; padding: 0;">
+<body>
 
-    <header class="top-header" style="text-align: center; padding: 15px; background: #000; border-bottom: 1px solid #1a1a1a;">
-        <div class="logo" style="font-size: 22px; font-weight: 900; font-style: italic; letter-spacing: 1px;">FR SPORT</div>
+    <header class="top-header">
+        <div class="logo">FR SPORT</div>
     </header>
 
-    <div id="dates-container" style="display: flex; overflow-x: auto; white-space: nowrap; gap: 8px; padding: 12px 10px; background: #000; border-bottom: 1px solid #1a1a1a; -webkit-overflow-scrolling: touch; scrollbar-width: none;"></div>
-
-    <div class="search-container" style="padding: 10px; background: #000;">
-        <input type="text" id="match-search" placeholder="ابحث عن مباراة أو فريق..." onkeyup="filterMatches()" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #333; background: #111; color: #fff; text-align: right; box-sizing: border-box;">
+    <div class="dates-wrapper">
+        <div id="dates-container" class="dates-scroll"></div>
     </div>
 
-    <main class="app-content" style="padding-bottom: 80px;">
+    <div class="search-container">
+        <input type="text" id="match-search" placeholder="ابحث عن مباراة أو فريق..." onkeyup="filterMatches()">
+    </div>
+
+    <main class="app-content">
         <div id="tab-matches" class="page-content">
             <div class="loader-container"><div class="spinner"></div></div>
         </div>
@@ -76,13 +78,7 @@
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/fr-sport/sw.js')
-            .then(registration => {
-              console.log('ServiceWorker registration successful');
-            })
-            .catch(err => {
-              console.log('ServiceWorker registration failed: ', err);
-            });
+          navigator.serviceWorker.register('/fr-sport/sw.js');
         });
       }
     </script>
