@@ -8,6 +8,11 @@
     --glass-border: rgba(204, 204, 204, 0.2);
 }
 
+/* الكود الإجباري لمنع زوم النقر المزدوج */
+html, body { 
+    touch-action: manipulation;
+}
+
 body { 
     margin: 0; background-color: #050505; 
     background-image: linear-gradient(rgba(204, 204, 204, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(204, 204, 204, 0.03) 1px, transparent 1px);
@@ -17,7 +22,6 @@ body {
 .hidden { display: none !important; }
 .empty-msg { text-align: center; color: var(--text-muted); padding: 20px; font-size: 13px;}
 
-/* Header */
 .top-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; position: sticky; top: 0; z-index: 100; background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(25px); border-bottom: 1px solid var(--glass-border); width: 100%; box-sizing: border-box; }
 .logo { font-size: 18px; font-weight: 900; letter-spacing: 2px; color: var(--accent-color); text-transform: uppercase; text-shadow: var(--accent-glow); font-style: italic; margin:0;}
 .header-actions { display: flex; align-items: center; gap: 10px; flex-direction: row; }
@@ -27,11 +31,9 @@ body {
 .live-dot { width: 6px; height: 6px; background: #ff3b30; border-radius: 50%; box-shadow: 0 0 5px #ff3b30; }
 .live-btn.active .live-dot { background: #000; box-shadow: none; }
 
-/* Search */
 .search-container { padding: 10px 15px; width: 100%; box-sizing: border-box; }
 .search-input { width: 100%; padding: 10px 15px; border-radius: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); color: #fff; box-sizing: border-box; outline: none; transition: 0.3s; text-align: right;}
 
-/* Dates */
 .dates-wrapper { width: 100%; overflow: hidden; background: #050505; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
 .dates-slider { 
     display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; 
@@ -47,7 +49,6 @@ body {
 }
 .date-item.active { color: #000; background: var(--accent-color); border-color: var(--accent-color); box-shadow: var(--accent-glow); transform: scale(1.05);}
 
-/* Matches List */
 .league-header { display: flex; align-items: center; padding: 8px 0; margin-bottom: 10px; background: linear-gradient(270deg, var(--accent-dark) 0%, transparent 80%); border-right: 3px solid var(--accent-color); padding-right: 12px; }
 .league-title-wrapper { display: flex; align-items: center; gap: 8px; }
 .league-logo { width: 20px; height: 20px; border-radius: 50%; background: #fff; padding: 2px; }
@@ -76,13 +77,11 @@ body {
 .status-live-circle { width: 22px; height: 22px; border-radius: 50%; background: var(--accent-color); color: #000; display: flex; justify-content: center; align-items: center; font-size: 9px; font-weight: bold; animation: heartbeat 1.5s infinite; }
 @keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
 
-/* Bottom Nav */
 .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(20px); display: flex; justify-content: space-around; padding: 10px 0 15px; border-top: 1px solid var(--glass-border); z-index: 1000; }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--text-muted); font-size: 10px; font-weight: bold; cursor: pointer;}
 .nav-item svg { width: 24px; height: 24px; margin-bottom: 2px; }
 .nav-item.active { color: var(--accent-color); }
 
-/* Modals */
 .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(5px); display: flex; justify-content: center; align-items: center; z-index: 3000; }
 .modal-content { width: 85%; max-width: 320px; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 20px; position: relative; overflow: hidden; padding: 15px;}
 .close-btn { position: absolute; top: 12px; right: 18px; font-size: 24px; color: #fff; z-index: 10; cursor: pointer; }
@@ -93,19 +92,16 @@ body {
 .match-modal-title { flex: 1; text-align: center; font-size: 14px; font-weight: bold; margin-right: -40px; color:#fff;}
 .full-modal-body { padding: 15px; }
 
-/* Loader */
 .loader-container { display: flex; justify-content: center; padding: 40px; }
 .spinner { width: 30px; height: 30px; border: 3px solid rgba(204, 204, 204, 0.1); border-top: 3px solid var(--accent-color); border-radius: 50%; animation: spin 0.8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* Helpers */
 .league-group { margin: 15px 10px; }
 #tab-matches.live-mode .no-live-match, #tab-matches.live-mode .not-live-match { display: none !important; }
 #no-live-msg { display: none; text-align: center; color: var(--accent-color); padding: 30px; font-weight: bold; font-size: 14px;}
 #tab-matches.live-mode:not(:has(.is-live-match)) #no-live-msg { display: block; }
 .hidden-by-search { display: none !important; }
 
-/* Match Details Elements */
 .match-hero { background: linear-gradient(180deg, rgba(204,204,204,0.05), transparent); border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px 15px; display: flex; justify-content: space-around; align-items: center; margin-bottom: 15px; }
 .hero-team-name { font-size: 11px; font-weight: bold; color: #fff; margin-top: 5px; text-align: center;}
 .timeline-container { position: relative; padding: 10px 0; direction: ltr; }
@@ -119,4 +115,4 @@ body {
 .event-home .event-player { text-align: right; align-items: flex-end; }
 .event-away .event-player { text-align: left; align-items: flex-start; }
 .event-pname { font-size: 11px; font-weight: bold; color: #fff; }
-.event-avatar { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); object-fit: cover;}
+.event-avatar { width: 30px; height: 30px; border-radius: 50%; background: #222; border: 1px solid var(--glass-border); object-fit: cover;}
