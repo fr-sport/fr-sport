@@ -1,14 +1,14 @@
 {
   "name": "FR SPORT",
   "short_name": "FR SPORT",
-  "description": "تطبيق رياضي لمتابعة المباريات",
+  "description": "تطبيق FR SPORT الرياضي",
   "start_url": "/fr-sport/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#000000",
+  "background_color": "#050505",
+  "theme_color": "#050505",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/149/149071.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/1865/1865269.png",
       "sizes": "512x512",
       "type": "image/png"
     }
