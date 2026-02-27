@@ -1,94 +1,165 @@
-:root {
-    --text-main: rgba(255, 255, 255, 0.95); 
-    --text-muted: rgba(255, 255, 255, 0.5);
-    --accent-color: #cccccc; 
-    --accent-glow: 0 0 15px rgba(204, 204, 204, 0.3);
-    --accent-dark: rgba(204, 204, 204, 0.1);
-    --card-bg: linear-gradient(145deg, rgba(25, 25, 30, 0.9), rgba(10, 10, 15, 0.9));
-    --glass-border: rgba(204, 204, 204, 0.2);
+// === المفاتيح السحرية لـ Firebase ===
+const firebaseConfig = {
+    apiKey: "AIzaSyCEGxx2tlEsw09VJPWyL1Dd_-n6mziatuA",
+    authDomain: "fr-sport.firebaseapp.com",
+    projectId: "fr-sport",
+    storageBucket: "fr-sport.firebasestorage.app",
+    messagingSenderId: "247900578680",
+    appId: "1:247900578680:web:03c1af6d0351737a19de8d",
+    measurementId: "G-W1K6K94HDL"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const db = firebase.firestore();
+console.log("تم الاتصال بقاعدة البيانات بنجاح");
+
+// === سيرفر جلب المباريات ===
+const SERVER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
+const TOP_LEAGUES = [2, 3, 39, 140, 135, 78, 61, 307, 1, 4, 17, 12];
+let globalMatches = []; 
+
+function setupDatesBar() {
+    const container = document.getElementById('dates-container');
+    if (!container) return;
+    container.innerHTML = '';
+    const today = new Date();
+    const daysNames = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    for (let i = -10; i <= 10; i++) {
+        let d = new Date(); d.setDate(today.getDate() + i); let dateStr = d.toISOString().split('T')[0];
+        let label = i === 0 ? "اليوم" : i === -1 ? "أمس" : i === 1 ? "غداً" : `${daysNames[d.getDay()]} ${d.getDate()}`;
+        let activeClass = i === 0 ? "active" : "";
+        container.innerHTML += `<div class="date-item ${activeClass}" id="btn-${dateStr}" onclick="selectDate('${dateStr}')">${label}</div>`;
+    }
+    setTimeout(() => { document.querySelector('.date-item.active')?.scrollIntoView({ behavior: 'smooth', inline: 'center' }); }, 100);
 }
 
-body { 
-    margin: 0; background-color: #050505; 
-    background-image: linear-gradient(rgba(204, 204, 204, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(204, 204, 204, 0.03) 1px, transparent 1px);
-    background-size: 30px 30px; background-attachment: fixed; color: var(--text-main); font-family: sans-serif; padding-bottom: 80px; -webkit-tap-highlight-color: transparent;
+function selectDate(dateStr) {
+    document.querySelectorAll('.page-content').forEach(page => page.classList.add('hidden'));
+    document.querySelectorAll('.bottom-nav .nav-item').forEach(item => item.classList.remove('active'));
+    document.getElementById('tab-matches').classList.remove('hidden');
+    document.querySelectorAll('.bottom-nav .nav-item')[0].classList.add('active'); 
+    document.querySelectorAll('.date-item').forEach(item => item.classList.remove('active'));
+    const clickedBtn = document.getElementById(`btn-${dateStr}`);
+    if (clickedBtn) { clickedBtn.classList.add('active'); clickedBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' }); }
+    fetchFotMobStyle(dateStr);
 }
 
-.hidden { display: none !important; }
-.empty-msg { text-align: center; color: var(--text-muted); padding: 20px; font-size: 13px;}
+function switchTab(element, tabId) {
+    document.querySelectorAll('.page-content').forEach(page => page.classList.add('hidden'));
+    document.querySelectorAll('.bottom-nav .nav-item').forEach(item => item.classList.remove('active'));
+    if(document.getElementById(tabId)) document.getElementById(tabId).classList.remove('hidden'); 
+    element.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-.top-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; position: sticky; top: 0; z-index: 100; background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(25px); border-bottom: 1px solid var(--glass-border); width: 100%; box-sizing: border-box; }
-.logo { font-size: 18px; font-weight: 900; letter-spacing: 2px; color: var(--accent-color); text-transform: uppercase; text-shadow: var(--accent-glow); font-style: italic; margin:0;}
-.header-actions { display: flex; align-items: center; gap: 10px; flex-direction: row; }
+function toggleLive(element) {
+    element.classList.toggle('active');
+    const container = document.getElementById('tab-matches');
+    if (element.classList.contains('active')) {
+        container.classList.add('live-mode');
+    } else {
+        container.classList.remove('live-mode');
+    }
+}
+
+function closeModal(id) {
+    document.getElementById(id).classList.add('hidden');
+}
+
+async function fetchFotMobStyle(selectedDate = null) {
+    const targetDate = selectedDate || new Date().toISOString().split('T')[0];
+    const container = document.getElementById('tab-matches');
+    const liveBtn = document.querySelector('.live-btn');
+    if (liveBtn) liveBtn.classList.remove('active');
+    container.classList.remove('live-mode');
+    container.innerHTML = '<div class="loader-container"><div class="spinner"></div></div>';
     
-.calendar-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; color: var(--accent-color); border-radius: 8px; background: var(--accent-dark); border: 1px solid var(--glass-border); }
-.live-btn { display: flex; align-items: center; gap: 6px; background: var(--accent-dark); border: 1px solid var(--glass-border); padding: 5px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; color: #fff; flex-shrink: 0; cursor: pointer; outline: none;}
-.live-btn.active { background: var(--accent-color); color: #000; box-shadow: var(--accent-glow); }
-.live-dot { width: 6px; height: 6px; background: #ff3b30; border-radius: 50%; box-shadow: 0 0 5px #ff3b30; }
-.live-btn.active .live-dot { background: #000; box-shadow: none; }
-
-.search-container { padding: 10px 15px; width: 100%; box-sizing: border-box; }
-.search-input { width: 100%; padding: 10px 15px; border-radius: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--glass-border); color: #fff; box-sizing: border-box; outline: none; transition: 0.3s; text-align: right;}
-
-.dates-wrapper { width: 100%; overflow: hidden; background: #050505; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-.dates-slider { 
-    display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; 
-    overflow-x: auto !important; padding: 12px 15px; gap: 10px; 
-    scrollbar-width: none; align-items: center; direction: rtl;
-    -webkit-overflow-scrolling: touch;
-}
-.dates-slider::-webkit-scrollbar { display: none; }
-.date-item { 
-    font-size: 12px; color: var(--text-muted); white-space: nowrap !important; font-weight: bold; 
-    padding: 8px 18px; border-radius: 20px; background: rgba(255, 255, 255, 0.05); 
-    border: 1px solid rgba(255, 255, 255, 0.05); flex-shrink: 0 !important; cursor: pointer;
-}
-.date-item.active { color: #000; background: var(--accent-color); border-color: var(--accent-color); box-shadow: var(--accent-glow); transform: scale(1.05);}
-
-.league-header { display: flex; align-items: center; padding: 8px 0; margin-bottom: 10px; background: linear-gradient(270deg, var(--accent-dark) 0%, transparent 80%); border-right: 3px solid var(--accent-color); padding-right: 12px; }
-.league-title-wrapper { display: flex; align-items: center; gap: 8px; }
-.league-logo { width: 20px; height: 20px; border-radius: 50%; background: #fff; padding: 2px; }
-.league-name { font-size: 12px; font-weight: bold; color: #fff; }
-
-.match-row { display: flex; justify-content: center; align-items: center; padding: 12px 10px; margin-bottom: 10px; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 15px; position: relative; width: 100%; box-sizing: border-box; cursor: pointer;}
-.teams-and-score { display: flex; align-items: center; flex: 1; justify-content: center; padding: 0 10px; width: 100%; }
-.team-side { display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
-.team-home { justify-content: flex-end; } .team-away { justify-content: flex-start; }
-.team-logo { width: 22px; height: 22px; flex-shrink: 0; }
-.team-name { font-size: 11px; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-.match-score { 
-    width: 75px !important; min-width: 75px !important; max-width: 75px !important; height: 28px !important; 
-    display: flex; justify-content: center; align-items: center; 
-    border-radius: 8px; background: rgba(0, 0, 0, 0.6); 
-    border: 1px solid var(--glass-border); 
-    font-family: monospace; font-size: 14px; 
-    font-weight: bold; margin: 0 10px; 
-    flex-shrink: 0 !important; white-space: nowrap; box-sizing: border-box;
+    try {
+        const response = await fetch(`${SERVER_URL}/fixtures?date=${targetDate}`);
+        const data = await response.json();
+        if (data.errors && data.errors.requests) { container.innerHTML = `<div class="empty-msg">انتهت الباقة.</div>`; return; }
+        globalMatches = data.response || []; 
+        renderMatchesUI(); 
+    } catch (error) { 
+        container.innerHTML = "<p class='empty-msg'>حدث خطأ بالاتصال بالسيرفر</p>"; 
+    }
 }
 
-.score-live { background: rgba(204, 204, 204, 0.15) !important; color: #fff !important; border: 1px solid var(--accent-color) !important; box-shadow: 0 0 10px rgba(204, 204, 204, 0.2); }
-.match-status-right { position: absolute; right: 10px; display: flex; justify-content: center; align-items: center; }
-.status-plain { font-size: 10px; color: var(--text-muted); font-weight: bold; }
-.status-live-circle { width: 22px; height: 22px; border-radius: 50%; background: var(--accent-color); color: #000; display: flex; justify-content: center; align-items: center; font-size: 9px; font-weight: bold; animation: heartbeat 1.5s infinite; }
-@keyframes heartbeat { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
+function isLiveMatch(status) { return ['1H', '2H', 'HT', 'ET', 'P', 'LIVE'].includes(status); }
 
-.bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(20px); display: flex; justify-content: space-around; padding: 10px 0 15px; border-top: 1px solid var(--glass-border); z-index: 1000; }
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--text-muted); font-size: 10px; font-weight: bold; cursor: pointer;}
-.nav-item.active { color: var(--accent-color); }
+function renderMatchesUI() {
+    const container = document.getElementById('tab-matches');
+    if (!globalMatches || globalMatches.length === 0) { container.innerHTML = "<p class='empty-msg'>لا توجد مباريات في هذا التاريخ</p>"; return; }
 
-.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 2000; overflow-y: auto; display: flex; flex-direction: column; }
-.modal-header { display: flex; align-items: center; padding: 15px; background: rgba(10, 10, 15, 0.9); border-bottom: 1px solid var(--glass-border); position: sticky; top: 0; z-index: 10; }
-.back-btn { color: var(--accent-color); font-size: 14px; font-weight: bold; cursor: pointer; background:none; border:none; outline:none;}
-.modal-title { flex: 1; text-align: center; font-size: 14px; font-weight: bold; margin-right: -40px; color:#fff;}
-.modal-content { padding: 15px; }
+    const leaguesGroup = {};
+    globalMatches.forEach(m => {
+        if (!leaguesGroup[m.league.name]) leaguesGroup[m.league.name] = { info: m.league, games: [], hasLive: false };
+        leaguesGroup[m.league.name].games.push(m);
+        if (isLiveMatch(m.fixture.status.short)) leaguesGroup[m.league.name].hasLive = true;
+    });
 
-.loader-container { display: flex; justify-content: center; padding: 40px; }
-.spinner { width: 30px; height: 30px; border: 3px solid rgba(204, 204, 204, 0.1); border-top: 3px solid var(--accent-color); border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
+    const sortedLeagues = Object.values(leaguesGroup).sort((a, b) => {
+        if (a.hasLive && !b.hasLive) return -1;
+        if (!a.hasLive && b.hasLive) return 1;
+        const aTop = TOP_LEAGUES.includes(a.info.id) ? TOP_LEAGUES.indexOf(a.info.id) : 999;
+        const bTop = TOP_LEAGUES.includes(b.info.id) ? TOP_LEAGUES.indexOf(b.info.id) : 999;
+        return aTop - bTop;
+    });
 
-.league-group { margin: 15px 10px; }
-#tab-matches.live-mode .no-live-match, #tab-matches.live-mode .not-live-match { display: none !important; }
-#no-live-msg { display: none; text-align: center; color: var(--accent-color); padding: 30px; font-weight: bold; font-size: 14px;}
-#tab-matches.live-mode:not(:has(.is-live-match)) #no-live-msg { display: block; }
-.hidden-by-search { display: none !important; }
+    container.innerHTML = `<div id="no-live-msg">لا توجد مباريات مباشرة حالياً</div>`; 
+
+    sortedLeagues.forEach(group => {
+        const league = group.info;
+        group.games.sort((a, b) => {
+            const aLive = isLiveMatch(a.fixture.status.short) ? -1 : 1;
+            const bLive = isLiveMatch(b.fixture.status.short) ? -1 : 1;
+            if (aLive !== bLive) return aLive - bLive; 
+            return new Date(a.fixture.date) - new Date(b.fixture.date); 
+        });
+
+        let leagueClass = group.hasLive ? 'has-live-match' : 'no-live-match';
+        let leagueHTML = `<div class="league-group ${leagueClass}"><div class="league-header"><div class="league-title-wrapper"><img src="${league.logo}" class="league-logo"><span class="league-name">${league.name}</span></div></div>`;
+
+        group.games.forEach(m => {
+            const s = m.fixture.status.short;
+            const isLive = isLiveMatch(s);
+            const isNotStarted = ['NS', 'TBD'].includes(s);
+            let matchClass = isLive ? 'is-live-match' : 'not-live-match';
+            let centerText = ''; let rightStatus = '';
+            
+            if (isNotStarted) {
+                const timeStr = new Date(m.fixture.date).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
+                centerText = `<div class="match-score" dir="ltr">${timeStr}</div>`; rightStatus = `<span class="status-plain">-</span>`; 
+            } else if (isLive) {
+                centerText = `<div class="match-score score-live" dir="ltr">${m.goals.home} - ${m.goals.away}</div>`; rightStatus = `<div class="status-live-circle">${m.fixture.status.elapsed}'</div>`; 
+            } else {
+                centerText = `<div class="match-score" dir="ltr">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</div>`; rightStatus = `<span class="status-plain">${['FT', 'AET', 'PEN'].includes(s) ? 'FT' : s}</span>`; 
+            }
+
+            leagueHTML += `
+                <div class="match-row ${matchClass}">
+                    <div class="teams-and-score">
+                        <div class="team-side team-home"><span class="team-name">${m.teams.home.name}</span><img src="${m.teams.home.logo}" class="team-logo"></div>
+                        <div>${centerText}</div>
+                        <div class="team-side team-away"><img src="${m.teams.away.logo}" class="team-logo"><span class="team-name">${m.teams.away.name}</span></div>
+                    </div>
+                    <div class="match-status-right" dir="ltr">${rightStatus}</div>
+                </div>`;
+        });
+        leagueHTML += `</div>`; container.innerHTML += leagueHTML;
+    });
+}
+
+function filterMatches() {
+    const query = document.getElementById('match-search').value.toLowerCase();
+    document.querySelectorAll('.match-row').forEach(row => { row.classList.toggle('hidden-by-search', !row.innerText.toLowerCase().includes(query)); });
+    document.querySelectorAll('.league-group').forEach(group => {
+        const hasVisible = Array.from(group.querySelectorAll('.match-row')).some(m => !m.classList.contains('hidden-by-search'));
+        group.classList.toggle('hidden-by-search', !hasVisible);
+    });
+}
+
+setupDatesBar(); 
+fetchFotMobStyle();
