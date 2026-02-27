@@ -12,6 +12,36 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="FR SPORT">
     <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/149/149071.png">
+
+    <style>
+        .dates-wrapper { 
+            width: 100%; 
+            overflow: hidden; 
+            background: #000; 
+            border-bottom: 1px solid #1a1a1a; 
+        }
+        #dates-container { 
+            display: flex !important; 
+            flex-direction: row !important;
+            overflow-x: auto !important; 
+            white-space: nowrap !important; 
+            gap: 8px; 
+            padding: 12px 10px; 
+            -webkit-overflow-scrolling: touch; 
+            scrollbar-width: none; 
+        }
+        #dates-container::-webkit-scrollbar { 
+            display: none; 
+        }
+        .date-item { 
+            flex: 0 0 auto !important; 
+            display: inline-flex !important;
+            justify-content: center;
+            align-items: center;
+            width: auto !important;
+            min-width: 80px;
+        }
+    </style>
 </head>
 <body>
 
