@@ -1,16 +1,39 @@
 {
+  "id": "/fr-sport/",
   "name": "FR SPORT",
   "short_name": "FR SPORT",
-  "description": "تطبيق FR SPORT الرياضي",
+  "description": "تطبيق FR SPORT الرياضي الشامل",
   "start_url": "/fr-sport/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#050505",
   "theme_color": "#050505",
   "icons": [
     {
-      "src": "Logo.jpg?v=2",
+      "src": "Logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "Logo.jpg",
       "sizes": "512x512",
-      "type": "image/jpeg"
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "Logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "form_factor": "wide"
+    },
+    {
+      "src": "Logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "form_factor": "narrow"
     }
   ]
 }
