@@ -4,8 +4,8 @@
     --card-bg: #111111;
     --text-main: #ffffff; /* أسماء الأندية والنصوص الرئيسية بيضاء */
     --text-muted: #8e8e93; /* نصوص ثانوية رمادية */
-    --accent-color: #c5934b; /* اللون الذهبي/البرونزي المأخوذ من صورتك */
-    --accent-bg: rgba(197, 147, 75, 0.15); /* خلفية شفافة للون الذهبي */
+    --accent-color: #c5934b; /* اللون الذهبي/البرونزي */
+    --accent-bg: rgba(197, 147, 75, 0.15); /* خلفية شفافة */
     --border-color: rgba(255, 255, 255, 0.15); /* خطوط فاصلة بيضاء أنيقة */
 }
 
@@ -19,12 +19,18 @@ body {
 
 /* === الشريط العلوي === */
 .top-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); border-bottom: 1px solid var(--border-color); }
-.header-right { font-size: 20px; font-weight: 900; letter-spacing: 1px; font-style: italic; color: var(--text-main); }
+
+/* ==== تم التعديل هنا: اسم البرنامج أصبح برونزي ==== */
+.header-right { font-size: 20px; font-weight: 900; letter-spacing: 1px; font-style: italic; color: var(--accent-color); }
+
 .header-left { display: flex; align-items: center; gap: 12px; }
-.live-btn { display: flex; align-items: center; gap: 6px; background: #111; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer; transition: 0.3s;}
+
+/* ==== تم التعديل هنا: نص Live أصبح برونزي ==== */
+.live-btn { display: flex; align-items: center; gap: 6px; background: #111; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--accent-color); cursor: pointer; transition: 0.3s;}
 .live-dot { width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; }
 .live-btn.active { background: var(--accent-color); color: #000; border-color: var(--accent-color); }
 .live-btn.active .live-dot { background: #000; box-shadow: 0 0 8px #000; }
+
 .icon-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #111; color: var(--accent-color); border: 1px solid var(--border-color); }
 .icon-btn svg { stroke: var(--accent-color); }
 
