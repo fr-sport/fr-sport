@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FR SPORT</title>
     
-    <link rel="icon" type="image/png" href="android-chrome-192x192.png?v=105">
+    <link rel="icon" type="image/png" href="android-chrome-192x192.png?v=106">
     <link rel="apple-touch-icon" href="apple-touch-icon.png?v=105">
     <link rel="manifest" href="manifest.json?v=105">
     <meta name="theme-color" content="#000000">
@@ -54,6 +54,18 @@
             </div>
         </div>
         <div class="full-modal-body" id="match-info-container"></div>
+    </div>
+    <div id="player-modal" class="full-modal hidden" style="z-index: 3000;">
+        <div class="full-modal-header">
+            <div class="back-btn" onclick="closeModal('player-modal')">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+            <div class="modal-actions">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </div>
+        </div>
+        <div class="full-modal-body" id="player-info-container">
+            </div>
     </div>
 
     <nav class="bottom-nav">
