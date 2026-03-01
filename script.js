@@ -65,28 +65,17 @@ function toggleLive(btn) {
 function getLeaguePriority(league) {
     const id = league.id;
     const country = league.country ? league.country.toLowerCase() : '';
-    
-    if (id === 2) return 1; 
-    if (id === 3) return 2; 
-    if (id === 39) return 3; 
-    if (id === 140) return 4; 
-    if (id === 78) return 5; 
-    if (id === 135) return 6; 
-    if (id === 61) return 7; 
-    if (id === 307) return 8; 
-
+    if (id === 2) return 1; if (id === 3) return 2; if (id === 39) return 3; 
+    if (id === 140) return 4; if (id === 78) return 5; if (id === 135) return 6; 
+    if (id === 61) return 7; if (id === 307) return 8; 
     const topEurope = ['england', 'spain', 'germany', 'italy', 'france'];
     if (topEurope.includes(country)) return 9;
-
     const otherEurope = ['portugal', 'netherlands', 'belgium', 'scotland', 'turkey', 'greece', 'europe', 'world'];
     if (otherEurope.includes(country)) return 10;
-
     const asia = ['saudi arabia', 'uae', 'qatar', 'japan', 'south korea', 'iran', 'australia', 'asia', 'iraq'];
     if (asia.includes(country)) return 11;
-
     const america = ['brazil', 'argentina', 'usa', 'mexico', 'colombia', 'chile', 'uruguay', 'south-america'];
     if (america.includes(country)) return 12;
-
     return 13; 
 }
 
@@ -94,41 +83,27 @@ async function fetchMatches(date) {
     AppState.currentDate = date;
     const container = document.getElementById('tab-matches');
     if (!container) return;
-
-    if (AppState.matchesCache[date]) {
-        AppState.globalMatches = AppState.matchesCache[date];
-        renderMatchesList(AppState.globalMatches);
-        return;
-    }
-
+    if (AppState.matchesCache[date]) { AppState.globalMatches = AppState.matchesCache[date]; renderMatchesList(AppState.globalMatches); return; }
     container.innerHTML = '<div class="loader">Fetching matches...</div>';
     try {
         const res = await fetch(`${CONFIG.API_URL}/fixtures?date=${date}`);
         const data = await res.json();
         const matches = data.response || [];
-        AppState.matchesCache[date] = matches;
-        AppState.globalMatches = matches;
+        AppState.matchesCache[date] = matches; AppState.globalMatches = matches;
         renderMatchesList(matches);
-    } catch (error) { 
-        container.innerHTML = '<div class="empty-msg">Connection Error</div>'; 
-    }
+    } catch (error) { container.innerHTML = '<div class="empty-msg">Connection Error</div>'; }
 }
 
 function renderMatchesList(matches) {
     const container = document.getElementById('tab-matches');
     if (!matches || matches.length === 0) { container.innerHTML = '<div class="empty-msg">No matches today</div>'; return; }
-
     const leaguesGroup = {};
     matches.forEach(m => {
         if (AppState.isLiveMode && !Utils.isLiveMatch(m.fixture.status.short)) return;
         if (!leaguesGroup[m.league.name]) { leaguesGroup[m.league.name] = { info: m.league, games: [] }; }
         leaguesGroup[m.league.name].games.push(m);
     });
-
-    const sortedLeagues = Object.values(leaguesGroup).sort((a, b) => {
-        return getLeaguePriority(a.info) - getLeaguePriority(b.info);
-    });
-
+    const sortedLeagues = Object.values(leaguesGroup).sort((a, b) => getLeaguePriority(a.info) - getLeaguePriority(b.info));
     if (sortedLeagues.length === 0) { container.innerHTML = '<div class="empty-msg">No live matches right now</div>'; return; }
 
     let html = '';
@@ -142,11 +117,9 @@ function renderMatchesList(matches) {
                 </div>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
             </div>`;
-
         group.games.forEach(m => {
             const s = m.fixture.status.short;
             let centerContent = '';
-            
             if (Utils.isNotStarted(s)) {
                 const timeStr = new Date(m.fixture.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
                 centerContent = `<div class="match-center">${timeStr}</div>`;
@@ -155,7 +128,6 @@ function renderMatchesList(matches) {
             } else {
                 centerContent = `<div class="match-center">${m.goals.home} - ${m.goals.away}</div>`;
             }
-
             html += `
             <div class="match-row" onclick="openMatchDetails(${m.fixture.id})">
                 <div class="match-teams-score">
@@ -182,6 +154,56 @@ function switchModalTab(tab) {
     document.getElementById(`modal-${tab}`).classList.remove('hidden');
 }
 
+// === NEW: Function to build the visual pitch ===
+function buildPitchHtml(teamLineup, teamInfo, isAway) {
+    if (!teamLineup || !teamLineup.startXI || teamLineup.startXI.length === 0) return '';
+    
+    let html = `<div class="pitch-wrapper">
+        <div class="pitch-header">
+            <div class="pitch-team"><img src="${teamInfo.logo}">${teamInfo.name}</div>
+            <div class="pitch-formation">${teamLineup.formation || ''}</div>
+        </div>
+        <div class="pitch">`;
+
+    const rows = {};
+    teamLineup.startXI.forEach(item => {
+        let p = item.player;
+        let gridParts = p.grid ? p.grid.split(':') : [];
+        let rowNum = gridParts.length > 0 ? parseInt(gridParts[0]) : 1;
+        if(!rows[rowNum]) rows[rowNum] = [];
+        rows[rowNum].push(p);
+    });
+
+    let rowKeys = Object.keys(rows).map(Number).sort((a,b) => a - b);
+    
+    rowKeys.forEach(key => {
+        html += `<div class="pitch-row">`;
+        let playersInRow = rows[key].sort((a,b) => {
+            let colA = a.grid ? parseInt(a.grid.split(':')[1]) : 0;
+            let colB = b.grid ? parseInt(b.grid.split(':')[1]) : 0;
+            return colA - colB;
+        });
+
+        playersInRow.forEach(p => {
+            let imgUrl = `https://media.api-sports.io/football/players/${p.id}.png`;
+            let lastName = p.name.split(' ').pop();
+            html += `
+                <div class="pitch-player">
+                    <div class="pitch-player-img-wrapper">
+                        <img src="${imgUrl}" class="pitch-player-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23555\\' stroke-width=\\'2\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 0 0-16 0\\'/></svg>'; this.style.backgroundColor='#111';">
+                        <div class="pitch-player-num">${p.number || ''}</div>
+                    </div>
+                    <div class="pitch-player-name">${lastName}</div>
+                </div>
+            `;
+        });
+        html += `</div>`;
+    });
+
+    html += `</div></div>`;
+    return html;
+}
+
 async function openMatchDetails(id) {
     const modal = document.getElementById('match-modal');
     const container = document.getElementById('match-info-container');
@@ -204,7 +226,6 @@ async function openMatchDetails(id) {
 }
 
 function renderMatchDetailsModal(m, injuries, container) {
-    // 1. FotMob Style Hero
     let matchStatus = m.fixture.status.short;
     let scoreOrTime = '';
     let subText = '';
@@ -237,59 +258,42 @@ function renderMatchDetailsModal(m, injuries, container) {
     </div>
     
     <div class="tabs-container">
-        <div class="tab-btn active" onclick="switchModalTab('preview')">Preview</div>
+        <div class="tab-btn" onclick="switchModalTab('preview')">Preview</div>
         <div class="tab-btn" onclick="switchModalTab('stats')">Stats</div>
-        <div class="tab-btn" onclick="switchModalTab('lineups')">Lineups</div>
+        <div class="tab-btn active" onclick="switchModalTab('lineups')">Lineups</div>
     </div>
     `;
 
-    // 2. Preview Tab (Stadium & Referee)
+    // Preview Tab
     let venueName = m.fixture.venue?.name || 'Unknown Stadium';
     let venueCity = m.fixture.venue?.city || '';
     let referee = m.fixture.referee || 'Referee not announced';
 
     let previewHtml = `
-    <div id="modal-preview" class="modal-tab-content">
+    <div id="modal-preview" class="modal-tab-content hidden">
         <div class="info-card">
-            <div class="info-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-            </div>
-            <div>
-                <div class="info-text-main">${venueName}</div>
-                <div class="info-text-sub">${venueCity}</div>
-            </div>
+            <div class="info-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
+            <div><div class="info-text-main">${venueName}</div><div class="info-text-sub">${venueCity}</div></div>
         </div>
         <div class="info-card">
-            <div class="info-icon">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
-            </div>
-            <div>
-                <div class="info-text-main">${referee}</div>
-                <div class="info-text-sub">Referee</div>
-            </div>
+            <div class="info-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
+            <div><div class="info-text-main">${referee}</div><div class="info-text-sub">Referee</div></div>
         </div>
     </div>`;
 
-    // 3. Stats Tab
+    // Stats Tab
     let statsHtml = '<div id="modal-stats" class="modal-tab-content hidden">';
     if (m.statistics && m.statistics.length > 1) {
-        const hStats = m.statistics[0].statistics;
-        const aStats = m.statistics[1].statistics;
+        const hStats = m.statistics[0].statistics; const aStats = m.statistics[1].statistics;
         hStats.forEach((stat, i) => {
-            let hVal = stat.value ?? 0;
-            let aVal = aStats[i].value ?? 0;
-            let hNum = parseInt(String(hVal).replace('%','')) || 0;
-            let aNum = parseInt(String(aVal).replace('%','')) || 0;
+            let hVal = stat.value ?? 0; let aVal = aStats[i].value ?? 0;
+            let hNum = parseInt(String(hVal).replace('%','')) || 0; let aNum = parseInt(String(aVal).replace('%','')) || 0;
             let total = hNum + aNum;
-            let hPercent = total > 0 ? (hNum / total) * 100 : 50;
-            let aPercent = total > 0 ? (aNum / total) * 100 : 50;
+            let hPercent = total > 0 ? (hNum / total) * 100 : 50; let aPercent = total > 0 ? (aNum / total) * 100 : 50;
             statsHtml += `
             <div class="stat-row">
                 <div class="stat-header"><span>${hVal}</span><span>${stat.type}</span><span>${aVal}</span></div>
-                <div class="stat-bar-container">
-                    <div class="stat-bar-home" style="width:${hPercent}%"></div>
-                    <div class="stat-bar-away" style="width:${aPercent}%"></div>
-                </div>
+                <div class="stat-bar-container"><div class="stat-bar-home" style="width:${hPercent}%"></div><div class="stat-bar-away" style="width:${aPercent}%"></div></div>
             </div>`;
         });
     } else {
@@ -297,18 +301,17 @@ function renderMatchDetailsModal(m, injuries, container) {
     }
     statsHtml += '</div>';
 
-    // 4. Lineups Tab
-    let lineupsHtml = '<div id="modal-lineups" class="modal-tab-content hidden">';
+    // Lineups Tab (With VISUAL PITCH)
+    let lineupsHtml = '<div id="modal-lineups" class="modal-tab-content">';
     if (m.lineups && m.lineups.length > 1) {
         const [hL, aL] = m.lineups;
-        lineupsHtml += `<div class="lineup-section"><div class="section-title">Starting XI</div>`;
-        for(let i=0; i<11; i++) {
-            let hP = hL.startXI[i]?.player; let aP = aL.startXI[i]?.player;
-            if(!hP && !aP) break;
-            lineupsHtml += buildPlayerRow(hP, aP);
-        }
-        lineupsHtml += `</div>`;
+        
+        // Home Team Pitch
+        lineupsHtml += buildPitchHtml(hL, m.teams.home, false);
+        // Away Team Pitch
+        lineupsHtml += buildPitchHtml(aL, m.teams.away, true);
 
+        // Substitutes List
         lineupsHtml += `<div class="lineup-section"><div class="section-title">Substitutes</div>`;
         let maxSubs = Math.max(hL.substitutes.length, aL.substitutes.length);
         for(let i=0; i<maxSubs; i++) {
