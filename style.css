@@ -2,11 +2,11 @@
 :root {
     --bg-color: #000000;
     --card-bg: #111111;
-    --text-main: #ffffff; /* أسماء الأندية والنصوص الرئيسية بيضاء */
-    --text-muted: #8e8e93; /* نصوص ثانوية رمادية */
-    --accent-color: #c5934b; /* اللون الذهبي/البرونزي */
-    --accent-bg: rgba(197, 147, 75, 0.15); /* خلفية شفافة */
-    --border-color: rgba(255, 255, 255, 0.15); /* خطوط فاصلة بيضاء أنيقة */
+    --text-main: #ffffff; 
+    --text-muted: #8e8e93; 
+    --accent-color: #c5934b; 
+    --accent-bg: rgba(197, 147, 75, 0.15); 
+    --border-color: rgba(255, 255, 255, 0.15); 
 }
 
 body { 
@@ -17,24 +17,18 @@ body {
 
 .hidden { display: none !important; }
 
-/* === الشريط العلوي === */
+/* الشريط العلوي */
 .top-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); border-bottom: 1px solid var(--border-color); }
-
-/* ==== تم التعديل هنا: اسم البرنامج أصبح برونزي ==== */
 .header-right { font-size: 20px; font-weight: 900; letter-spacing: 1px; font-style: italic; color: var(--accent-color); }
-
 .header-left { display: flex; align-items: center; gap: 12px; }
-
-/* ==== تم التعديل هنا: نص Live أصبح برونزي ==== */
 .live-btn { display: flex; align-items: center; gap: 6px; background: #111; border: 1px solid var(--border-color); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--accent-color); cursor: pointer; transition: 0.3s;}
 .live-dot { width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; }
 .live-btn.active { background: var(--accent-color); color: #000; border-color: var(--accent-color); }
 .live-btn.active .live-dot { background: #000; box-shadow: 0 0 8px #000; }
-
 .icon-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #111; color: var(--accent-color); border: 1px solid var(--border-color); }
 .icon-btn svg { stroke: var(--accent-color); }
 
-/* === شريط التواريخ === */
+/* شريط التواريخ */
 .dates-wrapper { background: var(--bg-color); border-bottom: 1px solid var(--border-color); }
 .dates-slider { display: flex; overflow-x: auto; padding: 0 10px; scrollbar-width: none; align-items: center; height: 45px;}
 .dates-slider::-webkit-scrollbar { display: none; }
@@ -42,33 +36,28 @@ body {
 .date-item.active { color: var(--text-main); }
 .date-item.active::after { content: ''; position: absolute; bottom: 0; left: 10px; right: 10px; height: 3px; background-color: var(--accent-color); border-radius: 3px 3px 0 0; }
 
-/* === البطولات والمباريات === */
+/* البطولات والمباريات */
 .leagues-container { padding: 10px; }
 .league-group { background: var(--card-bg); border-radius: 12px; margin-bottom: 15px; overflow: hidden; border: 1px solid var(--border-color); }
-
 .league-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #111; border-bottom: 1px solid var(--border-color); cursor: pointer; }
 .league-header svg { stroke: var(--accent-color); }
 .league-title-wrapper { display: flex; align-items: center; gap: 10px; flex-direction: row-reverse;}
 .league-logo { width: 20px; height: 20px; border-radius: 50%; background: #fff; padding: 1px; border: 1px solid var(--border-color); }
 .league-name { font-size: 13px; font-weight: bold; color: var(--text-main); }
-
-.match-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 15px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); text-decoration: none; color: inherit; cursor: pointer; }
+.match-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 15px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); cursor: pointer; }
 .match-row:last-child { border-bottom: none; }
-
 .match-teams-score { display: flex; align-items: center; flex: 1; justify-content: center; }
 .team-side { display: flex; align-items: center; gap: 8px; flex: 1; }
 .team-home { justify-content: flex-end; }
 .team-away { justify-content: flex-start; }
 .team-logo { width: 24px; height: 24px; object-fit: contain; }
 .team-name { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
-
 .match-center { width: 60px; text-align: center; font-size: 12px; font-weight: bold; color: var(--text-main); margin: 0 10px;}
 .match-center.live { color: var(--accent-color); }
-
 .tv-icon { display: flex; align-items: center; justify-content: flex-start; width: 24px; color: var(--accent-color); }
 .tv-icon svg { stroke: var(--accent-color); }
 
-/* === القائمة السفلية === */
+/* القائمة السفلية */
 .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #050505; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; padding: 8px 10px 25px 10px; z-index: 1000; box-sizing: border-box; }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--accent-color); font-size: 10px; font-weight: 600; flex: 1; cursor: pointer; padding: 6px 0; border-radius: 10px; }
 .nav-item svg { width: 24px; height: 24px; stroke: var(--accent-color); }
@@ -76,6 +65,39 @@ body {
 .nav-item.active svg { stroke: #000; }
 .nav-item.active .icon-wrapper { background: var(--accent-color); padding: 4px 15px; border-radius: 16px; margin-bottom: 2px; }
 
-/* تحميل */
+/* النافذة المنبثقة (تفاصيل المباراة) */
+.full-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 2000; overflow-y: auto; display: flex; flex-direction: column; }
+.full-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 15px; background: #111; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; z-index: 10; }
+.back-btn { color: var(--accent-color); cursor: pointer; display: flex; align-items: center; }
+.match-modal-title { font-size: 16px; font-weight: bold; color: var(--text-main); }
+.full-modal-body { padding: 15px; padding-bottom: 50px;}
+
+.match-hero { display: flex; justify-content: space-around; align-items: center; padding: 20px 0; background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); margin-bottom: 15px; }
+.hero-team { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 30%; text-align: center; }
+.hero-score { font-size: 32px; font-weight: 900; color: var(--accent-color); }
+
+.tabs-container { display: flex; background: var(--card-bg); border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border-color); overflow: hidden; }
+.tab-btn { flex: 1; text-align: center; padding: 12px; font-size: 14px; font-weight: bold; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; }
+.tab-btn.active { color: var(--accent-color); border-bottom: 3px solid var(--accent-color); background: var(--accent-bg); }
+
+/* الإحصائيات */
+.stat-row { margin-bottom: 15px; }
+.stat-header { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-main); margin-bottom: 5px; font-weight: bold;}
+.stat-bar-container { display: flex; height: 6px; background: #222; border-radius: 3px; overflow: hidden; gap: 2px;}
+.stat-bar-home { background: var(--accent-color); height: 100%; }
+.stat-bar-away { background: #fff; height: 100%; }
+
+/* التشكيلة والغيابات */
+.lineup-section { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); padding: 15px; margin-bottom: 15px; }
+.section-title { font-size: 15px; font-weight: bold; color: var(--accent-color); margin-bottom: 12px; text-align: center; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;}
+.player-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #222; font-size: 13px; }
+.player-row:last-child { border-bottom: none; }
+.player-side { display: flex; align-items: center; gap: 8px; width: 45%; }
+.player-home { justify-content: flex-start; }
+.player-away { justify-content: flex-end; flex-direction: row-reverse; text-align: right; }
+.p-num { font-size: 10px; background: #222; color: var(--accent-color); width: 20px; height: 20px; display: flex; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid var(--border-color); }
+.p-name { color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
+.svg-icon { stroke: var(--accent-color); width: 14px; height: 14px; flex-shrink: 0;}
+
 .loader { text-align: center; padding: 40px; color: var(--accent-color); font-size: 14px;}
 .empty-msg { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
