@@ -5,132 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FR SPORT</title>
     
-    <link rel="icon" href="Logo.jpg?v=3">
-    <link rel="apple-touch-icon" href="Logo.jpg?v=3">
-    <link rel="manifest" href="manifest.json?v=3">
+    <link rel="icon" type="image/png" href="android-chrome-192x192.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json?v=6">
+    <meta name="theme-color" content="#000000">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-    <style>
-        :root {
-            --text-main: rgba(255, 255, 255, 0.95); 
-            --text-muted: rgba(255, 255, 255, 0.5);
-            --accent-color: #cccccc; 
-            --accent-glow: 0 0 15px rgba(204, 204, 204, 0.3);
-            --accent-dark: rgba(204, 204, 204, 0.1);
-            --card-bg: linear-gradient(145deg, rgba(25, 25, 30, 0.9), rgba(10, 10, 15, 0.9));
-            --glass-border: rgba(204, 204, 204, 0.2);
-        }
-
-        body { 
-            margin: 0; background-color: #050505; 
-            background-image: linear-gradient(rgba(204, 204, 204, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(204, 204, 204, 0.03) 1px, transparent 1px);
-            background-size: 30px 30px; background-attachment: fixed; color: var(--text-main); font-family: sans-serif; padding-bottom: 80px; 
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            touch-action: manipulation;
-        }
-
-        .top-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; position: sticky; top: 0; z-index: 100; background: rgba(10, 10, 15, 0.85); backdrop-filter: blur(25px); border-bottom: 1px solid var(--glass-border); width: 100%; box-sizing: border-box; }
-        .logo { font-size: 18px; font-weight: 900; letter-spacing: 2px; color: var(--accent-color); text-transform: uppercase; text-shadow: var(--accent-glow); font-style: italic; margin:0;}
-        
-        .dates-wrapper { width: 100%; overflow: hidden; background: #050505; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-        .dates-slider { display: flex !important; overflow-x: auto !important; padding: 12px 15px; gap: 10px; scrollbar-width: none; align-items: center; direction: rtl; -webkit-overflow-scrolling: touch; }
-        .date-item { font-size: 12px; color: var(--text-muted); white-space: nowrap !important; font-weight: bold; padding: 8px 18px; border-radius: 20px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.05); flex-shrink: 0 !important; cursor: pointer; }
-        .date-item.active { color: #000; background: var(--accent-color); border-color: var(--accent-color); box-shadow: var(--accent-glow); transform: scale(1.05);}
-
-        .match-row { display: flex; justify-content: center; align-items: center; padding: 12px 10px; margin-bottom: 10px; background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 15px; position: relative; width: 100%; box-sizing: border-box; cursor: pointer;}
-        .team-logo { width: 22px; height: 22px; flex-shrink: 0; }
-        .match-score { width: 75px; height: 28px; display: flex; justify-content: center; align-items: center; border-radius: 8px; background: rgba(0, 0, 0, 0.6); border: 1px solid var(--glass-border); font-family: monospace; font-size: 14px; font-weight: bold; margin: 0 10px; }
-
-        .bottom-nav { position: fixed; bottom: 0; width: 100%; background: rgba(10, 10, 15, 0.95); backdrop-filter: blur(20px); display: flex; justify-content: space-around; padding: 10px 0 15px; border-top: 1px solid var(--glass-border); z-index: 1000; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 5px; color: var(--text-muted); font-size: 10px; font-weight: bold; cursor: pointer;}
-        .nav-item.active { color: var(--accent-color); }
-
-        .full-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 2000; overflow-y: auto; display: flex; flex-direction: column; }
-        .hidden { display: none !important; }
-        .loader-container { display: flex; justify-content: center; padding: 40px; }
-        .spinner { width: 30px; height: 30px; border: 3px solid rgba(204, 204, 204, 0.1); border-top: 3px solid var(--accent-color); border-radius: 50%; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-    </style>
+    <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
     <header class="top-header">
-        <div class="logo">FR SPORT</div>
+        <div class="header-right">FR SPORT</div>
+        <div class="header-left">
+            <button class="live-btn" onclick="toggleLive(this)">
+                <span class="live-dot"></span> Live
+            </button>
+            <div class="icon-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            </div>
+            <div class="icon-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
+            </div>
+        </div>
     </header>
 
     <div class="dates-wrapper">
         <div id="dates-container" class="dates-slider"></div>
     </div>
 
-    <main class="app-content">
-        <div id="tab-matches" class="page-content">
-            <div class="loader-container"><div class="spinner"></div></div>
-        </div>
+    <main class="leagues-container" id="tab-matches">
+        <div class="loader">جاري جلب المباريات...</div>
+    </main>
+    <main class="leagues-container hidden" id="tab-other">
+        <div class="empty-msg">قريباً...</div>
     </main>
 
-    <div id="team-modal" class="full-modal hidden">
-        <div style="padding: 20px; color: var(--accent-color);" onclick="closeModal('team-modal')">✕ إغلاق</div>
-        <div id="team-info-container" style="padding: 20px;"></div>
-    </div>
-
     <nav class="bottom-nav">
-        <div class="nav-item active">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line></svg>
+        <div class="nav-item active" onclick="switchTab(this)">
+            <div class="icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg>
+            </div>
             <span>المباريات</span>
+        </div>
+        <div class="nav-item" onclick="switchTab(this)">
+            <div class="icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8l-4 4v14a2 2 0 0 0 2 2z"></path><line x1="14" y1="2" x2="14" y2="8"></line><line x1="14" y1="8" x2="20" y2="8"></line><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
+            </div>
+            <span>أخبار</span>
+        </div>
+        <div class="nav-item" onclick="switchTab(this)">
+            <div class="icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+            </div>
+            <span>البطولات</span>
+        </div>
+        <div class="nav-item" onclick="switchTab(this)">
+            <div class="icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </div>
+            <span>يتابع</span>
+        </div>
+        <div class="nav-item" onclick="switchTab(this)">
+            <div class="icon-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </div>
+            <span>بحث</span>
         </div>
     </nav>
 
-    <script>
-        const SERVER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
-        
-        function setupDatesBar() {
-            const container = document.getElementById('dates-container');
-            const today = new Date();
-            for (let i = -3; i <= 7; i++) {
-                let d = new Date(); d.setDate(today.getDate() + i);
-                let dateStr = d.toISOString().split('T')[0];
-                let label = i === 0 ? "اليوم" : d.getDate();
-                container.innerHTML += `<div class="date-item ${i===0?'active':''}" onclick="fetchMatches('${dateStr}')">${label}</div>`;
-            }
-        }
-
-        async function fetchMatches(date) {
-            const container = document.getElementById('tab-matches');
-            container.innerHTML = '<div class="loader-container"><div class="spinner"></div></div>';
-            try {
-                const res = await fetch(`${SERVER_URL}/fixtures?date=${date}`);
-                const data = await res.json();
-                renderUI(data.response);
-            } catch (e) { container.innerHTML = "خطأ في الاتصال"; }
-        }
-
-        function renderUI(matches) {
-            const container = document.getElementById('tab-matches');
-            container.innerHTML = matches.map(m => `
-                <div class="match-row">
-                    <div style="flex:1; text-align:right;">${m.teams.home.name} <img src="${m.teams.home.logo}" class="team-logo"></div>
-                    <div class="match-score">${m.goals.home ?? 0} - ${m.goals.away ?? 0}</div>
-                    <div style="flex:1; text-align:left;"><img src="${m.teams.away.logo}" class="team-logo"> ${m.teams.away.name}</div>
-                </div>
-            `).join('');
-        }
-
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-
-        setupDatesBar();
-        fetchMatches(new Date().toISOString().split('T')[0]);
-    </script>
+    <script src="script.js?v=6"></script>
 
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/fr-sport/sw.js')
-            .then(registration => {
-              console.log('Service Worker registered successfully:', registration.scope);
-            })
-            .catch(error => {
-              console.log('Service Worker registration failed:', error);
-            });
+          navigator.serviceWorker.register('/fr-sport/sw.js');
         });
       }
     </script>
