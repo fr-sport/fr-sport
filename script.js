@@ -154,7 +154,7 @@ function switchModalTab(tab) {
     document.getElementById(`modal-${tab}`).classList.remove('hidden');
 }
 
-// === NEW: Function to build the visual pitch ===
+// === بناء الملعب وجعل اللاعبين قابلين للضغط ===
 function buildPitchHtml(teamLineup, teamInfo, isAway) {
     if (!teamLineup || !teamLineup.startXI || teamLineup.startXI.length === 0) return '';
     
@@ -187,8 +187,9 @@ function buildPitchHtml(teamLineup, teamInfo, isAway) {
         playersInRow.forEach(p => {
             let imgUrl = `https://media.api-sports.io/football/players/${p.id}.png`;
             let lastName = p.name.split(' ').pop();
+            // أضفنا onclick لفتح ملف اللاعب
             html += `
-                <div class="pitch-player">
+                <div class="pitch-player" onclick="openPlayerDetails(${p.id})">
                     <div class="pitch-player-img-wrapper">
                         <img src="${imgUrl}" class="pitch-player-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23555\\' stroke-width=\\'2\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 0 0-16 0\\'/></svg>'; this.style.backgroundColor='#111';">
                         <div class="pitch-player-num">${p.number || ''}</div>
@@ -301,17 +302,14 @@ function renderMatchDetailsModal(m, injuries, container) {
     }
     statsHtml += '</div>';
 
-    // Lineups Tab (With VISUAL PITCH)
+    // Lineups Tab
     let lineupsHtml = '<div id="modal-lineups" class="modal-tab-content">';
     if (m.lineups && m.lineups.length > 1) {
         const [hL, aL] = m.lineups;
         
-        // Home Team Pitch
         lineupsHtml += buildPitchHtml(hL, m.teams.home, false);
-        // Away Team Pitch
         lineupsHtml += buildPitchHtml(aL, m.teams.away, true);
 
-        // Substitutes List
         lineupsHtml += `<div class="lineup-section"><div class="section-title">Substitutes</div>`;
         let maxSubs = Math.max(hL.substitutes.length, aL.substitutes.length);
         for(let i=0; i<maxSubs; i++) {
@@ -344,11 +342,80 @@ function renderMatchDetailsModal(m, injuries, container) {
 }
 
 function buildPlayerRow(hP, aP) {
-    return `
-    <div class="player-row">
-        <div class="player-side player-home"><span class="p-num">${hP?.number||''}</span><span class="p-name">${hP?.name||'-'}</span></div>
-        <div class="player-side player-away"><span class="p-name">${aP?.name||'-'}</span><span class="p-num">${aP?.number||''}</span></div>
-    </div>`;
+    let homeHtml = hP ? `<div class="player-side player-home" onclick="openPlayerDetails(${hP.id})"><span class="p-num">${hP.number||''}</span><span class="p-name">${hP.name||'-'}</span></div>` : '<div class="player-side player-home"></div>';
+    let awayHtml = aP ? `<div class="player-side player-away" onclick="openPlayerDetails(${aP.id})"><span class="p-name">${aP.name||'-'}</span><span class="p-num">${aP.number||''}</span></div>` : '<div class="player-side player-away"></div>';
+    
+    return `<div class="player-row">${homeHtml}${awayHtml}</div>`;
+}
+
+// === الدالة الجديدة: جلب بيانات اللاعب التفصيلية عند الضغط عليه ===
+async function openPlayerDetails(playerId) {
+    if(!playerId) return;
+    
+    const modal = document.getElementById('player-modal');
+    const container = document.getElementById('player-info-container');
+    
+    modal.classList.remove('hidden');
+    container.innerHTML = '<div class="loader">Fetching player data...</div>';
+
+    try {
+        const res = await fetch(`${CONFIG.API_URL}/players?id=${playerId}&season=2023`);
+        const data = await res.json();
+        const pData = data.response?.[0];
+
+        if(!pData) throw new Error("No data");
+
+        const player = pData.player;
+        const stats = pData.statistics?.[0] || {};
+        const team = stats.team || {};
+
+        let html = `
+            <div class="player-hero">
+                <img src="${player.photo}" class="player-photo-large" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23555\\' stroke-width=\\'2\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 0 0-16 0\\'/></svg>';">
+                <div class="player-name-large">${player.firstname} ${player.lastname}</div>
+                <div class="player-team-info">
+                    <img src="${team.logo}" onerror="this.style.display='none'">
+                    ${team.name || 'Unknown Team'} • ${player.nationality}
+                </div>
+            </div>
+
+            <div class="player-stats-grid">
+                <div class="p-stat-box">
+                    <div class="p-stat-title">Age</div>
+                    <div class="p-stat-value">${player.age || '-'} Years</div>
+                </div>
+                <div class="p-stat-box">
+                    <div class="p-stat-title">Height</div>
+                    <div class="p-stat-value">${player.height || '-'}</div>
+                </div>
+                <div class="p-stat-box">
+                    <div class="p-stat-title">Position</div>
+                    <div class="p-stat-value">${stats.games?.position || '-'}</div>
+                </div>
+                <div class="p-stat-box">
+                    <div class="p-stat-title">Rating</div>
+                    <div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(stats.games?.rating || 0).toFixed(1) || '-'}</div>
+                </div>
+                <div class="p-stat-box">
+                    <div class="p-stat-title">Goals</div>
+                    <div class="p-stat-value">${stats.goals?.total || 0}</div>
+                </div>
+                <div class="p-stat-box">
+                    <div class="p-stat-title">Assists</div>
+                    <div class="p-stat-value">${stats.goals?.assists || 0}</div>
+                </div>
+            </div>
+        `;
+        container.innerHTML = html;
+
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = `
+            <div class="empty-msg">
+                Detailed info not available for this player.<br>
+                <span style="font-size:10px; color:#555">ID: ${playerId}</span>
+            </div>`;
+    }
 }
 
 setupDatesBar();
