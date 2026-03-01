@@ -114,7 +114,8 @@ function renderUI(matches) {
                 const timeStr = new Date(m.fixture.date).toLocaleTimeString('ar-SA', { hour: 'numeric', minute: '2-digit', hour12: true });
                 centerContent = `<div class="match-center">${timeStr}</div>`;
             } else if (isLive) {
-                centerContent = `<div class="match-center live" dir="ltr"><span style="color:#ff3b30; font-size:10px;">${m.fixture.status.elapsed}'</span><br>${m.goals.home} - ${m.goals.away}</div>`;
+                // استخدام اللون البرتقالي للدقائق الحية بدلا من الأحمر
+                centerContent = `<div class="match-center live" dir="ltr"><span style="color:var(--accent-color); font-size:10px;">${m.fixture.status.elapsed}'</span><br>${m.goals.home} - ${m.goals.away}</div>`;
             } else {
                 centerContent = `<div class="match-center" dir="ltr">${m.goals.home} - ${m.goals.away}</div>`;
             }
