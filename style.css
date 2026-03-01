@@ -71,13 +71,12 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .hero-score { font-size: 42px; font-weight: 300; color: var(--text-main); line-height: 1;}
 .hero-sub { font-size: 14px; color: var(--text-muted); font-weight: 600;}
 
-/* FotMob Tabs (No boxes, just text and underline) */
 .tabs-container { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
 .tab-btn { flex: 1; text-align: center; padding: 15px 0; font-size: 14px; font-weight: bold; color: var(--text-muted); cursor: pointer; position: relative;}
 .tab-btn.active { color: var(--text-main); }
 .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 15%; right: 15%; height: 3px; background-color: var(--accent-color); border-radius: 3px 3px 0 0; }
 
-/* Info Cards (Stadium, etc) */
+/* Info Cards */
 .info-card { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; display: flex; align-items: center; gap: 15px; border: 1px solid var(--border-color);}
 .info-icon { width: 40px; height: 40px; border-radius: 50%; background: #222; display: flex; justify-content: center; align-items: center; color: var(--accent-color); flex-shrink: 0;}
 .info-text-main { font-size: 14px; font-weight: bold; color: var(--text-main); }
@@ -88,6 +87,36 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .stat-bar-container { display: flex; height: 6px; background: #222; border-radius: 3px; overflow: hidden; gap: 2px; flex-direction: row;}
 .stat-bar-home { background: var(--accent-color); height: 100%; }
 .stat-bar-away { background: #fff; height: 100%; }
+
+/* === LINEUP VISUAL PITCH (New!) === */
+.pitch-wrapper { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border-color); }
+.pitch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;}
+.pitch-team { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 14px;}
+.pitch-team img { width: 20px; height: 20px; }
+.pitch-formation { font-size: 13px; color: var(--text-main); font-weight: bold; }
+
+.pitch { 
+    background-color: #242424; /* Dark pitch background */
+    border: 1px solid #333; 
+    border-radius: 8px; 
+    padding: 20px 0; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+    position: relative; 
+    overflow: hidden; 
+    background-image: linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+.pitch::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80px; height: 80px; border: 2px solid rgba(255,255,255,0.08); border-radius: 50%; }
+.pitch::after { content: ''; position: absolute; top: 50%; left: 0; right: 0; height: 2px; background: rgba(255,255,255,0.08); }
+
+.pitch-row { display: flex; justify-content: space-around; align-items: center; z-index: 1; }
+.pitch-player { display: flex; flex-direction: column; align-items: center; width: 60px; }
+.pitch-player-img-wrapper { position: relative; width: 44px; height: 44px; }
+.pitch-player-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; background: #111; border: 2px solid #555; }
+.pitch-player-num { position: absolute; bottom: -4px; right: -4px; background: var(--bg-color); color: var(--text-main); font-size: 10px; font-weight: bold; width: 18px; height: 18px; display: flex; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid #555; }
+.pitch-player-name { font-size: 11px; color: var(--text-main); text-align: center; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; text-shadow: 1px 1px 2px #000; }
 
 .lineup-section { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border-color);}
 .section-title { font-size: 14px; font-weight: bold; color: var(--text-muted); margin-bottom: 15px; text-transform: uppercase; letter-spacing: 1px;}
