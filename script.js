@@ -2,6 +2,7 @@ const SERVER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
 let globalMatches = [];
 let isLiveMode = false;
 
+// تجهيز التواريخ
 function formatArabicDate(dateObj, offset) {
     if (offset === 0) return "اليوم";
     if (offset === -1) return "أمس";
@@ -53,29 +54,49 @@ function toggleLive(btn) {
 
 function isLiveMatch(status) { return ['1H', '2H', 'HT', 'ET', 'P', 'LIVE'].includes(status); }
 
-// ترتيب الدوريات
+// === نظام الترتيب الجديد والقوي جداً (يصطاد الدوري مهما كان اسمه) ===
 function getLeaguePriority(league) {
     const id = league.id;
     const country = league.country ? league.country.toLowerCase() : '';
+    const name = league.name ? league.name.toLowerCase() : '';
 
-    if (id === 2) return 1; // أبطال أوروبا
-    if (id === 39) return 2; // إنجليزي
-    if (id === 140) return 3; // إسباني
-    if (id === 78) return 4; // ألماني
-    if (id === 135) return 5; // إيطالي
-    if (id === 61) return 6; // فرنسي
-    if (id === 3 || id === 848 || country === 'world' || country === 'europe') return 7; // بطولات أوروبا الأخرى
+    // 1. دوري أبطال أوروبا
+    if (id === 2 || name.includes('champions league')) return 1;
     
-    const europe = ['england', 'spain', 'germany', 'italy', 'france', 'portugal', 'netherlands', 'belgium', 'scotland', 'turkey'];
-    if (europe.includes(country)) return 8; // باقي أوروبا
+    // 2. الدوري الإنجليزي (حتى لو أرسل السيرفر ID خاطئ، سنصطاده من الاسم أو البلد)
+    if (id === 39 || (country === 'england' && name.includes('premier league'))) return 2;
+    
+    // 3. الدوري الإسباني
+    if (id === 140 || (country === 'spain' && name.includes('la liga'))) return 3;
+    
+    // 4. الدوري الألماني
+    if (id === 78 || (country === 'germany' && name.includes('bundesliga'))) return 4;
+    
+    // 5. الدوري الإيطالي
+    if (id === 135 || (country === 'italy' && name.includes('serie a'))) return 5;
+    
+    // 6. الدوري الفرنسي
+    if (id === 61 || (country === 'france' && name.includes('ligue 1'))) return 6;
 
-    const asia = ['saudi arabia', 'uae', 'qatar', 'japan', 'south korea', 'iran', 'australia', 'asia', 'iraq'];
-    if (asia.includes(country)) return 9; // آسيا
+    // 7. أي بطولة أخرى في إنجلترا (لضمان ظهورها مباشرة تحت الدوريات الكبرى)
+    if (country === 'england') return 7;
 
-    const america = ['brazil', 'argentina', 'usa', 'mexico', 'colombia', 'chile', 'south-america'];
-    if (america.includes(country)) return 10; // أمريكا
+    // 8. البطولات الأوروبية الأخرى القارية
+    if (id === 3 || id === 848 || id === 532 || country === 'europe' || name.includes('uefa')) return 8;
 
-    return 11; // أفريقيا وغيرها
+    // 9. باقي دوريات أوروبا
+    const europe = ['spain', 'germany', 'italy', 'france', 'portugal', 'netherlands', 'belgium', 'scotland', 'turkey', 'greece'];
+    if (europe.includes(country)) return 9;
+
+    // 10. دوريات آسيا
+    const asia = ['saudi arabia', 'uae', 'qatar', 'japan', 'south korea', 'iran', 'australia', 'asia', 'iraq', 'syria'];
+    if (asia.includes(country)) return 10;
+
+    // 11. دوريات أمريكا
+    const america = ['brazil', 'argentina', 'usa', 'mexico', 'colombia', 'chile', 'uruguay', 'south-america'];
+    if (america.includes(country)) return 11;
+
+    return 12; // باقي البطولات
 }
 
 async function fetchMatches(date) {
@@ -87,13 +108,13 @@ async function fetchMatches(date) {
         const data = await res.json();
         globalMatches = data.response || [];
         renderUI(globalMatches);
-    } catch (e) { container.innerHTML = '<div class="empty-msg">حدث خطأ في الاتصال</div>'; }
+    } catch (e) { container.innerHTML = '<div class="empty-msg">حدث خطأ في الاتصال بالسيرفر</div>'; }
 }
 
 function renderUI(matches) {
     const container = document.getElementById('tab-matches');
     if (!container || !matches || matches.length === 0) { 
-        if(container) container.innerHTML = '<div class="empty-msg">لا توجد مباريات</div>'; 
+        if(container) container.innerHTML = '<div class="empty-msg">لا توجد مباريات في هذا اليوم</div>'; 
         return; 
     }
 
