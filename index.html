@@ -7,12 +7,12 @@
     
     <link rel="icon" type="image/png" href="android-chrome-192x192.png">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
-    <link rel="manifest" href="manifest.json?v=7">
+    <link rel="manifest" href="manifest.json?v=11">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-    <link rel="stylesheet" href="style.css?v=9">
+    <link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 
@@ -41,6 +41,17 @@
     <main class="leagues-container hidden" id="tab-other">
         <div class="empty-msg">قريباً...</div>
     </main>
+
+    <div id="match-modal" class="full-modal hidden">
+        <div class="full-modal-header">
+            <div class="back-btn" onclick="closeModal('match-modal')">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+            <div class="match-modal-title">تفاصيل المباراة</div>
+            <div style="width: 24px;"></div>
+        </div>
+        <div class="full-modal-body" id="match-info-container"></div>
+    </div>
 
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchTab(this)">
@@ -75,13 +86,11 @@
         </div>
     </nav>
 
-    <script src="script.js?v=7"></script>
+    <script src="script.js?v=11"></script>
 
     <script>
       if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-          navigator.serviceWorker.register('/fr-sport/sw.js');
-        });
+        window.addEventListener('load', () => { navigator.serviceWorker.register('/fr-sport/sw.js'); });
       }
     </script>
 </body>
