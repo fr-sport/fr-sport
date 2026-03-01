@@ -1,12 +1,12 @@
-/* === ألوان وتصميم FotMob === */
+/* === ألوان وتصميم أسود وبرتقالي === */
 :root {
     --bg-color: #000000;
-    --card-bg: #1c1c1e;
+    --card-bg: #111111;
     --text-main: #ffffff;
     --text-muted: #8e8e93;
-    --fotmob-green: #00b36b;
-    --fotmob-green-bg: rgba(0, 179, 107, 0.15);
-    --border-color: #2c2c2e;
+    --accent-color: #ff6600; /* اللون البرتقالي الرياضي الفخم */
+    --accent-bg: rgba(255, 102, 0, 0.15); /* خلفية برتقالية شفافة للأزرار */
+    --border-color: #222222;
 }
 
 body { 
@@ -19,20 +19,21 @@ body {
 
 /* === الشريط العلوي === */
 .top-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); border-bottom: 1px solid var(--border-color); }
-.header-right { font-size: 20px; font-weight: 900; letter-spacing: 1px; font-style: italic; }
+.header-right { font-size: 20px; font-weight: 900; letter-spacing: 1px; font-style: italic; color: var(--text-main); }
 .header-left { display: flex; align-items: center; gap: 12px; }
-.live-btn { display: flex; align-items: center; gap: 6px; background: #2c2c2e; border: none; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer;}
+.live-btn { display: flex; align-items: center; gap: 6px; background: #222222; border: 1px solid transparent; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer; transition: 0.3s;}
 .live-dot { width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; }
-.live-btn.active .live-dot { background: #ff3b30; }
-.icon-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #2c2c2e; color: var(--text-main); }
+.live-btn.active { border-color: var(--accent-color); color: var(--accent-color); }
+.live-btn.active .live-dot { background: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); }
+.icon-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #222222; color: var(--text-main); }
 
 /* === شريط التواريخ === */
 .dates-wrapper { background: var(--bg-color); border-bottom: 1px solid var(--border-color); }
 .dates-slider { display: flex; overflow-x: auto; padding: 0 10px; scrollbar-width: none; align-items: center; height: 45px;}
 .dates-slider::-webkit-scrollbar { display: none; }
 .date-item { padding: 0 15px; font-size: 14px; font-weight: 600; color: var(--text-muted); white-space: nowrap; cursor: pointer; height: 100%; display: flex; align-items: center; position: relative;}
-.date-item.active { color: var(--text-main); }
-.date-item.active::after { content: ''; position: absolute; bottom: 0; left: 10px; right: 10px; height: 3px; background-color: var(--text-main); border-radius: 3px 3px 0 0; }
+.date-item.active { color: var(--accent-color); }
+.date-item.active::after { content: ''; position: absolute; bottom: 0; left: 10px; right: 10px; height: 3px; background-color: var(--accent-color); border-radius: 3px 3px 0 0; }
 
 /* === البطولات والمباريات === */
 .leagues-container { padding: 10px; }
@@ -54,17 +55,17 @@ body {
 .team-name { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
 
 .match-center { width: 60px; text-align: center; font-size: 12px; font-weight: bold; color: var(--text-muted); margin: 0 10px;}
-.match-center.live { color: var(--fotmob-green); }
+.match-center.live { color: var(--accent-color); }
 
 .tv-icon { display: flex; align-items: center; justify-content: flex-start; width: 24px; color: var(--text-muted); }
 
 /* === القائمة السفلية === */
-.bottom-nav { position: fixed; bottom: 0; width: 100%; background: #121212; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; padding: 8px 10px 25px 10px; z-index: 1000; box-sizing: border-box; }
+.bottom-nav { position: fixed; bottom: 0; width: 100%; background: #080808; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; padding: 8px 10px 25px 10px; z-index: 1000; box-sizing: border-box; }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 10px; font-weight: 600; flex: 1; cursor: pointer; padding: 6px 0; border-radius: 10px; }
 .nav-item svg { width: 24px; height: 24px; }
-.nav-item.active { color: var(--fotmob-green); }
-.nav-item.active .icon-wrapper { background: var(--fotmob-green-bg); padding: 4px 15px; border-radius: 16px; margin-bottom: 2px;}
+.nav-item.active { color: var(--accent-color); }
+.nav-item.active .icon-wrapper { background: var(--accent-bg); padding: 4px 15px; border-radius: 16px; margin-bottom: 2px;}
 
 /* تحميل */
-.loader { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;}
+.loader { text-align: center; padding: 40px; color: var(--accent-color); font-size: 14px;}
 .empty-msg { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
