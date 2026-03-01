@@ -1,12 +1,12 @@
-/* === ألوان وتصميم أسود وبرتقالي === */
+/* === ألوان وتصميم أسود وبرتقالي كامل (النار) === */
 :root {
     --bg-color: #000000;
     --card-bg: #111111;
-    --text-main: #ffffff;
-    --text-muted: #8e8e93;
-    --accent-color: #ff6600; /* اللون البرتقالي الرياضي الفخم */
-    --accent-bg: rgba(255, 102, 0, 0.15); /* خلفية برتقالية شفافة للأزرار */
-    --border-color: #222222;
+    --text-main: #ff9933; /* نصوص برتقالية فاتحة بدلاً من الأبيض */
+    --text-muted: #cc6600; /* برتقالي داكن للخطوط الثانوية */
+    --accent-color: #ff5500; /* برتقالي ناري لكل الأيقونات والخطوط */
+    --accent-bg: rgba(255, 85, 0, 0.15);
+    --border-color: #ff5500; /* خطوط برتقالية واضحة تفصل كل شيء */
 }
 
 body { 
@@ -18,14 +18,15 @@ body {
 .hidden { display: none !important; }
 
 /* === الشريط العلوي === */
-.top-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); border-bottom: 1px solid var(--border-color); }
-.header-right { font-size: 20px; font-weight: 900; letter-spacing: 1px; font-style: italic; color: var(--text-main); }
+.top-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); border-bottom: 2px solid var(--border-color); }
+.header-right { font-size: 20px; font-weight: 900; letter-spacing: 1px; font-style: italic; color: var(--accent-color); }
 .header-left { display: flex; align-items: center; gap: 12px; }
-.live-btn { display: flex; align-items: center; gap: 6px; background: #222222; border: 1px solid transparent; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--text-main); cursor: pointer; transition: 0.3s;}
+.live-btn { display: flex; align-items: center; gap: 6px; background: #111; border: 1px solid var(--accent-color); padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; color: var(--accent-color); cursor: pointer;}
 .live-dot { width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; }
-.live-btn.active { border-color: var(--accent-color); color: var(--accent-color); }
-.live-btn.active .live-dot { background: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); }
-.icon-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #222222; color: var(--text-main); }
+.live-btn.active { background: var(--accent-color); color: #000; }
+.live-btn.active .live-dot { background: #000; box-shadow: 0 0 8px #000; }
+.icon-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #111; color: var(--accent-color); border: 1px solid var(--accent-color); }
+.icon-btn svg { stroke: var(--accent-color); } /* كل الأيقونات العلوية برتقالية */
 
 /* === شريط التواريخ === */
 .dates-wrapper { background: var(--bg-color); border-bottom: 1px solid var(--border-color); }
@@ -37,12 +38,13 @@ body {
 
 /* === البطولات والمباريات === */
 .leagues-container { padding: 10px; }
-.league-group { background: var(--card-bg); border-radius: 12px; margin-bottom: 15px; overflow: hidden; border: 1px solid var(--border-color); }
+.league-group { background: var(--card-bg); border-radius: 12px; margin-bottom: 15px; overflow: hidden; border: 1px solid var(--border-color); box-shadow: 0 0 10px rgba(255, 85, 0, 0.2); }
 
-.league-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); cursor: pointer; }
+.league-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #111; border-bottom: 1px solid var(--border-color); cursor: pointer; }
+.league-header svg { stroke: var(--accent-color); } /* السهم برتقالي */
 .league-title-wrapper { display: flex; align-items: center; gap: 10px; flex-direction: row-reverse;}
-.league-logo { width: 20px; height: 20px; border-radius: 50%; background: #fff; padding: 1px; }
-.league-name { font-size: 13px; font-weight: bold; color: var(--text-main); }
+.league-logo { width: 20px; height: 20px; border-radius: 50%; background: #fff; padding: 1px; border: 1px solid var(--accent-color); }
+.league-name { font-size: 13px; font-weight: bold; color: var(--accent-color); }
 
 .match-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 15px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); text-decoration: none; color: inherit; cursor: pointer; }
 .match-row:last-child { border-bottom: none; }
@@ -54,18 +56,20 @@ body {
 .team-logo { width: 24px; height: 24px; object-fit: contain; }
 .team-name { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 90px; }
 
-.match-center { width: 60px; text-align: center; font-size: 12px; font-weight: bold; color: var(--text-muted); margin: 0 10px;}
-.match-center.live { color: var(--accent-color); }
+.match-center { width: 60px; text-align: center; font-size: 12px; font-weight: bold; color: var(--accent-color); margin: 0 10px;}
+.match-center.live { color: #ff3300; text-shadow: 0 0 5px rgba(255, 51, 0, 0.5); }
 
-.tv-icon { display: flex; align-items: center; justify-content: flex-start; width: 24px; color: var(--text-muted); }
+.tv-icon { display: flex; align-items: center; justify-content: flex-start; width: 24px; color: var(--accent-color); }
+.tv-icon svg { stroke: var(--accent-color); } /* أيقونة التلفاز برتقالية */
 
 /* === القائمة السفلية === */
-.bottom-nav { position: fixed; bottom: 0; width: 100%; background: #080808; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; padding: 8px 10px 25px 10px; z-index: 1000; box-sizing: border-box; }
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 10px; font-weight: 600; flex: 1; cursor: pointer; padding: 6px 0; border-radius: 10px; }
-.nav-item svg { width: 24px; height: 24px; }
-.nav-item.active { color: var(--accent-color); }
-.nav-item.active .icon-wrapper { background: var(--accent-bg); padding: 4px 15px; border-radius: 16px; margin-bottom: 2px;}
+.bottom-nav { position: fixed; bottom: 0; width: 100%; background: #050505; border-top: 2px solid var(--border-color); display: flex; justify-content: space-between; padding: 8px 10px 25px 10px; z-index: 1000; box-sizing: border-box; }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--accent-color); font-size: 10px; font-weight: 600; flex: 1; cursor: pointer; padding: 6px 0; border-radius: 10px; }
+.nav-item svg { width: 24px; height: 24px; stroke: var(--accent-color); } /* كل أيقونات الأسفل برتقالية دائماً */
+.nav-item.active { color: #000; }
+.nav-item.active svg { stroke: #000; } /* الأيقونة النشطة تصبح سوداء داخل المربع البرتقالي */
+.nav-item.active .icon-wrapper { background: var(--accent-color); padding: 4px 15px; border-radius: 16px; margin-bottom: 2px; box-shadow: 0 0 10px var(--accent-color);}
 
 /* تحميل */
 .loader { text-align: center; padding: 40px; color: var(--accent-color); font-size: 14px;}
-.empty-msg { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+.empty-msg { text-align: center; padding: 40px; color: var(--accent-color); font-size: 14px; }
