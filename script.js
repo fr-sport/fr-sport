@@ -1,5 +1,5 @@
 /** * ==========================================
- * FR SPORT - MAIN APPLICATION SCRIPT (ENGLISH)
+ * FR SPORT - MAIN APPLICATION SCRIPT (FOTMOB STYLE)
  * ==========================================
  */
 
@@ -161,9 +161,7 @@ function renderMatchesList(matches) {
                 <div class="match-teams-score">
                     <span class="team-name home-name">${m.teams.home.name}</span>
                     <img src="${m.teams.home.logo}" class="team-logo" loading="lazy">
-                    
                     ${centerContent}
-                    
                     <img src="${m.teams.away.logo}" class="team-logo" loading="lazy">
                     <span class="team-name away-name">${m.teams.away.name}</span>
                 </div>
@@ -179,8 +177,7 @@ function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
 function switchModalTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.getElementById('modal-stats').classList.add('hidden');
-    document.getElementById('modal-lineups').classList.add('hidden');
+    document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.add('hidden'));
     event.target.classList.add('active');
     document.getElementById(`modal-${tab}`).classList.remove('hidden');
 }
@@ -207,19 +204,74 @@ async function openMatchDetails(id) {
 }
 
 function renderMatchDetailsModal(m, injuries, container) {
+    // 1. FotMob Style Hero
+    let matchStatus = m.fixture.status.short;
+    let scoreOrTime = '';
+    let subText = '';
+
+    if (Utils.isNotStarted(matchStatus)) {
+        scoreOrTime = new Date(m.fixture.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+        subText = new Date(m.fixture.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    } else if (Utils.isLiveMatch(matchStatus)) {
+        scoreOrTime = `${m.goals.home ?? 0} - ${m.goals.away ?? 0}`;
+        subText = `<span style="color:var(--accent-color)">${m.fixture.status.elapsed}'</span>`;
+    } else {
+        scoreOrTime = `${m.goals.home ?? 0} - ${m.goals.away ?? 0}`;
+        subText = 'FT';
+    }
+
     let html = `
     <div class="match-hero">
-        <div class="hero-team"><img src="${m.teams.home.logo}" width="50"><span class="p-name">${m.teams.home.name}</span></div>
-        <div class="hero-score">${m.goals.home ?? '-'} - ${m.goals.away ?? '-'}</div>
-        <div class="hero-team"><img src="${m.teams.away.logo}" width="50"><span class="p-name">${m.teams.away.name}</span></div>
+        <div class="hero-team">
+            <img src="${m.teams.home.logo}">
+            <span class="p-name">${m.teams.home.name}</span>
+        </div>
+        <div class="hero-score-time">
+            <div class="hero-score">${scoreOrTime}</div>
+            <div class="hero-sub">${subText}</div>
+        </div>
+        <div class="hero-team">
+            <img src="${m.teams.away.logo}">
+            <span class="p-name">${m.teams.away.name}</span>
+        </div>
     </div>
+    
     <div class="tabs-container">
-        <div class="tab-btn active" onclick="switchModalTab('stats')">Stats</div>
+        <div class="tab-btn active" onclick="switchModalTab('preview')">Preview</div>
+        <div class="tab-btn" onclick="switchModalTab('stats')">Stats</div>
         <div class="tab-btn" onclick="switchModalTab('lineups')">Lineups</div>
     </div>
     `;
 
-    let statsHtml = '<div id="modal-stats">';
+    // 2. Preview Tab (Stadium & Referee)
+    let venueName = m.fixture.venue?.name || 'Unknown Stadium';
+    let venueCity = m.fixture.venue?.city || '';
+    let referee = m.fixture.referee || 'Referee not announced';
+
+    let previewHtml = `
+    <div id="modal-preview" class="modal-tab-content">
+        <div class="info-card">
+            <div class="info-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            </div>
+            <div>
+                <div class="info-text-main">${venueName}</div>
+                <div class="info-text-sub">${venueCity}</div>
+            </div>
+        </div>
+        <div class="info-card">
+            <div class="info-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+            </div>
+            <div>
+                <div class="info-text-main">${referee}</div>
+                <div class="info-text-sub">Referee</div>
+            </div>
+        </div>
+    </div>`;
+
+    // 3. Stats Tab
+    let statsHtml = '<div id="modal-stats" class="modal-tab-content hidden">';
     if (m.statistics && m.statistics.length > 1) {
         const hStats = m.statistics[0].statistics;
         const aStats = m.statistics[1].statistics;
@@ -245,10 +297,8 @@ function renderMatchDetailsModal(m, injuries, container) {
     }
     statsHtml += '</div>';
 
-    let lineupsHtml = '<div id="modal-lineups" class="hidden">';
-    const subIcon = `<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="16 16 12 20 8 16"></polyline><line x1="12" y1="20" x2="12" y2="4"></line></svg>`;
-    const injuryIcon = `<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
-
+    // 4. Lineups Tab
+    let lineupsHtml = '<div id="modal-lineups" class="modal-tab-content hidden">';
     if (m.lineups && m.lineups.length > 1) {
         const [hL, aL] = m.lineups;
         lineupsHtml += `<div class="lineup-section"><div class="section-title">Starting XI</div>`;
@@ -259,7 +309,7 @@ function renderMatchDetailsModal(m, injuries, container) {
         }
         lineupsHtml += `</div>`;
 
-        lineupsHtml += `<div class="lineup-section"><div class="section-title">Substitutes ${subIcon}</div>`;
+        lineupsHtml += `<div class="lineup-section"><div class="section-title">Substitutes</div>`;
         let maxSubs = Math.max(hL.substitutes.length, aL.substitutes.length);
         for(let i=0; i<maxSubs; i++) {
             let hP = hL.substitutes[i]?.player; let aP = aL.substitutes[i]?.player;
@@ -271,7 +321,7 @@ function renderMatchDetailsModal(m, injuries, container) {
     }
 
     if (injuries.length > 0) {
-        lineupsHtml += `<div class="lineup-section"><div class="section-title" style="color:#ff3b30">Missing Players ${injuryIcon}</div>`;
+        lineupsHtml += `<div class="lineup-section"><div class="section-title" style="color:#ff3b30">Missing Players</div>`;
         const hInj = injuries.filter(i => i.team.id === m.teams.home.id);
         const aInj = injuries.filter(i => i.team.id === m.teams.away.id);
         let maxInj = Math.max(hInj.length, aInj.length);
@@ -286,14 +336,15 @@ function renderMatchDetailsModal(m, injuries, container) {
         lineupsHtml += `</div>`;
     }
     lineupsHtml += '</div>';
-    container.innerHTML = html + statsHtml + lineupsHtml;
+
+    container.innerHTML = html + previewHtml + statsHtml + lineupsHtml;
 }
 
 function buildPlayerRow(hP, aP) {
     return `
     <div class="player-row">
-        <div class="player-side player-home"><span class="p-num">${hP?.number||'-'}</span><span class="p-name">${hP?.name||'-'}</span></div>
-        <div class="player-side player-away"><span class="p-num">${aP?.number||'-'}</span><span class="p-name">${aP?.name||'-'}</span></div>
+        <div class="player-side player-home"><span class="p-num">${hP?.number||''}</span><span class="p-name">${hP?.name||'-'}</span></div>
+        <div class="player-side player-away"><span class="p-name">${aP?.name||'-'}</span><span class="p-num">${aP?.number||''}</span></div>
     </div>`;
 }
 
