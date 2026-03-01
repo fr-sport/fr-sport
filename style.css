@@ -130,3 +130,43 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 
 .loader { text-align: center; padding: 40px; color: var(--accent-color); font-size: 14px;}
 .empty-msg { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+/* === Smooth Animations & UI Polish === */
+
+/* تأثير النعومة عند التبديل بين التبويبات (الإحصائيات، التشكيلة، الخ) */
+.modal-tab-content {
+    animation: fadeInTab 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeInTab {
+    0% { opacity: 0; transform: translateY(15px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+/* تأثير فتح النافذة المنبثقة (المباراة) من الأسفل للأعلى بنعومة */
+.full-modal {
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+
+.full-modal.hidden {
+    display: flex !important; /* نلغي الإخفاء القسري لكي تعمل الحركة */
+    opacity: 0;
+    transform: translateY(100%);
+    pointer-events: none;
+}
+
+/* تأثير النعومة للقائمة السفلية */
+.nav-item svg {
+    transition: stroke 0.3s ease, transform 0.2s ease;
+}
+.nav-item.active svg {
+    transform: scale(1.15); /* الأيقونة النشطة تكبر قليلاً */
+}
+
+/* تحسين شكل بطاقات المباريات عند اللمس */
+.match-row {
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+.match-row:active {
+    background-color: #222;
+    transform: scale(0.98);
+}
