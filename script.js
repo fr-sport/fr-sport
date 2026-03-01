@@ -2,7 +2,6 @@ const SERVER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
 let globalMatches = [];
 let isLiveMode = false;
 
-// تجهيز التواريخ
 function formatArabicDate(dateObj, offset) {
     if (offset === 0) return "اليوم";
     if (offset === -1) return "أمس";
@@ -54,7 +53,7 @@ function toggleLive(btn) {
 
 function isLiveMatch(status) { return ['1H', '2H', 'HT', 'ET', 'P', 'LIVE'].includes(status); }
 
-// نظام ترتيب الدوريات الجديد باحترافية
+// ترتيب الدوريات
 function getLeaguePriority(league) {
     const id = league.id;
     const country = league.country ? league.country.toLowerCase() : '';
@@ -162,14 +161,12 @@ function renderUI(matches) {
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 
-// نظام الإحصائيات والتشكيلة
 async function openMatchDetails(id) {
     document.getElementById('match-modal').classList.remove('hidden');
     const container = document.getElementById('match-info-container');
     container.innerHTML = '<div class="loader">جاري جلب التفاصيل...</div>';
 
     try {
-        // جلب تفاصيل المباراة والإصابات في نفس الوقت
         const [matchRes, injuriesRes] = await Promise.all([
             fetch(`${SERVER_URL}/fixtures?id=${id}`),
             fetch(`${SERVER_URL}/injuries?fixture=${id}`)
@@ -180,7 +177,6 @@ async function openMatchDetails(id) {
         const m = matchData.response[0];
         if(!m) return;
 
-        // الهيدر
         let html = `
         <div class="match-hero">
             <div class="hero-team"><img src="${m.teams.home.logo}" width="50"><span class="p-name">${m.teams.home.name}</span></div>
@@ -193,7 +189,6 @@ async function openMatchDetails(id) {
         </div>
         `;
 
-        // الإحصائيات
         let statsHtml = '<div id="modal-stats">';
         if (m.statistics && m.statistics.length > 1) {
             const hStats = m.statistics[0].statistics;
@@ -204,7 +199,6 @@ async function openMatchDetails(id) {
                 let aVal = aStats[i].value ?? 0;
                 let type = hStats[i].type;
                 
-                // تحويل النسب إلى أرقام
                 let hNum = parseInt(hVal.toString().replace('%','')) || 0;
                 let aNum = parseInt(aVal.toString().replace('%','')) || 0;
                 let total = hNum + aNum;
@@ -225,7 +219,6 @@ async function openMatchDetails(id) {
         }
         statsHtml += '</div>';
 
-        // التشكيلة
         let lineupsHtml = '<div id="modal-lineups" class="hidden">';
         const subIcon = `<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="16 16 12 20 8 16"></polyline><line x1="12" y1="20" x2="12" y2="4"></line></svg>`;
         const injuryIcon = `<svg class="svg-icon" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>`;
@@ -233,7 +226,6 @@ async function openMatchDetails(id) {
         if (m.lineups && m.lineups.length > 1) {
             const hL = m.lineups[0]; const aL = m.lineups[1];
             
-            // الأساسيون
             lineupsHtml += `<div class="lineup-section"><div class="section-title">الأساسيون</div>`;
             for(let i=0; i<11; i++) {
                 let hP = hL.startXI[i]?.player; let aP = aL.startXI[i]?.player;
@@ -246,7 +238,6 @@ async function openMatchDetails(id) {
             }
             lineupsHtml += `</div>`;
 
-            // الاحتياط
             lineupsHtml += `<div class="lineup-section"><div class="section-title">الاحتياط ${subIcon}</div>`;
             let maxSubs = Math.max(hL.substitutes.length, aL.substitutes.length);
             for(let i=0; i<maxSubs; i++) {
@@ -262,7 +253,6 @@ async function openMatchDetails(id) {
             lineupsHtml += '<div class="empty-msg">التشكيلة غير متوفرة بعد</div>';
         }
 
-        // الغيابات والإصابات
         const inj = injuriesData.response || [];
         if (inj.length > 0) {
             lineupsHtml += `<div class="lineup-section"><div class="section-title" style="color:#ff3b30">الغيابات ${injuryIcon}</div>`;
@@ -293,7 +283,6 @@ function switchModalTab(tab) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('modal-stats').classList.add('hidden');
     document.getElementById('modal-lineups').classList.add('hidden');
-    
     event.target.classList.add('active');
     document.getElementById(`modal-${tab}`).classList.remove('hidden');
 }
