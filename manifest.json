@@ -2,37 +2,38 @@
   "id": "/fr-sport/",
   "name": "FR SPORT",
   "short_name": "FR SPORT",
-  "description": "تطبيق FR SPORT الرياضي الشامل",
+  "description": "التطبيق الرياضي الأول",
   "start_url": "/fr-sport/",
+  "scope": "/fr-sport/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "background_color": "#050505",
   "theme_color": "#050505",
   "icons": [
     {
-      "src": "Logo.jpg",
+      "src": "android-chrome-192x192.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "Logo.jpg",
+      "src": "android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "Logo.jpg",
+      "src": "android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "form_factor": "wide"
     },
     {
-      "src": "Logo.jpg",
+      "src": "android-chrome-512x512.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "form_factor": "narrow"
     }
   ]
