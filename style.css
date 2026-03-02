@@ -1,10 +1,19 @@
-:root { --bg-color: #000000; --card-bg: #151515; --text-main: #ffffff; --text-muted: #8e8e93; --accent-color: #c5934b; --border-color: rgba(255, 255, 255, 0.10); }
+:root {
+    --bg-color: #000000;
+    --card-bg: #151515;
+    --text-main: #ffffff;
+    --text-muted: #8e8e93;
+    --accent-color: #c5934b;
+    --border-color: rgba(255, 255, 255, 0.10);
+}
+
 body { margin: 0; background-color: var(--bg-color); color: var(--text-main); font-family: -apple-system, sans-serif; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; user-select: none; }
 .hidden { display: none !important; }
 
-/* === الشعارات الآن أصلية وبدون فلاتر مشوهة === */
+/* === الصور والشعارات الأصلية === */
 .team-logo, .league-logo { object-fit: contain; background: transparent; }
 
+/* === الهيدر (Header) === */
 .top-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); border-bottom: 1px solid var(--border-color); }
 .header-right { font-size: 20px; font-weight: 900; letter-spacing: 1px; font-style: italic; color: var(--accent-color); }
 .header-left { display: flex; align-items: center; gap: 12px; }
@@ -14,6 +23,7 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .live-btn.active .live-dot { background: #000; box-shadow: 0 0 8px #000; }
 .icon-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #111; color: var(--accent-color); border: 1px solid var(--border-color); }
 
+/* === التواريخ === */
 .dates-wrapper { background: var(--bg-color); border-bottom: 1px solid var(--border-color); }
 .dates-slider { display: flex; overflow-x: auto; padding: 0 10px; scrollbar-width: none; align-items: center; height: 45px;}
 .dates-slider::-webkit-scrollbar { display: none; }
@@ -21,6 +31,7 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .date-item.active { color: var(--text-main); }
 .date-item.active::after { content: ''; position: absolute; bottom: 0; left: 10px; right: 10px; height: 3px; background-color: var(--accent-color); border-radius: 3px 3px 0 0; }
 
+/* === المباريات === */
 .leagues-container { padding: 10px; }
 .league-group { background: var(--card-bg); border-radius: 12px; margin-bottom: 15px; overflow: hidden; }
 .league-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #1a1a1a; cursor: pointer; border-bottom: 1px solid var(--border-color);}
@@ -32,19 +43,21 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .match-row:last-child { border-bottom: none; }
 .match-teams-score { display: grid; grid-template-columns: 1fr 24px 60px 24px 1fr; align-items: center; flex: 1; width: 100%; }
 .team-name { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.home-name { text-align: right; padding-right: 10px; } 
-.away-name { text-align: left; padding-left: 10px; }   
+.home-name { text-align: left; padding-left: 10px; } 
+.away-name { text-align: right; padding-right: 10px; } 
 .team-logo { width: 24px; height: 24px; justify-self: center; }
-.match-center { text-align: center; font-size: 12px; font-weight: bold; color: var(--text-main); }
+.match-center { text-align: center; font-size: 12px; font-weight: bold; color: var(--text-main); direction: ltr;}
 .match-center.live { color: var(--accent-color); }
-.tv-icon { width: 20px; color: var(--text-muted); flex-shrink: 0; display:flex; justify-content:flex-end;}
+.tv-icon { width: 20px; color: var(--text-muted); flex-shrink: 0; display:flex; justify-content:flex-start;}
 
+/* === القائمة السفلية === */
 .bottom-nav { position: fixed; bottom: 0; width: 100%; background: #050505; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; padding: 8px 10px 25px 10px; z-index: 1000; box-sizing: border-box; }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 10px; font-weight: 600; flex: 1; cursor: pointer; padding: 6px 0; border-radius: 10px; }
 .nav-item svg { width: 24px; height: 24px; stroke: var(--text-muted);}
 .nav-item.active { color: var(--accent-color); }
 .nav-item.active svg { stroke: var(--accent-color); }
 
+/* === النوافذ المنبثقة (Modals) === */
 .full-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 2000; overflow-y: auto; display: flex; flex-direction: column;}
 .full-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: var(--bg-color); position: sticky; top: 0; z-index: 10; }
 .back-btn, .modal-actions { color: var(--text-main); cursor: pointer; display: flex; align-items: center; gap:20px;}
@@ -53,7 +66,7 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .hero-team { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 33%; text-align: center; }
 .hero-team img { width: 60px; height: 60px; object-fit: contain; background: transparent; }
 .hero-score-time { display: flex; flex-direction: column; align-items: center; width: 33%; gap: 5px;}
-.hero-score { font-size: 42px; font-weight: 300; color: var(--text-main); line-height: 1;}
+.hero-score { font-size: 42px; font-weight: 300; color: var(--text-main); line-height: 1; direction: ltr;}
 .hero-sub { font-size: 14px; color: var(--text-muted); font-weight: 600;}
 
 .tabs-container { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
@@ -61,6 +74,7 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .tab-btn.active { color: var(--text-main); }
 .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 15%; right: 15%; height: 3px; background-color: var(--accent-color); border-radius: 3px 3px 0 0; }
 
+/* === الملعب (Pitch) === */
 .pitch-wrapper { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border-color); }
 .pitch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;}
 .pitch-team { display: flex; align-items: center; gap: 8px; font-weight: bold; font-size: 14px;}
@@ -73,25 +87,34 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .pitch-player-num { position: absolute; bottom: -4px; right: -4px; background: var(--bg-color); color: var(--text-main); font-size: 10px; font-weight: bold; width: 18px; height: 18px; display: flex; justify-content: center; align-items: center; border-radius: 50%; border: 1px solid #555; }
 .pitch-player-name { font-size: 11px; color: var(--text-main); text-align: center; margin-top: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
+/* === الإحصائيات والبدلاء === */
 .lineup-section { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border-color);}
-.section-title { font-size: 14px; font-weight: bold; color: var(--text-muted); margin-bottom: 15px; text-transform: uppercase;}
+.section-title { font-size: 14px; font-weight: bold; color: var(--text-muted); margin-bottom: 15px;}
 .player-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #222; font-size: 13px; cursor: pointer;}
 .player-side { display: flex; align-items: center; gap: 8px; width: 48%; }
-.player-home { justify-content: flex-start; text-align: left; }
-.player-away { justify-content: flex-end; flex-direction: row-reverse; text-align: right; }
+.player-home { justify-content: flex-start; text-align: right; }
+.player-away { justify-content: flex-end; flex-direction: row-reverse; text-align: left; }
 .p-num { font-size: 11px; font-weight: bold; color: var(--text-muted); width: 22px; text-align: center; flex-shrink: 0;}
 .p-name { color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; font-weight: 500;}
 .sub-player-img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background-color: #222; border: 1px solid #444; flex-shrink: 0; }
 
+.stat-row { margin-bottom: 15px; }
+.stat-header { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-main); margin-bottom: 5px; font-weight: bold;}
+.stat-bar-container { display: flex; height: 6px; background: #222; border-radius: 3px; overflow: hidden; gap: 2px; flex-direction: row;}
+.stat-bar-home { background: var(--accent-color); height: 100%; }
+.stat-bar-away { background: #fff; height: 100%; }
+
+/* === بروفايل اللاعب === */
 .player-hero { display: flex; flex-direction: column; align-items: center; padding: 30px 20px; background: linear-gradient(to bottom, #1a1a1a, var(--bg-color)); border-bottom: 1px solid var(--border-color); }
 .player-photo-large { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent-color); margin-bottom: 15px; }
 .player-name-large { font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 5px; }
 .player-team-info { font-size: 14px; color: var(--text-muted); display: flex; align-items: center; gap: 8px; }
 .player-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 20px 15px; }
 .p-stat-box { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; text-align: center; }
-.p-stat-title { font-size: 12px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
+.p-stat-title { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
 .p-stat-value { font-size: 18px; font-weight: bold; color: var(--text-main); }
 
+/* === الأخبار (News) === */
 .news-top-nav { display: flex; gap: 20px; padding: 15px 20px 0; border-bottom: 1px solid var(--border-color); background: var(--bg-color); position: sticky; top: 50px; z-index: 90; }
 .news-top-tab { font-size: 15px; font-weight: bold; color: var(--text-muted); padding-bottom: 10px; cursor: pointer; position: relative; }
 .news-top-tab.active { color: var(--text-main); }
@@ -105,15 +128,33 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .news-list-content { flex: 1; }
 .news-list-title { font-size: 14px; font-weight: 700; line-height: 1.4; margin-bottom: 8px; }
 .news-list-img { width: 90px; height: 65px; object-fit: cover; border-radius: 8px; flex-shrink: 0; }
-.news-date { font-size: 11px; color: var(--text-muted); font-weight: 600; }
+.news-date { font-size: 11px; color: var(--text-muted); font-weight: 600; text-align: left; direction: ltr; display: inline-block;} 
 
+/* === الانتقالات (Transfers) === */
 .transfer-card { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-.transfer-player-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); margin-right: 15px; flex-shrink: 0; }
+.transfer-player-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); margin-left: 15px; flex-shrink: 0; }
 .transfer-info { flex: 1; }
 .transfer-name { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
 .transfer-fee { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 10px; }
 .transfer-clubs { display: flex; align-items: center; gap: 10px; }
 .transfer-club-logo { width: 24px; height: 24px; object-fit: contain; }
-.transfer-arrow { color: var(--accent-color); display: flex; align-items: center; justify-content: center; }
+.transfer-arrow { color: var(--accent-color); display: flex; align-items: center; justify-content: center; transform: scaleX(-1); }
+
+/* === البطولات (Leagues) وجدول الترتيب (Standings) === */
+.leagues-grid { padding: 0 15px 20px; display: flex; flex-direction: column; gap: 12px; }
+.league-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: transform 0.2s; }
+.league-card:active { transform: scale(0.98); background-color: #222; }
+.league-card-logo { width: 40px; height: 40px; object-fit: contain; }
+.league-card-info { flex: 1; text-align: right; }
+.league-card-name { font-size: 15px; font-weight: bold; color: var(--text-main); }
+
+.standings-table { background: var(--bg-color); width: 100%; }
+.st-header { display: flex; align-items: center; padding: 10px 15px; border-bottom: 1px solid var(--border-color); font-size: 12px; color: var(--text-muted); font-weight: bold; background: #111; position: sticky; top: 0; z-index: 5; }
+.st-row { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-size: 13px; color: var(--text-main); }
+.st-rank { width: 30px; text-align: center; font-weight: bold; flex-shrink: 0; }
+.st-team { flex: 1; display: flex; align-items: center; gap: 10px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; }
+.st-team img { width: 22px; height: 22px; object-fit: contain; }
+.st-p, .st-gd { width: 35px; text-align: center; color: var(--text-muted); flex-shrink: 0; }
+.st-pts { width: 35px; text-align: center; font-weight: 900; color: var(--text-main); flex-shrink: 0; font-size: 14px; }
 
 .loader, .empty-msg { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
