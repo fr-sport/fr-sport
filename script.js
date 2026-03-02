@@ -53,7 +53,7 @@ function selectDate(dateStr) {
     fetchMatches(dateStr);
 }
 
-// === دالة التنقل بين التبويبات (تمت إضافة الأخبار وإخفاء شريط التواريخ) ===
+// === دالة التنقل بين التبويبات ===
 function switchTab(el) {
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
     el.classList.add('active');
@@ -68,17 +68,16 @@ function switchTab(el) {
     
     if(tabName === 'Matches') {
         document.getElementById('tab-matches').classList.remove('hidden');
-        if(datesWrapper) datesWrapper.style.display = 'block'; // إظهار التواريخ
+        if(datesWrapper) datesWrapper.style.display = 'block'; 
     } else if(tabName === 'News') {
         if(newsTab) newsTab.classList.remove('hidden');
-        if(datesWrapper) datesWrapper.style.display = 'none'; // إخفاء التواريخ
+        if(datesWrapper) datesWrapper.style.display = 'none'; 
         
         // جلب الأخبار إذا كانت الشاشة فارغة
         if(newsTab && (newsTab.innerHTML.includes('Click') || newsTab.innerHTML.trim() === '')) {
             fetchNews();
         }
     } else {
-        // لباقي التبويبات التي سنبرمجها لاحقاً
         if(datesWrapper) datesWrapper.style.display = 'none';
     }
 }
@@ -89,32 +88,35 @@ function toggleLive(btn) {
     renderMatchesList(AppState.globalMatches);
 }
 
-// === دالة جلب الأخبار (RSS Fetching) ===
+// === دالة جلب الأخبار (Sky Sports - English) ===
 async function fetchNews() {
     const container = document.getElementById('tab-news');
+    if(!container) return;
     container.innerHTML = '<div class="loader">Fetching latest news...</div>';
     
     try {
-        const rssUrl = 'https://www.filgoal.com/articles/rss';
+        const rssUrl = 'https://www.skysports.com/rss/12040';
         const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`);
         const data = await res.json();
+        
+        if (data.status !== 'ok') throw new Error("API Error");
+        
         const articles = data.items;
-
         if(!articles || articles.length === 0) throw new Error("No news");
 
         let html = '';
         articles.forEach(article => {
-            let img = article.enclosure.link || article.thumbnail || 'https://via.placeholder.com/400x200?text=FR+SPORT+NEWS';
+            let img = article.enclosure.link || article.thumbnail || 'https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT';
             let pubDate = new Date(article.pubDate).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
 
             html += `
             <div class="news-card" onclick="window.open('${article.link}', '_blank')">
-                <img src="${img}" class="news-img" loading="lazy">
-                <div class="news-content">
+                <img src="${img}" class="news-img" loading="lazy" onerror="this.src='https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT'">
+                <div class="news-content" style="direction: ltr; text-align: left;">
                     <div class="news-title">${article.title}</div>
                     <div class="news-date">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        ${pubDate} • <span class="news-source">FR SPORT</span>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        ${pubDate} • <span class="news-source" style="margin-left:4px;">Sky Sports</span>
                     </div>
                 </div>
             </div>`;
@@ -365,7 +367,7 @@ function renderMatchDetailsModal(m, injuries, container) {
     }
     statsHtml += '</div>';
 
-    // Lineups Tab (With Sub Photos & Waiting Screen)
+    // Lineups Tab
     let lineupsHtml = '<div id="modal-lineups" class="modal-tab-content">';
     if (m.lineups && m.lineups.length > 1) {
         const [hL, aL] = m.lineups;
