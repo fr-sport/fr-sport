@@ -1,5 +1,5 @@
 /** * ==========================================
- * FR SPORT - STABLE VERSION (FAST NEWS & MATCHES)
+ * FR SPORT - MASSIVE NEWS & SMART TRANSFERS
  * ==========================================
  */
 
@@ -69,7 +69,6 @@ function switchTab(el) {
     } else if(tabName === 'News') {
         if(newsTab) newsTab.classList.remove('hidden');
         if(datesWrapper) datesWrapper.style.display = 'none'; 
-        
         if(newsTab && (newsTab.innerHTML.includes('Click') || newsTab.innerHTML.trim() === '')) {
             fetchNews();
         }
@@ -84,115 +83,139 @@ function toggleLive(btn) {
     renderMatchesList(AppState.globalMatches);
 }
 
-// === الحل الجذري للأخبار (سريع جداً ومستقر) ===
+// === النظام الخارق لجلب الأخبار من 3 مصادر وفلترة الانتقالات ===
 async function fetchNews() {
     const container = document.getElementById('tab-news');
     if(!container) return;
     
-    // واجهة تحميل أنيقة
     container.innerHTML = `
         <div class="news-top-nav">
-            <div class="news-top-tab active">For You</div>
-            <div class="news-top-tab">Transfers</div>
+            <div class="news-top-tab active" onclick="switchNewsSubTab('foryou')">For You</div>
+            <div class="news-top-tab" onclick="switchNewsSubTab('transfers')">Transfers</div>
         </div>
         <div id="news-content-area">
-            <div class="loader" style="margin-top:50px; color:var(--accent-color);">Loading lightning fast news...</div>
+            <div class="loader" style="margin-top:50px; color:var(--accent-color);">Loading massive global news...</div>
         </div>
     `;
     
     try {
-        // استخدمنا خدمة تحويل موثوقة جداً لا تتعرض للحظر
-        const rssUrl = 'http://feeds.bbci.co.uk/sport/football/rss.xml';
-        const apiUrl = `https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}&api_key=`; 
-        
-        const res = await fetch(apiUrl);
-        if (!res.ok) throw new Error("Network Error");
-        const data = await res.json();
-        
-        if (data.status !== 'ok' || !data.items || data.items.length === 0) throw new Error("No news data");
+        // جلب الأخبار من 3 وكالات عالمية في نفس الوقت!
+        const feeds = [
+            'http://feeds.bbci.co.uk/sport/football/rss.xml',
+            'https://talksport.com/football/feed/',
+            'https://sports.yahoo.com/soccer/rss.xml'
+        ];
 
-        let html = `
-        <div id="news-foryou-content">
-            <div class="trending-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
-                Trending Now
-            </div>
-            <div class="news-feed">
-        `;
+        const requests = feeds.map(url => fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`));
+        const responses = await Promise.all(requests);
 
-        data.items.slice(0, 20).forEach((article, index) => {
-            let title = article.title;
-            let link = article.link;
-            let pubDate = new Date(article.pubDate).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
-            let img = article.thumbnail || (article.enclosure ? article.enclosure.link : '') || 'https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT';
+        let allArticles = [];
+        for (let res of responses) {
+            if (res.ok) {
+                const data = await res.json();
+                if (data.status === 'ok' && data.items) {
+                    allArticles = allArticles.concat(data.items);
+                }
+            }
+        }
 
-            if (index === 0) {
-                html += `
-                <div class="news-hero-card" onclick="window.open('${link}', '_blank')">
-                    <img src="${img}" class="news-hero-img" onerror="this.src='https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT'">
-                    <div class="news-hero-title">${title}</div>
-                    <div class="news-date">Global Sport • ${pubDate}</div>
-                </div>`;
-            } else {
-                html += `
-                <div class="news-list-card" onclick="window.open('${link}', '_blank')">
-                    <div class="news-list-content">
-                        <div class="news-list-title">${title}</div>
-                        <div class="news-date">Global Sport • ${pubDate}</div>
-                    </div>
-                    <img src="${img}" class="news-list-img" onerror="this.src='https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT'">
-                </div>`;
+        // ترتيب وإزالة التكرار
+        const uniqueArticles = [];
+        const titles = new Set();
+        allArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate)).forEach(article => {
+            if(!titles.has(article.title)) {
+                titles.add(article.title);
+                uniqueArticles.push(article);
             }
         });
-        
-        html += `</div></div>`;
 
-        // قسم الانتقالات المدمج
-        const transfers = [
+        if(uniqueArticles.length === 0) throw new Error("No news found");
+
+        // === فلتر الذكاء الاصطناعي للانتقالات ===
+        const transferKeywords = ['transfer', 'sign', 'deal', 'loan', 'bid', 'medical', 'contract', 'move', 'agrees'];
+        const transferArticles = uniqueArticles.filter(article => {
+            const titleLower = article.title.toLowerCase();
+            return transferKeywords.some(kw => titleLower.includes(kw));
+        });
+
+        // 1. بناء صفحة For You (الأخبار العامة)
+        let forYouHtml = `<div id="news-foryou-content"><div class="trending-header"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg> Latest Global News</div><div class="news-feed">`;
+        uniqueArticles.slice(0, 30).forEach((article, index) => {
+            forYouHtml += buildNewsCardHtml(article, index === 0);
+        });
+        forYouHtml += `</div></div>`;
+
+        // 2. بناء صفحة Transfers (أخبار حية + التصميم الفخم)
+        let transfersHtml = `<div id="news-transfers-content" class="hidden">
+            <div class="trending-header" style="color:var(--accent-color);">Live Transfer Updates</div>
+            <div class="news-feed">`;
+
+        if (transferArticles.length > 0) {
+            transferArticles.slice(0, 10).forEach((article, index) => {
+                transfersHtml += buildNewsCardHtml(article, false);
+            });
+        } else {
+            transfersHtml += `<div class="empty-msg">No breaking transfer news right now.</div>`;
+        }
+
+        transfersHtml += `</div><div class="trending-header">Top Deals of the Season</div><div class="news-feed">`;
+
+        // الصفقات الكبرى (محفوظة برمجياً للتصميم المرئي)
+        const hardcodedTransfers = [
             { name: "Kylian Mbappé", fee: "Free Transfer", fromLogo: "https://media.api-sports.io/football/teams/85.png", toLogo: "https://media.api-sports.io/football/teams/541.png", img: "https://media.api-sports.io/football/players/278.png" },
             { name: "Julián Álvarez", fee: "€75M", fromLogo: "https://media.api-sports.io/football/teams/50.png", toLogo: "https://media.api-sports.io/football/teams/530.png", img: "https://media.api-sports.io/football/players/9089.png" },
             { name: "Leny Yoro", fee: "€62M", fromLogo: "https://media.api-sports.io/football/teams/79.png", toLogo: "https://media.api-sports.io/football/teams/33.png", img: "https://media.api-sports.io/football/players/335804.png" }
         ];
 
-        html += `<div id="news-transfers-content" class="hidden"><div class="news-feed" style="padding-top:20px;">`;
-        transfers.forEach(t => {
-            html += `<div class="transfer-card"><img src="${t.img}" class="transfer-player-img" onerror="this.src='https://via.placeholder.com/60/111/fff?text=P'"><div class="transfer-info"><div class="transfer-name">${t.name}</div><div class="transfer-fee">${t.fee}</div><div class="transfer-clubs"><img src="${t.fromLogo}" class="transfer-club-logo" onerror="this.style.display='none'"><div class="transfer-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div><img src="${t.toLogo}" class="transfer-club-logo" onerror="this.style.display='none'"></div></div></div>`;
+        hardcodedTransfers.forEach(t => {
+            transfersHtml += `<div class="transfer-card"><img src="${t.img}" class="transfer-player-img" onerror="this.src='https://via.placeholder.com/60/111/fff?text=P'"><div class="transfer-info"><div class="transfer-name">${t.name}</div><div class="transfer-fee">${t.fee}</div><div class="transfer-clubs"><img src="${t.fromLogo}" class="transfer-club-logo" onerror="this.style.display='none'"><div class="transfer-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div><img src="${t.toLogo}" class="transfer-club-logo" onerror="this.style.display='none'"></div></div></div>`;
         });
-        html += `</div></div>`;
 
-        document.getElementById('news-content-area').innerHTML = html;
-        
-        // إعادة ربط أزرار التبويبات العلوية
-        document.querySelectorAll('.news-top-tab').forEach((tab, i) => {
-            tab.onclick = () => {
-                document.querySelectorAll('.news-top-tab').forEach(t => t.classList.remove('active'));
-                tab.classList.add('active');
-                if(i === 0) {
-                    document.getElementById('news-foryou-content').classList.remove('hidden');
-                    document.getElementById('news-transfers-content').classList.add('hidden');
-                } else {
-                    document.getElementById('news-foryou-content').classList.add('hidden');
-                    document.getElementById('news-transfers-content').classList.remove('hidden');
-                }
-            };
-        });
+        transfersHtml += `</div></div>`;
+
+        document.getElementById('news-content-area').innerHTML = forYouHtml + transfersHtml;
 
     } catch (e) {
         console.error(e);
-        document.getElementById('news-content-area').innerHTML = `<div class="empty-msg" style="margin-top:50px;">Unable to load news right now.</div>`;
+        document.getElementById('news-content-area').innerHTML = `<div class="empty-msg" style="margin-top:50px;">Error loading news. Try again later.</div>`;
     }
 }
 
-function getLeaguePriority(league) {
-    const id = league.id;
-    const country = league.country ? league.country.toLowerCase() : '';
-    if (id === 2 || id === 3 || id === 39) return 1; 
-    const topEurope = ['england', 'spain', 'germany', 'italy', 'france'];
-    if (topEurope.includes(country)) return 2;
-    return 3; 
+// وظيفة فرعية لإنشاء كرت الخبر
+function buildNewsCardHtml(article, isHero) {
+    let title = article.title;
+    let link = article.link;
+    let pubDate = new Date(article.pubDate).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+    let img = article.thumbnail || (article.enclosure ? article.enclosure.link : '') || 'https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT';
+    
+    // معرفة مصدر الخبر
+    let source = 'News';
+    if (link.includes('bbc')) source = 'BBC Sport';
+    if (link.includes('talksport')) source = 'TalkSport';
+    if (link.includes('yahoo')) source = 'Yahoo Sports';
+
+    if (isHero) {
+        return `<div class="news-hero-card" onclick="window.open('${link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.src='https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT'"><div class="news-hero-title">${title}</div><div class="news-date">${source} • ${pubDate}</div></div>`;
+    } else {
+        return `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${title}</div><div class="news-date">${source} • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT'"></div>`;
+    }
 }
 
-// دالة جلب المباريات مع حماية ضد التوقف
+function switchNewsSubTab(tabId) {
+    document.querySelectorAll('.news-top-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    document.getElementById('news-foryou-content').classList.add('hidden');
+    document.getElementById('news-transfers-content').classList.add('hidden');
+    document.getElementById(`news-${tabId}-content`).classList.remove('hidden');
+}
+
+function getLeaguePriority(league) {
+    const top = ['england', 'spain', 'germany', 'italy', 'france'];
+    if (league.id === 2 || league.id === 3 || league.id === 39) return 1;
+    if (top.includes(league.country?.toLowerCase())) return 2;
+    return 3;
+}
+
 async function fetchMatches(date) {
     AppState.currentDate = date;
     const container = document.getElementById('tab-matches');
