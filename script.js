@@ -1,5 +1,5 @@
 /** * ==========================================
- * FR SPORT - ULTIMATE BILINGUAL EDITION (NATIVE ARABIC NEWS)
+ * FR SPORT - ULTIMATE BILINGUAL EDITION (STRICT FILTER & CLEAN NUMBERS)
  * ==========================================
  */
 
@@ -33,11 +33,23 @@ const UI_DICTIONARY = {
 };
 
 const ARABIC_DICTIONARY = {
-    "World": "عالمي", "England": "إنجلترا", "Spain": "إسبانيا", "Italy": "إيطاليا", "Germany": "ألمانيا", "France": "فرنسا", "Portugal": "البرتغال", "Saudi Arabia": "السعودية",
-    "Premier League": "الدوري الإنجليزي", "Championship": "دوري البطولة الإنجليزية", "La Liga": "الدوري الإسباني", "Serie A": "الدوري الإيطالي", "Bundesliga": "الدوري الألماني", "Ligue 1": "الدوري الفرنسي", "Primeira Liga": "الدوري البرتغالي", "UEFA Champions League": "دوري أبطال أوروبا", "UEFA Europa League": "الدوري الأوروبي", "Saudi Pro League": "الدوري السعودي", "AFC Champions League": "دوري أبطال آسيا",
+    // الدول
+    "World": "عالمي", "England": "إنجلترا", "Spain": "إسبانيا", "Italy": "إيطاليا", "Germany": "ألمانيا", "France": "فرنسا", "Portugal": "البرتغال", "Saudi Arabia": "السعودية", "USA": "أمريكا", "Turkey": "تركيا", "Cyprus": "قبرص", "Brazil": "البرازيل", "Egypt": "مصر", "Morocco": "المغرب",
+
+    // الدوريات والبطولات
+    "Premier League": "الدوري الإنجليزي", "Championship": "دوري البطولة الإنجليزية", "La Liga": "الدوري الإسباني", "Serie A": "الدوري الإيطالي", "Bundesliga": "الدوري الألماني", "Ligue 1": "الدوري الفرنسي", "Primeira Liga": "الدوري البرتغالي", "UEFA Champions League": "دوري أبطال أوروبا", "UEFA Europa League": "الدوري الأوروبي", "Saudi Pro League": "الدوري السعودي", "AFC Champions League": "دوري أبطال آسيا", "Major League Soccer": "الدوري الأمريكي", "1. Division": "الدوري القبرصي", "1. Lig": "الدوري التركي الدرجة الأولى",
+
+    // الأندية الإنجليزية
     "Arsenal": "أرسنال", "Aston Villa": "أستون فيلا", "Chelsea": "تشيلسي", "Liverpool": "ليفربول", "Manchester City": "مانشستر سيتي", "Manchester United": "مانشستر يونايتد", "Newcastle": "نيوكاسل", "Tottenham": "توتنهام", "Middlesbrough": "ميدلزبره", "Birmingham": "برمنغهام",
+
+    // الأندية الإسبانية
     "Real Madrid": "ريال مدريد", "Barcelona": "برشلونة", "Atletico Madrid": "أتلتيكو مدريد", "Sevilla": "إشبيلية", "Getafe": "خيتافي", "Valencia": "فالنسيا",
+
+    // الأندية الإيطالية
     "Juventus": "يوفنتوس", "AC Milan": "ميلان", "Inter": "إنتر ميلان", "Napoli": "نابولي", "AS Roma": "روما", "Bologna": "بولونيا", "Fiorentina": "فيورنتينا", "Pisa": "بيزا", "Udinese": "أودينيزي",
+
+    // أندية أمريكية وعالمية أخرى
+    "Inter Miami": "إنتر ميامي", "Orlando City SC": "أورلاندو سيتي", "San Diego": "سان دييغو", "St. Louis City": "سانت لويس سيتي", "Apollon Limassol": "أبولون ليماسول", "Omonia Nicosia": "أومونيا نيقوسيا", "Çorum FK": "كوروم", "Manisa F.K.": "مانيسا",
     "Al-Duhail SC": "الدحيل", "Al-Ahli Jeddah": "الأهلي السعودي", "Tractor Sazi": "تراكتور سازي", "Shabab Al Ahli Dubai": "شباب الأهلي دبي", "Al Hilal": "الهلال", "Al Nassr": "النصر"
 };
 
@@ -65,11 +77,12 @@ const Utils = {
     },
     formatTimeLoc: (dateStr) => {
         const d = new Date(dateStr);
+        // تم توحيد الأرقام لتكون 123 دائماً بدلاً من ١٢٣ لضمان تناسق التصميم
+        let timeEn = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
         if (AppState.currentLang === 'ar') {
-            return d.toLocaleTimeString('ar-EG', { hour: 'numeric', minute: '2-digit', hour12: true }).replace('ص', 'ص').replace('م', 'م');
-        } else {
-            return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+            return timeEn.replace('AM', 'ص').replace('PM', 'م');
         }
+        return timeEn;
     },
     isLiveMatch: (s) => CONFIG.LIVE_STATUSES.includes(s),
     isNotStarted: (s) => CONFIG.NOT_STARTED_STATUSES.includes(s)
@@ -182,7 +195,6 @@ function renderLeaguesTab() {
     container.innerHTML = html + `</div>`;
 }
 
-// === محرك الأخبار المزدوج (عربي / إنجليزي) ===
 async function fetchNews() {
     const container = document.getElementById('tab-news');
     if(!container) return;
@@ -200,7 +212,6 @@ async function fetchNews() {
         let normalizedArticles = [];
         let transferKeywords = [];
         
-        // إذا كانت اللغة عربية، نجلب من وكالات عربية
         if (AppState.currentLang === 'ar') {
             const arUrl1 = 'https://www.skynewsarabia.com/rss/sport';
             const arUrl2 = 'https://arabic.rt.com/rss/sport/';
@@ -223,7 +234,6 @@ async function fetchNews() {
             });
             transferKeywords = ['انتقال', 'صفقة', 'تعاقد', 'توقيع', 'إعارة', 'رسميا', 'يضم', 'مفاوضات', 'عقد'];
         } 
-        // إذا كانت اللغة إنجليزية، نجلب من ESPN
         else {
             const eplUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/news?limit=50';
             const laligaUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/news?limit=50';
@@ -244,24 +254,21 @@ async function fetchNews() {
             transferKeywords = ['transfer', 'sign', 'deal', 'loan', 'bid', 'contract', 'move', 'medical', 'agrees', 'swap'];
         }
 
-        // إزالة المكرر والترتيب
         let uniqueArticles = []; let titles = new Set();
         normalizedArticles.forEach(a => { if(!titles.has(a.title)) { titles.add(a.title); uniqueArticles.push(a); } });
         uniqueArticles.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
         if(uniqueArticles.length === 0) return;
 
-        // فلترة الانتقالات بناءً على لغة الكلمات المفتاحية
         const transferArticles = uniqueArticles.filter(a => transferKeywords.some(kw => a.title.toLowerCase().includes(kw)));
         const defaultImg = 'https://images.unsplash.com/photo-1518605368461-1e1e38ce81c2?q=80&w=600&auto=format&fit=crop';
 
         let combinedHtml = `<div class="news-top-nav"><div class="news-top-tab active" onclick="switchNewsSubTab('foryou')">${d.topLeaguesNow}</div><div class="news-top-tab" onclick="switchNewsSubTab('transfers')">${d.liveTransfers}</div></div><div id="news-content-area">`;
 
-        // قسم الأخبار
         let forYouHtml = `<div id="news-foryou-content"><div class="trending-header">${d.topNews}</div><div class="news-feed">`;
         uniqueArticles.slice(0, 30).forEach((article, index) => {
             let img = article.img || defaultImg;
             let pDate = Utils.formatTimeLoc(article.pubDate);
-            let alignClass = AppState.currentLang === 'ar' ? 'text-align:right; direction:rtl;' : 'text-align:left; direction:ltr;'; // تصحيح المحاذاة
+            let alignClass = AppState.currentLang === 'ar' ? 'text-align:right; direction:rtl;' : 'text-align:left; direction:ltr;'; 
 
             if (index === 0) { 
                 forYouHtml += `<div class="news-hero-card" onclick="window.open('${article.link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.src='${defaultImg}'"><div class="news-hero-title" style="${alignClass}">${article.title}</div><div class="news-date" style="${alignClass} color:var(--accent-color);">${article.source} • ${pDate}</div></div>`; 
@@ -271,7 +278,6 @@ async function fetchNews() {
         });
         forYouHtml += `</div></div>`;
 
-        // قسم الانتقالات
         let transfersHtml = `<div id="news-transfers-content" class="hidden"><div class="trending-header" style="color:var(--accent-color);">${d.topDeals}</div><div class="news-feed">`;
         if (transferArticles.length > 0) {
             transferArticles.slice(0, 20).forEach(article => {
@@ -298,16 +304,23 @@ function switchNewsSubTab(tabId) {
     document.getElementById(`news-${tabId}-content`).classList.remove('hidden');
 }
 
+// الدالة المسؤولة عن ترتيب البطولات وحذف التافه منها
 function getLeaguePriority(league) {
     const id = league.id; const name = league.name ? league.name.toLowerCase() : '';
-    if ([2, 3, 4, 1, 15, 17, 848].includes(id)) return 1;
+    
+    // 1. البطولات القارية (أبطال أوروبا، اليوروباليغ، أبطال آسيا، الخ)
+    if ([2, 3, 4, 1, 15, 17, 848, 9, 10].includes(id)) return 1;
+    // 2. الدوريات الخمس الكبرى
     if ([39, 140, 135, 78, 61].includes(id)) return 2;
-    if ([307, 253, 88, 94, 40].includes(id)) return 3;
-    if (name.includes('u21') || name.includes('u20') || name.includes('u19') || name.includes('u17') || name.includes('women') || name.includes('friendlies') || name.includes('development') || name.includes('reserve') || name.includes('primavera') || name.includes('youth')) return 999;
-    return 100;
+    // 3. دوريات قوية ومشهورة (مثل الإنجليزي الدرجة الأولى، السعودي، الأمريكي)
+    if ([307, 253, 88, 94, 40, 41, 42].includes(id)) return 3;
+    
+    // 999. طرد دوريات الشباب والنساء والوديات والدرجات السفلى تماماً
+    if (name.includes('u21') || name.includes('u20') || name.includes('u19') || name.includes('u17') || name.includes('women') || name.includes('friendlies') || name.includes('development') || name.includes('reserve') || name.includes('primavera') || name.includes('youth') || name.includes('paulista') || name.includes('carioca') || name.includes('division 2') || name.includes('division 3')) return 999;
+    
+    return 10; // البطولات الأخرى المتبقية
 }
 
-// === نظام المباريات السريع ===
 async function fetchMatches(date) {
     AppState.currentDate = date;
     const container = document.getElementById('tab-matches');
@@ -357,6 +370,19 @@ function renderMatchesList(matches) {
     const leaguesGroup = {};
     matches.forEach(m => {
         if (AppState.isLiveMode && !Utils.isLiveMatch(m.fixture.status.short)) return;
+        
+        const priority = getLeaguePriority(m.league);
+        
+        // 1. التخلص من الدوريات التافهة كلياً
+        if (priority === 999) return; 
+
+        // 2. إذا كانت البطولة ليست من النخبة (1، 2، 3) وليس لها ترجمة في القاموس، احذفها! 
+        // هذا الفلتر سيخفي أي مباراة مجهولة بالإنجليزية.
+        if (priority === 10 && AppState.currentLang === 'ar') {
+             const isTranslated = !!ARABIC_DICTIONARY[m.league.name] || !!ARABIC_DICTIONARY[m.league.country];
+             if (!isTranslated) return; 
+        }
+
         const lId = m.league.id;
         if (!leaguesGroup[lId]) { leaguesGroup[lId] = { info: m.league, games: [] }; }
         leaguesGroup[lId].games.push(m);
