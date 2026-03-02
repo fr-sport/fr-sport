@@ -1,3 +1,8 @@
+/** * ==========================================
+ * FR SPORT - ULTIMATE EDITION (SMART SORTING & FIXES)
+ * ==========================================
+ */
+
 const CONFIG = {
     API_URL: "https://spring-dream-011d.farhad10180.workers.dev",
     LIVE_STATUSES: ['1H', '2H', 'HT', 'ET', 'P', 'LIVE', 'PEN'],
@@ -57,10 +62,10 @@ function switchTab(el) {
     const tabName = el.innerText.trim();
     const datesWrapper = document.querySelector('.dates-wrapper');
     
-    if(tabName === 'Matches') {
+    if(tabName === 'Matches' || tabName === 'المباريات') {
         document.getElementById('tab-matches').classList.remove('hidden');
         if(datesWrapper) datesWrapper.style.display = 'block'; 
-    } else if(tabName === 'News') {
+    } else if(tabName === 'News' || tabName === 'أخبار') {
         if(newsTab) newsTab.classList.remove('hidden');
         if(datesWrapper) datesWrapper.style.display = 'none'; 
         if(newsTab && (newsTab.innerHTML.includes('Click') || newsTab.innerHTML.trim() === '')) {
@@ -77,7 +82,6 @@ function toggleLive(btn) {
     renderMatchesList(AppState.globalMatches);
 }
 
-// الأخبار السريعة والأصلية
 async function fetchNews() {
     const container = document.getElementById('tab-news');
     if(!container) return;
@@ -93,22 +97,22 @@ async function fetchNews() {
     `;
     
     try {
-        const eplUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/news';
-        const laligaUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/news';
-        const uclUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/news';
+        const eplUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/news?limit=50';
+        const laligaUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/news?limit=50';
+        const globalUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/global/news?limit=50';
 
-        const [eplRes, laligaRes, uclRes] = await Promise.all([
-            fetch(eplUrl), fetch(laligaUrl), fetch(uclUrl)
+        const [eplRes, laligaRes, globalRes] = await Promise.all([
+            fetch(eplUrl), fetch(laligaUrl), fetch(globalUrl)
         ]);
 
         const eplData = await eplRes.json();
         const laligaData = await laligaRes.json();
-        const uclData = await uclRes.json();
+        const globalData = await globalRes.json();
 
         let allArticles = [];
         if(eplData.articles) allArticles.push(...eplData.articles);
         if(laligaData.articles) allArticles.push(...laligaData.articles);
-        if(uclData.articles) allArticles.push(...uclData.articles);
+        if(globalData.articles) allArticles.push(...globalData.articles);
 
         let uniqueArticles = [];
         let titles = new Set();
@@ -119,50 +123,46 @@ async function fetchNews() {
         uniqueArticles.sort((a,b) => new Date(b.published) - new Date(a.published));
         if(uniqueArticles.length === 0) throw new Error("No news found");
 
-        const transferKeywords = ['transfer', 'sign', 'deal', 'loan', 'bid', 'contract', 'move'];
+        const transferKeywords = ['transfer', 'sign', 'deal', 'loan', 'bid', 'contract', 'move', 'medical', 'agrees', 'agreed', 'swap', 'buy', 'sell'];
         const transferArticles = uniqueArticles.filter(a => transferKeywords.some(kw => a.headline.toLowerCase().includes(kw) || a.description?.toLowerCase().includes(kw)));
+
+        const defaultImg = 'https://images.unsplash.com/photo-1518605368461-1e1e38ce81c2?q=80&w=600&auto=format&fit=crop';
 
         let forYouHtml = `<div id="news-foryou-content"><div class="trending-header"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg> Top Leagues Now</div><div class="news-feed">`;
 
-        uniqueArticles.slice(0, 25).forEach((article, index) => {
+        uniqueArticles.slice(0, 30).forEach((article, index) => {
             let title = article.headline;
             let link = article.links?.web?.href || '#';
             let pubDate = new Date(article.published).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
-            let img = article.images && article.images.length > 0 ? article.images[0].url : 'https://images.unsplash.com/photo-1518605368461-1e1e38ce81c2?q=80&w=600&auto=format&fit=crop';
+            let img = article.images && article.images.length > 0 ? article.images[0].url : defaultImg;
 
             if (index === 0) {
-                forYouHtml += `<div class="news-hero-card" onclick="window.open('${link}', '_blank')"><img src="${img}" class="news-hero-img"><div class="news-hero-title">${title}</div><div class="news-date">ESPN FC • ${pubDate}</div></div>`;
+                forYouHtml += `<div class="news-hero-card" onclick="window.open('${link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.src='${defaultImg}'"><div class="news-hero-title">${title}</div><div class="news-date">ESPN FC • ${pubDate}</div></div>`;
             } else {
-                forYouHtml += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${title}</div><div class="news-date">ESPN FC • ${pubDate}</div></div><img src="${img}" class="news-list-img"></div>`;
+                forYouHtml += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${title}</div><div class="news-date">ESPN FC • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`;
             }
         });
         forYouHtml += `</div></div>`;
 
-        let transfersHtml = `<div id="news-transfers-content" class="hidden"><div class="trending-header" style="color:var(--accent-color);">Live Transfer News</div><div class="news-feed">`;
+        let transfersHtml = `<div id="news-transfers-content" class="hidden"><div class="trending-header" style="color:var(--accent-color);">Live Transfer News & Rumors</div><div class="news-feed">`;
+
         if (transferArticles.length > 0) {
-            transferArticles.slice(0, 10).forEach(article => {
+            transferArticles.slice(0, 20).forEach(article => {
                 let title = article.headline; let link = article.links?.web?.href || '#'; let pubDate = new Date(article.published).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
-                let img = article.images && article.images.length > 0 ? article.images[0].url : 'https://images.unsplash.com/photo-1518605368461-1e1e38ce81c2?q=80&w=600&auto=format&fit=crop';
-                transfersHtml += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${title}</div><div class="news-date">ESPN Transfers • ${pubDate}</div></div><img src="${img}" class="news-list-img"></div>`;
+                let img = article.images && article.images.length > 0 ? article.images[0].url : defaultImg;
+                transfersHtml += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title" style="font-weight: 800;">${title}</div><div class="news-date">Transfer Center • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`;
             });
         } else {
-            transfersHtml += `<div class="empty-msg">No breaking transfer news right now.</div>`;
+            transfersHtml += `<div class="empty-msg">No recent transfer updates. Check back later.</div>`;
         }
 
-        transfersHtml += `</div><div class="trending-header">Confirmed Top Deals</div><div class="news-feed" style="padding-top:10px;">`;
-        const hardcodedTransfers = [
-            { name: "Kylian Mbappé", fee: "Free Transfer", fromLogo: "https://media.api-sports.io/football/teams/85.png", toLogo: "https://media.api-sports.io/football/teams/541.png", img: "https://media.api-sports.io/football/players/278.png" },
-            { name: "Julián Álvarez", fee: "€75M", fromLogo: "https://media.api-sports.io/football/teams/50.png", toLogo: "https://media.api-sports.io/football/teams/530.png", img: "https://cdn-icons-png.flaticon.com/512/3281/3281142.png" }, 
-            { name: "Leny Yoro", fee: "€62M", fromLogo: "https://media.api-sports.io/football/teams/79.png", toLogo: "https://media.api-sports.io/football/teams/33.png", img: "https://cdn-icons-png.flaticon.com/512/3281/3281142.png" }
-        ];
-        hardcodedTransfers.forEach(t => {
-            transfersHtml += `<div class="transfer-card"><img src="${t.img}" class="transfer-player-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png'"><div class="transfer-info"><div class="transfer-name">${t.name}</div><div class="transfer-fee">${t.fee}</div><div class="transfer-clubs"><img src="${t.fromLogo}" class="transfer-club-logo" onerror="this.style.display='none'"><div class="transfer-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div><img src="${t.toLogo}" class="transfer-club-logo" onerror="this.style.display='none'"></div></div></div>`;
-        });
         transfersHtml += `</div></div>`;
-
         document.getElementById('news-content-area').innerHTML = forYouHtml + transfersHtml;
 
-    } catch (e) { document.getElementById('news-content-area').innerHTML = `<div class="empty-msg" style="margin-top:50px;">Error loading HD news.</div>`; }
+    } catch (e) {
+        console.error(e);
+        document.getElementById('news-content-area').innerHTML = `<div class="empty-msg" style="margin-top:50px;">Error loading HD news.</div>`;
+    }
 }
 
 function switchNewsSubTab(tabId) {
@@ -173,27 +173,30 @@ function switchNewsSubTab(tabId) {
     document.getElementById(`news-${tabId}-content`).classList.remove('hidden');
 }
 
-// === خوارزمية الترتيب الذكية (النخبة أولاً) ===
+// === الترتيب الديكتاتوري الصارم للمباريات ===
 function getLeaguePriority(league) {
     const id = league.id;
     const name = league.name ? league.name.toLowerCase() : '';
 
-    // 1. البطولات العالمية والقارية (كأس العالم، أبطال أوروبا، اليوروباليغ)
-    if ([1, 2, 3, 4, 5, 9, 10, 17, 848].includes(id)) return 1;
+    // 1. البطولات العالمية والقارية (كأس العالم، أبطال أوروبا، اليوروباليغ، أبطال آسيا)
+    if ([2, 3, 4, 1, 15, 17, 848].includes(id)) return 1;
 
     // 2. الدوريات الخمس الكبرى (إنجليزي، إسباني، إيطالي، ألماني، فرنسي)
+    // ستكون دائماً في القمة بعد البطولات القارية
     if ([39, 140, 135, 78, 61].includes(id)) return 2;
 
-    // 3. دوريات قوية ومشهورة (السعودي، الأمريكي، الهولندي، البرتغالي، الإنجليزي الدرجة الأولى)
+    // 3. دوريات قوية ومشهورة
     if ([307, 253, 88, 94, 40].includes(id)) return 3;
 
-    // 99. ركل كل دوريات الشباب والوديات والاحتياط والنساء إلى أسفل القائمة!
-    if (name.includes('u21') || name.includes('u20') || name.includes('u19') || name.includes('u17') || name.includes('women') || name.includes('friendlies') || name.includes('development') || name.includes('reserve') || name.includes('primavera')) {
-        return 99;
+    // 999. سلة المهملات: طرد دوريات الشباب والوديات إلى القاع بلا رحمة!
+    if (name.includes('u21') || name.includes('u20') || name.includes('u19') || name.includes('u17') || 
+        name.includes('women') || name.includes('friendlies') || name.includes('development') || 
+        name.includes('reserve') || name.includes('primavera') || name.includes('youth')) {
+        return 999;
     }
 
-    // 4. باقي الدوريات العادية
-    return 10;
+    // باقي الدوريات في العالم
+    return 100;
 }
 
 async function fetchMatches(date) {
@@ -219,7 +222,6 @@ function renderMatchesList(matches) {
     const container = document.getElementById('tab-matches');
     if (!matches || matches.length === 0) { container.innerHTML = '<div class="empty-msg">No matches today</div>'; return; }
     
-    // التجميع برقم البطولة (ID) بدلاً من الاسم لضمان عدم اختلاط البطولات
     const leaguesGroup = {};
     matches.forEach(m => {
         if (AppState.isLiveMode && !Utils.isLiveMatch(m.fixture.status.short)) return;
@@ -228,7 +230,16 @@ function renderMatchesList(matches) {
         leaguesGroup[lId].games.push(m);
     });
 
-    const sortedLeagues = Object.values(leaguesGroup).sort((a, b) => getLeaguePriority(a.info) - getLeaguePriority(b.info));
+    // ترتيب الدوريات بالاعتماد على الفلتر الصارم ثم ترتيب أبجدي
+    const sortedLeagues = Object.values(leaguesGroup).sort((a, b) => {
+        let priorityA = getLeaguePriority(a.info);
+        let priorityB = getLeaguePriority(b.info);
+        if(priorityA !== priorityB) {
+            return priorityA - priorityB;
+        }
+        return a.info.name.localeCompare(b.info.name);
+    });
+
     if (sortedLeagues.length === 0) { container.innerHTML = '<div class="empty-msg">No live matches right now</div>'; return; }
 
     let html = '';
@@ -236,7 +247,21 @@ function renderMatchesList(matches) {
         html += `<div class="league-group"><div class="league-header"><div class="league-title-wrapper"><img src="${group.info.logo}" class="league-logo"><span class="league-name">${group.info.country} - ${group.info.name}</span></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg></div>`;
         group.games.forEach(m => {
             const s = m.fixture.status.short;
-            let centerContent = Utils.isNotStarted(s) ? `<div class="match-center">${new Date(m.fixture.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>` : Utils.isLiveMatch(s) ? `<div class="match-center live"><span style="font-size:10px;">${m.fixture.status.elapsed}'</span><br>${m.goals.home} - ${m.goals.away}</div>` : `<div class="match-center">${m.goals.home} - ${m.goals.away}</div>`;
+            
+            // حل مشكلة null - null للأهداف
+            let hGoals = m.goals.home !== null ? m.goals.home : '';
+            let aGoals = m.goals.away !== null ? m.goals.away : '';
+
+            let centerContent = '';
+            if (Utils.isNotStarted(s)) {
+                const timeStr = new Date(m.fixture.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                centerContent = `<div class="match-center">${timeStr}</div>`;
+            } else if (Utils.isLiveMatch(s)) {
+                centerContent = `<div class="match-center live"><span style="font-size:10px;">${m.fixture.status.elapsed}'</span><br>${hGoals} - ${aGoals}</div>`;
+            } else {
+                centerContent = `<div class="match-center">${hGoals} - ${aGoals}</div>`;
+            }
+
             html += `<div class="match-row" onclick="openMatchDetails(${m.fixture.id})"><div class="match-teams-score"><span class="team-name home-name">${m.teams.home.name}</span><img src="${m.teams.home.logo}" class="team-logo">${centerContent}<img src="${m.teams.away.logo}" class="team-logo"><span class="team-name away-name">${m.teams.away.name}</span></div></div>`;
         });
         html += `</div>`;
