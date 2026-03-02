@@ -21,7 +21,7 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .live-dot { width: 8px; height: 8px; background: var(--text-muted); border-radius: 50%; }
 .live-btn.active { background: var(--accent-color); color: #000; border-color: var(--accent-color); }
 .live-btn.active .live-dot { background: #000; box-shadow: 0 0 8px #000; }
-.icon-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #111; color: var(--accent-color); border: 1px solid var(--border-color); }
+.icon-btn { display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #111; color: var(--accent-color); border: 1px solid var(--border-color); cursor: pointer;}
 
 /* === التواريخ === */
 .dates-wrapper { background: var(--bg-color); border-bottom: 1px solid var(--border-color); }
@@ -39,19 +39,27 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .league-logo { width: 20px; height: 20px; border-radius: 50%; background: transparent; }
 .league-name { font-size: 13px; font-weight: bold; color: var(--text-main); }
 
+/* دعم اللغتين للمباريات */
 .match-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 15px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); cursor: pointer; gap: 10px;}
 .match-row:last-child { border-bottom: none; }
 .match-teams-score { display: grid; grid-template-columns: 1fr 24px 60px 24px 1fr; align-items: center; flex: 1; width: 100%; }
 .team-name { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.home-name { text-align: left; padding-left: 10px; } 
-.away-name { text-align: right; padding-right: 10px; } 
+
+/* السحر: تعديل المحاذاة حسب اللغة (LTR أو RTL) */
+[dir="rtl"] .home-name { text-align: left; padding-left: 10px; } 
+[dir="rtl"] .away-name { text-align: right; padding-right: 10px; } 
+[dir="ltr"] .home-name { text-align: right; padding-right: 10px; } 
+[dir="ltr"] .away-name { text-align: left; padding-left: 10px; } 
+
 .team-logo { width: 24px; height: 24px; justify-self: center; }
 .match-center { text-align: center; font-size: 12px; font-weight: bold; color: var(--text-main); direction: ltr;}
 .match-center.live { color: var(--accent-color); }
-.tv-icon { width: 20px; color: var(--text-muted); flex-shrink: 0; display:flex; justify-content:flex-start;}
+.tv-icon { width: 20px; color: var(--text-muted); flex-shrink: 0; display:flex; }
+[dir="rtl"] .tv-icon { justify-content:flex-start;}
+[dir="ltr"] .tv-icon { justify-content:flex-end;}
 
 /* === القائمة السفلية === */
-.bottom-nav { position: fixed; bottom: 0; width: 100%; background: #050505; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; padding: 8px 10px 25px 10px; z-index: 1000; box-sizing: border-box; }
+.bottom-nav { position: fixed; bottom: 0; left:0; width: 100%; background: #050505; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; padding: 8px 10px 25px 10px; z-index: 1000; box-sizing: border-box; }
 .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 10px; font-weight: 600; flex: 1; cursor: pointer; padding: 6px 0; border-radius: 10px; }
 .nav-item svg { width: 24px; height: 24px; stroke: var(--text-muted);}
 .nav-item.active { color: var(--accent-color); }
@@ -92,8 +100,13 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .section-title { font-size: 14px; font-weight: bold; color: var(--text-muted); margin-bottom: 15px;}
 .player-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #222; font-size: 13px; cursor: pointer;}
 .player-side { display: flex; align-items: center; gap: 8px; width: 48%; }
-.player-home { justify-content: flex-start; text-align: right; }
-.player-away { justify-content: flex-end; flex-direction: row-reverse; text-align: left; }
+
+/* محاذاة البدلاء حسب اللغة */
+[dir="rtl"] .player-home { justify-content: flex-start; text-align: right; }
+[dir="rtl"] .player-away { justify-content: flex-end; flex-direction: row-reverse; text-align: left; }
+[dir="ltr"] .player-home { justify-content: flex-start; text-align: left; }
+[dir="ltr"] .player-away { justify-content: flex-end; flex-direction: row-reverse; text-align: right; }
+
 .p-num { font-size: 11px; font-weight: bold; color: var(--text-muted); width: 22px; text-align: center; flex-shrink: 0;}
 .p-name { color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100px; font-weight: 500;}
 .sub-player-img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; background-color: #222; border: 1px solid #444; flex-shrink: 0; }
@@ -132,27 +145,38 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 
 /* === الانتقالات (Transfers) === */
 .transfer-card { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 15px; }
-.transfer-player-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); margin-left: 15px; flex-shrink: 0; }
 .transfer-info { flex: 1; }
 .transfer-name { font-size: 16px; font-weight: 800; margin-bottom: 4px; }
 .transfer-fee { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 10px; }
 .transfer-clubs { display: flex; align-items: center; gap: 10px; }
 .transfer-club-logo { width: 24px; height: 24px; object-fit: contain; }
-.transfer-arrow { color: var(--accent-color); display: flex; align-items: center; justify-content: center; transform: scaleX(-1); }
+
+/* عكس اتجاه الصور والأسهم حسب اللغة */
+[dir="rtl"] .transfer-player-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); margin-left: 15px; flex-shrink: 0; }
+[dir="ltr"] .transfer-player-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); margin-right: 15px; flex-shrink: 0; }
+[dir="rtl"] .transfer-arrow { color: var(--accent-color); display: flex; align-items: center; justify-content: center; transform: scaleX(-1); }
+[dir="ltr"] .transfer-arrow { color: var(--accent-color); display: flex; align-items: center; justify-content: center; transform: scaleX(1); }
 
 /* === البطولات (Leagues) وجدول الترتيب (Standings) === */
 .leagues-grid { padding: 0 15px 20px; display: flex; flex-direction: column; gap: 12px; }
 .league-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: transform 0.2s; }
 .league-card:active { transform: scale(0.98); background-color: #222; }
 .league-card-logo { width: 40px; height: 40px; object-fit: contain; }
-.league-card-info { flex: 1; text-align: right; }
+
+[dir="rtl"] .league-card-info { flex: 1; text-align: right; }
+[dir="ltr"] .league-card-info { flex: 1; text-align: left; }
+[dir="ltr"] .league-card svg { transform: rotate(0deg) !important; }
+
 .league-card-name { font-size: 15px; font-weight: bold; color: var(--text-main); }
 
 .standings-table { background: var(--bg-color); width: 100%; }
 .st-header { display: flex; align-items: center; padding: 10px 15px; border-bottom: 1px solid var(--border-color); font-size: 12px; color: var(--text-muted); font-weight: bold; background: #111; position: sticky; top: 0; z-index: 5; }
 .st-row { display: flex; align-items: center; padding: 12px 15px; border-bottom: 1px solid var(--border-color); font-size: 13px; color: var(--text-main); }
 .st-rank { width: 30px; text-align: center; font-weight: bold; flex-shrink: 0; }
-.st-team { flex: 1; display: flex; align-items: center; gap: 10px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; }
+
+[dir="rtl"] .st-team { flex: 1; display: flex; align-items: center; gap: 10px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; }
+[dir="ltr"] .st-team { flex: 1; display: flex; align-items: center; gap: 10px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-left: 10px; }
+
 .st-team img { width: 22px; height: 22px; object-fit: contain; }
 .st-p, .st-gd { width: 35px; text-align: center; color: var(--text-muted); flex-shrink: 0; }
 .st-pts { width: 35px; text-align: center; font-weight: 900; color: var(--text-main); flex-shrink: 0; font-size: 14px; }
