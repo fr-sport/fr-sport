@@ -1,5 +1,5 @@
 /** * ==========================================
- * FR SPORT - MASSIVE NEWS & SMART TRANSFERS
+ * FR SPORT - PREMIUM EDITION (TOP LEAGUES ONLY)
  * ==========================================
  */
 
@@ -48,7 +48,6 @@ function selectDate(dateStr) {
     
     const matchesTabBtn = document.querySelector('.nav-item:nth-child(1)');
     if(matchesTabBtn) switchTab(matchesTabBtn);
-
     fetchMatches(dateStr);
 }
 
@@ -83,27 +82,26 @@ function toggleLive(btn) {
     renderMatchesList(AppState.globalMatches);
 }
 
-// === النظام الخارق لجلب الأخبار من 3 مصادر وفلترة الانتقالات ===
+// === نظام الأخبار الصارم (دوريات كبرى فقط + صور مضمونة) ===
 async function fetchNews() {
     const container = document.getElementById('tab-news');
     if(!container) return;
     
     container.innerHTML = `
         <div class="news-top-nav">
-            <div class="news-top-tab active" onclick="switchNewsSubTab('foryou')">For You</div>
+            <div class="news-top-tab active" onclick="switchNewsSubTab('foryou')">Top Leagues</div>
             <div class="news-top-tab" onclick="switchNewsSubTab('transfers')">Transfers</div>
         </div>
         <div id="news-content-area">
-            <div class="loader" style="margin-top:50px; color:var(--accent-color);">Loading massive global news...</div>
+            <div class="loader" style="margin-top:50px; color:var(--accent-color);">Fetching Premium News...</div>
         </div>
     `;
     
     try {
-        // جلب الأخبار من 3 وكالات عالمية في نفس الوقت!
+        // أقوى مصدرين في العالم (بدون ياهو المزعج)
         const feeds = [
-            'http://feeds.bbci.co.uk/sport/football/rss.xml',
-            'https://talksport.com/football/feed/',
-            'https://sports.yahoo.com/soccer/rss.xml'
+            'https://www.espn.com/espn/rss/soccer/news',
+            'http://feeds.bbci.co.uk/sport/football/rss.xml'
         ];
 
         const requests = feeds.map(url => fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`));
@@ -119,56 +117,84 @@ async function fetchNews() {
             }
         }
 
-        // ترتيب وإزالة التكرار
-        const uniqueArticles = [];
+        // 1. فلتر الأندية والدوريات الكبرى (لن يظهر أي خبر ضعيف)
+        const eliteKeywords = ['madrid', 'barcelona', 'liverpool', 'manchester', 'arsenal', 'chelsea', 'tottenham', 'bayern', 'dortmund', 'juventus', 'milan', 'inter', 'napoli', 'psg', 'mbappe', 'guardiola', 'arteta', 'klopp', 'premier league', 'la liga', 'champions league'];
+        
+        const premiumArticles = [];
         const titles = new Set();
-        allArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate)).forEach(article => {
-            if(!titles.has(article.title)) {
+
+        allArticles.forEach(article => {
+            const titleLower = article.title.toLowerCase();
+            const isPremium = eliteKeywords.some(kw => titleLower.includes(kw));
+            if(isPremium && !titles.has(article.title)) {
                 titles.add(article.title);
-                uniqueArticles.push(article);
+                premiumArticles.push(article);
             }
         });
 
-        if(uniqueArticles.length === 0) throw new Error("No news found");
+        // ترتيب الأخبار من الأحدث للأقدم
+        premiumArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+        if(premiumArticles.length === 0) premiumArticles.push(...allArticles.slice(0, 10)); // طوارئ فقط
 
-        // === فلتر الذكاء الاصطناعي للانتقالات ===
-        const transferKeywords = ['transfer', 'sign', 'deal', 'loan', 'bid', 'medical', 'contract', 'move', 'agrees'];
-        const transferArticles = uniqueArticles.filter(article => {
-            const titleLower = article.title.toLowerCase();
-            return transferKeywords.some(kw => titleLower.includes(kw));
+        // 2. فلتر الانتقالات الكبرى فقط
+        const transferKeywords = ['transfer', 'sign', 'deal', 'loan', 'bid', 'agrees', 'medical'];
+        const transferArticles = premiumArticles.filter(article => {
+            const t = article.title.toLowerCase();
+            return transferKeywords.some(kw => t.includes(kw));
         });
 
-        // 1. بناء صفحة For You (الأخبار العامة)
-        let forYouHtml = `<div id="news-foryou-content"><div class="trending-header"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg> Latest Global News</div><div class="news-feed">`;
-        uniqueArticles.slice(0, 30).forEach((article, index) => {
-            forYouHtml += buildNewsCardHtml(article, index === 0);
+        // صورة احتياطية فخمة (ملعب مضاء) بدلاً من علامة الاستفهام المعطوبة
+        const defaultImg = 'https://images.unsplash.com/photo-1518605368461-1e1e38ce81c2?q=80&w=600&auto=format&fit=crop';
+
+        // --- بناء قسم Top Leagues ---
+        let forYouHtml = `<div id="news-foryou-content"><div class="trending-header"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg> Top Leagues Now</div><div class="news-feed">`;
+
+        premiumArticles.slice(0, 20).forEach((article, index) => {
+            let img = article.enclosure?.link || article.thumbnail || defaultImg;
+            // حماية إضافية ضد الصور المعطوبة
+            if(img.length < 15 || img.includes('yahoo')) img = defaultImg;
+
+            let source = article.link.includes('espn') ? 'ESPN FC' : 'BBC Sport';
+            let pubDate = new Date(article.pubDate).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+
+            if (index === 0) {
+                forYouHtml += `<div class="news-hero-card" onclick="window.open('${article.link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.src='${defaultImg}'"><div class="news-hero-title">${article.title}</div><div class="news-date">${source} • ${pubDate}</div></div>`;
+            } else {
+                forYouHtml += `<div class="news-list-card" onclick="window.open('${article.link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${article.title}</div><div class="news-date">${source} • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`;
+            }
         });
         forYouHtml += `</div></div>`;
 
-        // 2. بناء صفحة Transfers (أخبار حية + التصميم الفخم)
+        // --- بناء قسم Transfers ---
         let transfersHtml = `<div id="news-transfers-content" class="hidden">
-            <div class="trending-header" style="color:var(--accent-color);">Live Transfer Updates</div>
+            <div class="trending-header" style="color:var(--accent-color);">Major Transfer News</div>
             <div class="news-feed">`;
 
         if (transferArticles.length > 0) {
-            transferArticles.slice(0, 10).forEach((article, index) => {
-                transfersHtml += buildNewsCardHtml(article, false);
+            transferArticles.slice(0, 10).forEach((article) => {
+                let img = article.enclosure?.link || article.thumbnail || defaultImg;
+                if(img.length < 15 || img.includes('yahoo')) img = defaultImg;
+                let source = article.link.includes('espn') ? 'ESPN FC' : 'BBC Sport';
+                let pubDate = new Date(article.pubDate).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+                transfersHtml += `<div class="news-list-card" onclick="window.open('${article.link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${article.title}</div><div class="news-date">${source} • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`;
             });
         } else {
-            transfersHtml += `<div class="empty-msg">No breaking transfer news right now.</div>`;
+            transfersHtml += `<div class="empty-msg">No premium transfer news right now.</div>`;
         }
 
-        transfersHtml += `</div><div class="trending-header">Top Deals of the Season</div><div class="news-feed">`;
+        transfersHtml += `</div><div class="trending-header">Confirmed Top Deals</div><div class="news-feed" style="padding-top:10px;">`;
 
-        // الصفقات الكبرى (محفوظة برمجياً للتصميم المرئي)
+        // أيقونة لاعب افتراضية أنيقة لتجنب مشكلة الصور المكسورة
+        const safeAvatar = 'https://cdn-icons-png.flaticon.com/512/3281/3281142.png';
+
         const hardcodedTransfers = [
             { name: "Kylian Mbappé", fee: "Free Transfer", fromLogo: "https://media.api-sports.io/football/teams/85.png", toLogo: "https://media.api-sports.io/football/teams/541.png", img: "https://media.api-sports.io/football/players/278.png" },
-            { name: "Julián Álvarez", fee: "€75M", fromLogo: "https://media.api-sports.io/football/teams/50.png", toLogo: "https://media.api-sports.io/football/teams/530.png", img: "https://media.api-sports.io/football/players/9089.png" },
-            { name: "Leny Yoro", fee: "€62M", fromLogo: "https://media.api-sports.io/football/teams/79.png", toLogo: "https://media.api-sports.io/football/teams/33.png", img: "https://media.api-sports.io/football/players/335804.png" }
+            { name: "Julián Álvarez", fee: "€75M", fromLogo: "https://media.api-sports.io/football/teams/50.png", toLogo: "https://media.api-sports.io/football/teams/530.png", img: safeAvatar }, 
+            { name: "Leny Yoro", fee: "€62M", fromLogo: "https://media.api-sports.io/football/teams/79.png", toLogo: "https://media.api-sports.io/football/teams/33.png", img: safeAvatar }
         ];
 
         hardcodedTransfers.forEach(t => {
-            transfersHtml += `<div class="transfer-card"><img src="${t.img}" class="transfer-player-img" onerror="this.src='https://via.placeholder.com/60/111/fff?text=P'"><div class="transfer-info"><div class="transfer-name">${t.name}</div><div class="transfer-fee">${t.fee}</div><div class="transfer-clubs"><img src="${t.fromLogo}" class="transfer-club-logo" onerror="this.style.display='none'"><div class="transfer-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div><img src="${t.toLogo}" class="transfer-club-logo" onerror="this.style.display='none'"></div></div></div>`;
+            transfersHtml += `<div class="transfer-card"><img src="${t.img}" class="transfer-player-img" onerror="this.src='${safeAvatar}'"><div class="transfer-info"><div class="transfer-name">${t.name}</div><div class="transfer-fee">${t.fee}</div><div class="transfer-clubs"><img src="${t.fromLogo}" class="transfer-club-logo" onerror="this.style.display='none'"><div class="transfer-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div><img src="${t.toLogo}" class="transfer-club-logo" onerror="this.style.display='none'"></div></div></div>`;
         });
 
         transfersHtml += `</div></div>`;
@@ -177,27 +203,7 @@ async function fetchNews() {
 
     } catch (e) {
         console.error(e);
-        document.getElementById('news-content-area').innerHTML = `<div class="empty-msg" style="margin-top:50px;">Error loading news. Try again later.</div>`;
-    }
-}
-
-// وظيفة فرعية لإنشاء كرت الخبر
-function buildNewsCardHtml(article, isHero) {
-    let title = article.title;
-    let link = article.link;
-    let pubDate = new Date(article.pubDate).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
-    let img = article.thumbnail || (article.enclosure ? article.enclosure.link : '') || 'https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT';
-    
-    // معرفة مصدر الخبر
-    let source = 'News';
-    if (link.includes('bbc')) source = 'BBC Sport';
-    if (link.includes('talksport')) source = 'TalkSport';
-    if (link.includes('yahoo')) source = 'Yahoo Sports';
-
-    if (isHero) {
-        return `<div class="news-hero-card" onclick="window.open('${link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.src='https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT'"><div class="news-hero-title">${title}</div><div class="news-date">${source} • ${pubDate}</div></div>`;
-    } else {
-        return `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${title}</div><div class="news-date">${source} • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT'"></div>`;
+        document.getElementById('news-content-area').innerHTML = `<div class="empty-msg" style="margin-top:50px;">Error loading premium news.</div>`;
     }
 }
 
@@ -210,10 +216,12 @@ function switchNewsSubTab(tabId) {
 }
 
 function getLeaguePriority(league) {
-    const top = ['england', 'spain', 'germany', 'italy', 'france'];
-    if (league.id === 2 || league.id === 3 || league.id === 39) return 1;
-    if (top.includes(league.country?.toLowerCase())) return 2;
-    return 3;
+    const id = league.id;
+    const country = league.country ? league.country.toLowerCase() : '';
+    if (id === 2 || id === 3 || id === 39) return 1; 
+    const topEurope = ['england', 'spain', 'germany', 'italy', 'france'];
+    if (topEurope.includes(country)) return 2;
+    return 3; 
 }
 
 async function fetchMatches(date) {
@@ -271,7 +279,7 @@ function buildPitchHtml(teamLineup, teamInfo) {
     Object.keys(rows).sort((a,b)=>a-b).forEach(key => {
         html += `<div class="pitch-row">`;
         rows[key].sort((a,b) => (a.grid ? parseInt(a.grid.split(':')[1]) : 0) - (b.grid ? parseInt(b.grid.split(':')[1]) : 0)).forEach(p => {
-            html += `<div class="pitch-player" onclick="openPlayerDetails(${p.id})"><div class="pitch-player-img-wrapper"><img src="https://media.api-sports.io/football/players/${p.id}.png" class="pitch-player-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23555\\' stroke-width=\\'2\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 0 0-16 0\\'/></svg>';"><div class="pitch-player-num">${p.number || ''}</div></div><div class="pitch-player-name">${p.name.split(' ').pop()}</div></div>`;
+            html += `<div class="pitch-player" onclick="openPlayerDetails(${p.id})"><div class="pitch-player-img-wrapper"><img src="https://media.api-sports.io/football/players/${p.id}.png" class="pitch-player-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png'; this.style.backgroundColor='#111';"><div class="pitch-player-num">${p.number || ''}</div></div><div class="pitch-player-name">${p.name.split(' ').pop()}</div></div>`;
         });
         html += `</div>`;
     });
@@ -315,7 +323,7 @@ function renderMatchDetailsModal(m, injuries, container) {
         let maxSubs = Math.max(m.lineups[0].substitutes.length, m.lineups[1].substitutes.length);
         for(let i=0; i<maxSubs; i++) {
             let hP = m.lineups[0].substitutes[i]?.player; let aP = m.lineups[1].substitutes[i]?.player;
-            lineupsHtml += `<div class="player-row">${hP ? `<div class="player-side player-home" onclick="openPlayerDetails(${hP.id})"><span class="p-num">${hP.number||''}</span><img src="https://media.api-sports.io/football/players/${hP.id}.png" class="sub-player-img" onerror="this.style.display='none'"><span class="p-name">${hP.name||'-'}</span></div>` : '<div class="player-side player-home"></div>'}${aP ? `<div class="player-side player-away" onclick="openPlayerDetails(${aP.id})"><span class="p-name">${aP.name||'-'}</span><img src="https://media.api-sports.io/football/players/${aP.id}.png" class="sub-player-img" onerror="this.style.display='none'"><span class="p-num">${aP.number||''}</span></div>` : '<div class="player-side player-away"></div>'}</div>`;
+            lineupsHtml += `<div class="player-row">${hP ? `<div class="player-side player-home" onclick="openPlayerDetails(${hP.id})"><span class="p-num">${hP.number||''}</span><img src="https://media.api-sports.io/football/players/${hP.id}.png" class="sub-player-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><span class="p-name">${hP.name||'-'}</span></div>` : '<div class="player-side player-home"></div>'}${aP ? `<div class="player-side player-away" onclick="openPlayerDetails(${aP.id})"><span class="p-name">${aP.name||'-'}</span><img src="https://media.api-sports.io/football/players/${aP.id}.png" class="sub-player-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><span class="p-num">${aP.number||''}</span></div>` : '<div class="player-side player-away"></div>'}</div>`;
         }
         lineupsHtml += `</div>`;
     } else { lineupsHtml += `<div class="empty-msg">Lineups not available</div>`; }
@@ -337,7 +345,7 @@ async function openPlayerDetails(playerId) {
         if(!pData) throw new Error("No data");
 
         const p = pData.player; const s = pData.statistics?.[0] || {};
-        container.innerHTML = `<div class="player-hero"><img src="${p.photo}" class="player-photo-large" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23555\\' stroke-width=\\'2\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 0 0-16 0\\'/></svg>';"><div class="player-name-large">${p.firstname} ${p.lastname}</div><div class="player-team-info"><img src="${s.team?.logo}" onerror="this.style.display='none'">${s.team?.name || ''} • ${p.nationality}</div></div><div class="player-stats-grid"><div class="p-stat-box"><div class="p-stat-title">Age</div><div class="p-stat-value">${p.age || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">Height</div><div class="p-stat-value">${p.height || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">Position</div><div class="p-stat-value">${s.games?.position || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">Rating</div><div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(s.games?.rating || 0).toFixed(1) || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">Goals</div><div class="p-stat-value">${s.goals?.total || 0}</div></div><div class="p-stat-box"><div class="p-stat-title">Assists</div><div class="p-stat-value">${s.goals?.assists || 0}</div></div></div>`;
+        container.innerHTML = `<div class="player-hero"><img src="${p.photo}" class="player-photo-large" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><div class="player-name-large">${p.firstname} ${p.lastname}</div><div class="player-team-info"><img src="${s.team?.logo}" onerror="this.style.display='none'">${s.team?.name || ''} • ${p.nationality}</div></div><div class="player-stats-grid"><div class="p-stat-box"><div class="p-stat-title">Age</div><div class="p-stat-value">${p.age || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">Height</div><div class="p-stat-value">${p.height || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">Position</div><div class="p-stat-value">${s.games?.position || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">Rating</div><div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(s.games?.rating || 0).toFixed(1) || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">Goals</div><div class="p-stat-value">${s.goals?.total || 0}</div></div><div class="p-stat-box"><div class="p-stat-title">Assists</div><div class="p-stat-value">${s.goals?.assists || 0}</div></div></div>`;
     } catch (e) { container.innerHTML = `<div class="empty-msg">Detailed info not available.</div>`; }
 }
 
