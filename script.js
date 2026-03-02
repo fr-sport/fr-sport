@@ -1,5 +1,5 @@
 /** * ==========================================
- * FR SPORT - ULTIMATE BILINGUAL EDITION (AR/EN)
+ * FR SPORT - ULTIMATE BILINGUAL EDITION (NATIVE ARABIC NEWS)
  * ==========================================
  */
 
@@ -11,95 +11,40 @@ const CONFIG = {
 
 const AppState = { matchesCache: {}, globalMatches: [], isLiveMode: false, currentDate: '', currentLang: localStorage.getItem('frsport_lang') || 'ar' };
 
-// === قاموس FR SPORT للكلمات الأساسية (الواجهة) ===
 const UI_DICTIONARY = {
     ar: {
-        live: "مباشر",
-        matches: "المباريات",
-        news: "أخبار",
-        leagues: "البطولات",
-        following: "يتابع",
-        search: "بحث",
-        today: "اليوم",
-        yesterday: "الأمس",
-        tomorrow: "غداً",
-        loadingMatches: "جاري جلب المباريات...",
-        noMatches: "لا توجد مباريات اليوم",
-        noLiveMatches: "لا توجد مباريات جارية حالياً",
-        loadingNews: "جاري جلب الأخبار...",
-        topLeaguesNow: "دوريات كبرى",
-        liveTransfers: "انتقالات",
-        topNews: "أحدث الأخبار العالمية",
-        topDeals: "أخبار الانتقالات المباشرة",
-        standings: "جدول الترتيب",
-        team: "الفريق",
-        played: "لعب",
-        gd: "فارق",
-        pts: "نقاط",
-        stats: "إحصائيات",
-        lineups: "التشكيلة",
-        subs: "البدلاء",
-        age: "العمر",
-        height: "الطول",
-        position: "المركز",
-        rating: "التقييم",
-        goals: "الأهداف",
-        assists: "الصناعة",
-        notStarted: "لم تبدأ",
-        finished: "انتهت"
+        live: "مباشر", matches: "المباريات", news: "أخبار", leagues: "البطولات", following: "يتابع", search: "بحث",
+        today: "اليوم", yesterday: "الأمس", tomorrow: "غداً", loadingMatches: "جاري جلب المباريات...",
+        noMatches: "لا توجد مباريات اليوم", noLiveMatches: "لا توجد مباريات جارية حالياً", loadingNews: "جاري جلب الأخبار...",
+        topLeaguesNow: "دوريات كبرى", liveTransfers: "انتقالات", topNews: "أحدث الأخبار الرياضية", topDeals: "أخبار الانتقالات والصفقات",
+        standings: "جدول الترتيب", team: "الفريق", played: "لعب", gd: "فارق", pts: "نقاط",
+        stats: "إحصائيات", lineups: "التشكيلة", subs: "البدلاء", age: "العمر", height: "الطول",
+        position: "المركز", rating: "التقييم", goals: "الأهداف", assists: "الصناعة", notStarted: "لم تبدأ", finished: "انتهت"
     },
     en: {
-        live: "Live",
-        matches: "Matches",
-        news: "News",
-        leagues: "Leagues",
-        following: "Following",
-        search: "Search",
-        today: "Today",
-        yesterday: "Yesterday",
-        tomorrow: "Tomorrow",
-        loadingMatches: "Fetching matches...",
-        noMatches: "No matches today",
-        noLiveMatches: "No live matches right now",
-        loadingNews: "Fetching news...",
-        topLeaguesNow: "Top Leagues",
-        liveTransfers: "Transfers",
-        topNews: "Latest Global News",
-        topDeals: "Live Transfer News & Rumors",
-        standings: "Standings",
-        team: "Team",
-        played: "P",
-        gd: "GD",
-        pts: "Pts",
-        stats: "Stats",
-        lineups: "Lineups",
-        subs: "Substitutes",
-        age: "Age",
-        height: "Height",
-        position: "Position",
-        rating: "Rating",
-        goals: "Goals",
-        assists: "Assists",
-        notStarted: "Scheduled",
-        finished: "FT"
+        live: "Live", matches: "Matches", news: "News", leagues: "Leagues", following: "Following", search: "Search",
+        today: "Today", yesterday: "Yesterday", tomorrow: "Tomorrow", loadingMatches: "Fetching matches...",
+        noMatches: "No matches today", noLiveMatches: "No live matches right now", loadingNews: "Fetching news...",
+        topLeaguesNow: "Top Leagues", liveTransfers: "Transfers", topNews: "Latest Global News", topDeals: "Live Transfer News & Rumors",
+        standings: "Standings", team: "Team", played: "P", gd: "GD", pts: "Pts",
+        stats: "Stats", lineups: "Lineups", subs: "Substitutes", age: "Age", height: "Height",
+        position: "Position", rating: "Rating", goals: "Goals", assists: "Assists", notStarted: "Scheduled", finished: "FT"
     }
 };
 
-// === قاموس FR SPORT لترجمة الفرق والبطولات (عربي فقط) ===
 const ARABIC_DICTIONARY = {
     "World": "عالمي", "England": "إنجلترا", "Spain": "إسبانيا", "Italy": "إيطاليا", "Germany": "ألمانيا", "France": "فرنسا", "Portugal": "البرتغال", "Saudi Arabia": "السعودية",
-    "Premier League": "الدوري الإنجليزي الممتاز", "Championship": "دوري البطولة الإنجليزية", "La Liga": "الدوري الإسباني", "Serie A": "الدوري الإيطالي", "Bundesliga": "الدوري الألماني", "Ligue 1": "الدوري الفرنسي", "Primeira Liga": "الدوري البرتغالي", "UEFA Champions League": "دوري أبطال أوروبا", "UEFA Europa League": "الدوري الأوروبي", "Saudi Pro League": "الدوري السعودي", "AFC Champions League": "دوري أبطال آسيا",
+    "Premier League": "الدوري الإنجليزي", "Championship": "دوري البطولة الإنجليزية", "La Liga": "الدوري الإسباني", "Serie A": "الدوري الإيطالي", "Bundesliga": "الدوري الألماني", "Ligue 1": "الدوري الفرنسي", "Primeira Liga": "الدوري البرتغالي", "UEFA Champions League": "دوري أبطال أوروبا", "UEFA Europa League": "الدوري الأوروبي", "Saudi Pro League": "الدوري السعودي", "AFC Champions League": "دوري أبطال آسيا",
     "Arsenal": "أرسنال", "Aston Villa": "أستون فيلا", "Chelsea": "تشيلسي", "Liverpool": "ليفربول", "Manchester City": "مانشستر سيتي", "Manchester United": "مانشستر يونايتد", "Newcastle": "نيوكاسل", "Tottenham": "توتنهام", "Middlesbrough": "ميدلزبره", "Birmingham": "برمنغهام",
     "Real Madrid": "ريال مدريد", "Barcelona": "برشلونة", "Atletico Madrid": "أتلتيكو مدريد", "Sevilla": "إشبيلية", "Getafe": "خيتافي", "Valencia": "فالنسيا",
     "Juventus": "يوفنتوس", "AC Milan": "ميلان", "Inter": "إنتر ميلان", "Napoli": "نابولي", "AS Roma": "روما", "Bologna": "بولونيا", "Fiorentina": "فيورنتينا", "Pisa": "بيزا", "Udinese": "أودينيزي",
     "Al-Duhail SC": "الدحيل", "Al-Ahli Jeddah": "الأهلي السعودي", "Tractor Sazi": "تراكتور سازي", "Shabab Al Ahli Dubai": "شباب الأهلي دبي", "Al Hilal": "الهلال", "Al Nassr": "النصر"
 };
 
-// دالة الترجمة الذكية للفرق (تترجم فقط إذا كانت اللغة عربية)
 function translateName(name) { 
     if(!name) return "";
     if (AppState.currentLang === 'ar') return ARABIC_DICTIONARY[name] || name; 
-    return name; // إذا كانت إنجليزية، أرجع الاسم الأصلي
+    return name; 
 }
 
 const Utils = {
@@ -121,8 +66,7 @@ const Utils = {
     formatTimeLoc: (dateStr) => {
         const d = new Date(dateStr);
         if (AppState.currentLang === 'ar') {
-            let time = d.toLocaleTimeString('ar-EG', { hour: 'numeric', minute: '2-digit', hour12: true });
-            return time.replace('ص', 'ص').replace('م', 'م'); // تأكيد الـ AM/PM العربي
+            return d.toLocaleTimeString('ar-EG', { hour: 'numeric', minute: '2-digit', hour12: true }).replace('ص', 'ص').replace('م', 'م');
         } else {
             return d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
         }
@@ -132,32 +76,25 @@ const Utils = {
 };
 
 const TOP_LEAGUES = [
-    { id: 39, nameAr: "الدوري الإنجليزي الممتاز", nameEn: "Premier League", logo: "https://media.api-sports.io/football/leagues/39.png" },
+    { id: 39, nameAr: "الدوري الإنجليزي", nameEn: "Premier League", logo: "https://media.api-sports.io/football/leagues/39.png" },
     { id: 140, nameAr: "الدوري الإسباني", nameEn: "La Liga", logo: "https://media.api-sports.io/football/leagues/140.png" },
     { id: 135, nameAr: "الدوري الإيطالي", nameEn: "Serie A", logo: "https://media.api-sports.io/football/leagues/135.png" },
     { id: 78, nameAr: "الدوري الألماني", nameEn: "Bundesliga", logo: "https://media.api-sports.io/football/leagues/78.png" },
     { id: 61, nameAr: "الدوري الفرنسي", nameEn: "Ligue 1", logo: "https://media.api-sports.io/football/leagues/61.png" },
     { id: 2, nameAr: "دوري أبطال أوروبا", nameEn: "UEFA Champions League", logo: "https://media.api-sports.io/football/leagues/2.png" },
-    { id: 307, nameAr: "الدوري السعودي للمحترفين", nameEn: "Saudi Pro League", logo: "https://media.api-sports.io/football/leagues/307.png" }
+    { id: 307, nameAr: "الدوري السعودي", nameEn: "Saudi Pro League", logo: "https://media.api-sports.io/football/leagues/307.png" }
 ];
 
-// === دالة تبديل اللغة (السحر الحقيقي) ===
 function toggleLanguage() {
     AppState.currentLang = AppState.currentLang === 'ar' ? 'en' : 'ar';
     localStorage.setItem('frsport_lang', AppState.currentLang);
-    
-    // قلب الشاشة
     document.getElementById('html-tag').setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
     document.getElementById('html-tag').setAttribute('lang', AppState.currentLang);
-
-    // تحديث نصوص الواجهة
     updateUI();
-
-    // تحديث المحتوى
     setupDatesBar();
-    if(document.getElementById('tab-matches').classList.contains('hidden') === false) fetchMatches(AppState.currentDate);
-    if(document.getElementById('tab-news').classList.contains('hidden') === false) fetchNews();
-    if(document.getElementById('tab-leagues').classList.contains('hidden') === false) renderLeaguesTab();
+    if(!document.getElementById('tab-matches').classList.contains('hidden')) fetchMatches(AppState.currentDate);
+    if(!document.getElementById('tab-news').classList.contains('hidden')) fetchNews();
+    if(!document.getElementById('tab-leagues').classList.contains('hidden')) renderLeaguesTab();
 }
 
 function updateUI() {
@@ -171,7 +108,6 @@ function updateUI() {
     
     const loadingMatches = document.getElementById('text-loading-matches');
     if(loadingMatches) loadingMatches.innerText = d.loadingMatches;
-
     const standingsTitle = document.getElementById('text-standings-title');
     if(standingsTitle) standingsTitle.innerText = d.standings;
 }
@@ -246,7 +182,7 @@ function renderLeaguesTab() {
     container.innerHTML = html + `</div>`;
 }
 
-// === نظام الأخبار السريع ثنائي اللغة ===
+// === محرك الأخبار المزدوج (عربي / إنجليزي) ===
 async function fetchNews() {
     const container = document.getElementById('tab-news');
     if(!container) return;
@@ -261,61 +197,93 @@ async function fetchNews() {
     }
     
     try {
-        const eplUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/news?limit=50';
-        const laligaUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/news?limit=50';
-        const globalUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/global/news?limit=50';
+        let normalizedArticles = [];
+        let transferKeywords = [];
+        
+        // إذا كانت اللغة عربية، نجلب من وكالات عربية
+        if (AppState.currentLang === 'ar') {
+            const arUrl1 = 'https://www.skynewsarabia.com/rss/sport';
+            const arUrl2 = 'https://arabic.rt.com/rss/sport/';
+            const [res1, res2] = await Promise.all([
+                fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(arUrl1)}`),
+                fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(arUrl2)}`)
+            ]);
+            const data1 = await res1.json(); const data2 = await res2.json();
+            
+            let allArArticles = [];
+            if(data1.status === 'ok') allArArticles.push(...data1.items);
+            if(data2.status === 'ok') allArArticles.push(...data2.items);
+            
+            allArArticles.forEach(a => {
+                normalizedArticles.push({
+                    title: a.title, link: a.link, pubDate: a.pubDate,
+                    img: a.thumbnail || (a.enclosure ? a.enclosure.link : null),
+                    source: a.link.includes('skynews') ? 'Sky News Arabia' : 'RT Sports'
+                });
+            });
+            transferKeywords = ['انتقال', 'صفقة', 'تعاقد', 'توقيع', 'إعارة', 'رسميا', 'يضم', 'مفاوضات', 'عقد'];
+        } 
+        // إذا كانت اللغة إنجليزية، نجلب من ESPN
+        else {
+            const eplUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/news?limit=50';
+            const laligaUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/news?limit=50';
+            const [eplRes, laligaRes] = await Promise.all([ fetch(eplUrl), fetch(laligaUrl) ]);
+            const eplData = await eplRes.json(); const laligaData = await laligaRes.json();
+            
+            let allEnArticles = [];
+            if(eplData.articles) allEnArticles.push(...eplData.articles);
+            if(laligaData.articles) allEnArticles.push(...laligaData.articles);
+            
+            allEnArticles.forEach(a => {
+                normalizedArticles.push({
+                    title: a.headline, link: a.links?.web?.href, pubDate: a.published,
+                    img: a.images && a.images.length > 0 ? a.images[0].url : null,
+                    source: 'ESPN FC'
+                });
+            });
+            transferKeywords = ['transfer', 'sign', 'deal', 'loan', 'bid', 'contract', 'move', 'medical', 'agrees', 'swap'];
+        }
 
-        const [eplRes, laligaRes, globalRes] = await Promise.all([ fetch(eplUrl), fetch(laligaUrl), fetch(globalUrl) ]);
-        const eplData = await eplRes.json(); const laligaData = await laligaRes.json(); const globalData = await globalRes.json();
-
-        let allArticles = [];
-        if(eplData.articles) allArticles.push(...eplData.articles);
-        if(laligaData.articles) allArticles.push(...laligaData.articles);
-        if(globalData.articles) allArticles.push(...globalData.articles);
-
+        // إزالة المكرر والترتيب
         let uniqueArticles = []; let titles = new Set();
-        allArticles.forEach(a => { if(!titles.has(a.headline)) { titles.add(a.headline); uniqueArticles.push(a); } });
-        uniqueArticles.sort((a,b) => new Date(b.published) - new Date(a.published));
+        normalizedArticles.forEach(a => { if(!titles.has(a.title)) { titles.add(a.title); uniqueArticles.push(a); } });
+        uniqueArticles.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
         if(uniqueArticles.length === 0) return;
 
-        const transferKeywords = ['transfer', 'sign', 'deal', 'loan', 'bid', 'contract', 'move', 'medical', 'agrees', 'agreed', 'swap', 'buy', 'sell'];
-        const transferArticles = uniqueArticles.filter(a => transferKeywords.some(kw => a.headline.toLowerCase().includes(kw) || a.description?.toLowerCase().includes(kw)));
+        // فلترة الانتقالات بناءً على لغة الكلمات المفتاحية
+        const transferArticles = uniqueArticles.filter(a => transferKeywords.some(kw => a.title.toLowerCase().includes(kw)));
         const defaultImg = 'https://images.unsplash.com/photo-1518605368461-1e1e38ce81c2?q=80&w=600&auto=format&fit=crop';
 
-        let combinedHtml = `
-            <div class="news-top-nav">
-                <div class="news-top-tab active" onclick="switchNewsSubTab('foryou')">${d.topLeaguesNow}</div>
-                <div class="news-top-tab" onclick="switchNewsSubTab('transfers')">${d.liveTransfers}</div>
-            </div>
-            <div id="news-content-area">
-        `;
+        let combinedHtml = `<div class="news-top-nav"><div class="news-top-tab active" onclick="switchNewsSubTab('foryou')">${d.topLeaguesNow}</div><div class="news-top-tab" onclick="switchNewsSubTab('transfers')">${d.liveTransfers}</div></div><div id="news-content-area">`;
 
+        // قسم الأخبار
         let forYouHtml = `<div id="news-foryou-content"><div class="trending-header">${d.topNews}</div><div class="news-feed">`;
         uniqueArticles.slice(0, 30).forEach((article, index) => {
-            let title = article.headline; let link = article.links?.web?.href || '#'; 
-            let pubDate = Utils.formatTimeLoc(article.published);
-            let img = article.images && article.images.length > 0 ? article.images[0].url : defaultImg;
-            let alignClass = AppState.currentLang === 'ar' ? 'text-align:left; direction:ltr;' : '';
+            let img = article.img || defaultImg;
+            let pDate = Utils.formatTimeLoc(article.pubDate);
+            let alignClass = AppState.currentLang === 'ar' ? 'text-align:right; direction:rtl;' : 'text-align:left; direction:ltr;'; // تصحيح المحاذاة
 
-            if (index === 0) { forYouHtml += `<div class="news-hero-card" onclick="window.open('${link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.src='${defaultImg}'"><div class="news-hero-title">${title}</div><div class="news-date" style="${alignClass}">ESPN FC • ${pubDate}</div></div>`; } 
-            else { forYouHtml += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${title}</div><div class="news-date" style="${alignClass}">ESPN FC • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`; }
+            if (index === 0) { 
+                forYouHtml += `<div class="news-hero-card" onclick="window.open('${article.link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.src='${defaultImg}'"><div class="news-hero-title" style="${alignClass}">${article.title}</div><div class="news-date" style="${alignClass} color:var(--accent-color);">${article.source} • ${pDate}</div></div>`; 
+            } else { 
+                forYouHtml += `<div class="news-list-card" onclick="window.open('${article.link}', '_blank')"><div class="news-list-content"><div class="news-list-title" style="${alignClass}">${article.title}</div><div class="news-date" style="${alignClass} color:var(--accent-color);">${article.source} • ${pDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`; 
+            }
         });
         forYouHtml += `</div></div>`;
 
+        // قسم الانتقالات
         let transfersHtml = `<div id="news-transfers-content" class="hidden"><div class="trending-header" style="color:var(--accent-color);">${d.topDeals}</div><div class="news-feed">`;
         if (transferArticles.length > 0) {
             transferArticles.slice(0, 20).forEach(article => {
-                let title = article.headline; let link = article.links?.web?.href || '#'; 
-                let pubDate = Utils.formatTimeLoc(article.published);
-                let img = article.images && article.images.length > 0 ? article.images[0].url : defaultImg;
-                let alignClass = AppState.currentLang === 'ar' ? 'text-align:left; direction:ltr;' : '';
-                transfersHtml += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title" style="font-weight: 800;">${title}</div><div class="news-date" style="${alignClass}">Transfers • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`;
+                let img = article.img || defaultImg;
+                let pDate = Utils.formatTimeLoc(article.pubDate);
+                let alignClass = AppState.currentLang === 'ar' ? 'text-align:right; direction:rtl;' : 'text-align:left; direction:ltr;';
+                transfersHtml += `<div class="news-list-card" onclick="window.open('${article.link}', '_blank')"><div class="news-list-content"><div class="news-list-title" style="font-weight: 800; ${alignClass}">${article.title}</div><div class="news-date" style="${alignClass} color:var(--accent-color);">Transfers • ${pDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`;
             });
-        } else { transfersHtml += `<div class="empty-msg">No recent transfer updates. Check back later.</div>`; }
+        } else { transfersHtml += `<div class="empty-msg">لا توجد أخبار انتقالات حالياً.</div>`; }
         transfersHtml += `</div></div>`;
         
         combinedHtml += forYouHtml + transfersHtml + `</div>`;
-
         container.innerHTML = combinedHtml;
         localStorage.setItem(cacheKey, combinedHtml);
 
@@ -339,7 +307,7 @@ function getLeaguePriority(league) {
     return 100;
 }
 
-// === نظام المباريات مع الذاكرة الفورية (Cache) ثنائي اللغة ===
+// === نظام المباريات السريع ===
 async function fetchMatches(date) {
     AppState.currentDate = date;
     const container = document.getElementById('tab-matches');
@@ -432,10 +400,7 @@ function renderMatchesList(matches) {
     });
     
     container.innerHTML = html;
-    
-    if (!AppState.isLiveMode) {
-        localStorage.setItem(cacheKey, html);
-    }
+    if (!AppState.isLiveMode) localStorage.setItem(cacheKey, html);
 }
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
@@ -559,13 +524,11 @@ async function openPlayerDetails(playerId) {
     } catch (e) { container.innerHTML = `<div class="empty-msg">Data unavailable.</div>`; }
 }
 
-// تهيئة اللغة عند بداية التشغيل
 document.getElementById('html-tag').setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
 document.getElementById('html-tag').setAttribute('lang', AppState.currentLang);
 updateUI();
 setupDatesBar();
 
-// إذا لم يكن هناك تاريخ مختار مسبقاً، اختر اليوم
 if (!AppState.currentDate) {
     const today = new Date().toISOString().split('T')[0];
     fetchMatches(today);
