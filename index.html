@@ -5,14 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FR SPORT</title>
     
-    <link rel="icon" type="image/png" href="android-chrome-192x192.png?v=106">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=105">
-    <link rel="manifest" href="manifest.json?v=105">
+    <link rel="icon" type="image/png" href="android-chrome-192x192.png?v=110">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=110">
+    <link rel="manifest" href="manifest.json?v=110">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-    <link rel="stylesheet" href="style.css?v=105">
+    <link rel="stylesheet" href="style.css?v=110">
 </head>
 <body>
 
@@ -38,8 +38,9 @@
     <main class="leagues-container" id="tab-matches">
         <div class="loader">Fetching matches...</div>
     </main>
-    <main class="leagues-container hidden" id="tab-other">
-        <div class="empty-msg">Coming soon...</div>
+    
+    <main class="leagues-container hidden" id="tab-news">
+        <div class="empty-msg" style="margin-top: 50px;">Click the News tab again to load...</div>
     </main>
 
     <div id="match-modal" class="full-modal hidden">
@@ -55,6 +56,7 @@
         </div>
         <div class="full-modal-body" id="match-info-container"></div>
     </div>
+
     <div id="player-modal" class="full-modal hidden" style="z-index: 3000;">
         <div class="full-modal-header">
             <div class="back-btn" onclick="closeModal('player-modal')">
@@ -64,8 +66,7 @@
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
             </div>
         </div>
-        <div class="full-modal-body" id="player-info-container">
-            </div>
+        <div class="full-modal-body" id="player-info-container"></div>
     </div>
 
     <nav class="bottom-nav">
@@ -91,7 +92,7 @@
         </div>
     </nav>
 
-    <script src="script.js?v=109"></script>
+    <script src="script.js?v=110"></script>
 
     <script>
       if ('serviceWorker' in navigator) {
