@@ -1,5 +1,5 @@
 /** * ==========================================
- * FR SPORT - ULTIMATE EDITION (SMART SORTING & FIXES)
+ * FR SPORT - ULTIMATE ARABIC EDITION (LEAGUES & STANDINGS)
  * ==========================================
  */
 
@@ -13,16 +13,27 @@ const AppState = { matchesCache: {}, globalMatches: [], isLiveMode: false, curre
 
 const Utils = {
     formatDateEn: (dateObj, offset) => {
-        if (offset === 0) return "Today";
-        if (offset === -1) return "Yesterday";
-        if (offset === 1) return "Tomorrow";
-        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        return `${days[dateObj.getDay()]} ${dateObj.getDate().toString().padStart(2, '0')} ${months[dateObj.getMonth()]}`;
+        if (offset === 0) return "اليوم";
+        if (offset === -1) return "الأمس";
+        if (offset === 1) return "غداً";
+        const days = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+        const months = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+        return `${days[dateObj.getDay()]} ${dateObj.getDate()} ${months[dateObj.getMonth()]}`;
     },
     isLiveMatch: (s) => CONFIG.LIVE_STATUSES.includes(s),
     isNotStarted: (s) => CONFIG.NOT_STARTED_STATUSES.includes(s)
 };
+
+// === قائمة البطولات الكبرى لتبويب "البطولات" ===
+const TOP_LEAGUES = [
+    { id: 39, nameAr: "الدوري الإنجليزي الممتاز", logo: "https://media.api-sports.io/football/leagues/39.png" },
+    { id: 140, nameAr: "الدوري الإسباني", logo: "https://media.api-sports.io/football/leagues/140.png" },
+    { id: 135, nameAr: "الدوري الإيطالي", logo: "https://media.api-sports.io/football/leagues/135.png" },
+    { id: 78, nameAr: "الدوري الألماني", logo: "https://media.api-sports.io/football/leagues/78.png" },
+    { id: 61, nameAr: "الدوري الفرنسي", logo: "https://media.api-sports.io/football/leagues/61.png" },
+    { id: 2, nameAr: "دوري أبطال أوروبا", logo: "https://media.api-sports.io/football/leagues/2.png" },
+    { id: 307, nameAr: "الدوري السعودي للمحترفين", logo: "https://media.api-sports.io/football/leagues/307.png" }
+];
 
 function setupDatesBar() {
     const container = document.getElementById('dates-container');
@@ -58,6 +69,8 @@ function switchTab(el) {
     document.getElementById('tab-matches').classList.add('hidden');
     const newsTab = document.getElementById('tab-news');
     if(newsTab) newsTab.classList.add('hidden');
+    const leaguesTab = document.getElementById('tab-leagues');
+    if(leaguesTab) leaguesTab.classList.add('hidden');
     
     const tabName = el.innerText.trim();
     const datesWrapper = document.querySelector('.dates-wrapper');
@@ -68,9 +81,11 @@ function switchTab(el) {
     } else if(tabName === 'News' || tabName === 'أخبار') {
         if(newsTab) newsTab.classList.remove('hidden');
         if(datesWrapper) datesWrapper.style.display = 'none'; 
-        if(newsTab && (newsTab.innerHTML.includes('Click') || newsTab.innerHTML.trim() === '')) {
-            fetchNews();
-        }
+        if(newsTab && (newsTab.innerHTML.includes('Click') || newsTab.innerHTML.trim() === '')) fetchNews();
+    } else if(tabName === 'Leagues' || tabName === 'البطولات') {
+        if(leaguesTab) leaguesTab.classList.remove('hidden');
+        if(datesWrapper) datesWrapper.style.display = 'none'; 
+        renderLeaguesTab(); // تشغيل دالة البطولات
     } else {
         if(datesWrapper) datesWrapper.style.display = 'none';
     }
@@ -82,17 +97,86 @@ function toggleLive(btn) {
     renderMatchesList(AppState.globalMatches);
 }
 
+// === عرض قائمة البطولات في تبويب "البطولات" ===
+function renderLeaguesTab() {
+    const container = document.getElementById('tab-leagues');
+    if (!container) return;
+    
+    let html = `<div class="trending-header" style="padding-top:0;">أبرز البطولات العالمية</div><div class="leagues-grid">`;
+    TOP_LEAGUES.forEach(l => {
+        html += `
+        <div class="league-card" onclick="openLeagueStandings(${l.id})">
+            <img src="${l.logo}" class="league-card-logo">
+            <div class="league-card-info">
+                <div class="league-card-name">${l.nameAr}</div>
+            </div>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" style="transform: rotate(180deg);"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </div>`;
+    });
+    html += `</div>`;
+    container.innerHTML = html;
+}
+
+// === جلب وعرض جدول الترتيب ===
+async function openLeagueStandings(leagueId) {
+    const modal = document.getElementById('standings-modal');
+    const container = document.getElementById('standings-container');
+    modal.classList.remove('hidden');
+    container.innerHTML = '<div class="loader" style="margin-top:50px;">جاري تحميل جدول الترتيب...</div>';
+
+    try {
+        const res = await fetch(`${CONFIG.API_URL}/standings?league=${leagueId}&season=2023`);
+        const data = await res.json();
+        const leagueData = data.response?.[0]?.league;
+        
+        if(!leagueData || !leagueData.standings || leagueData.standings.length === 0) throw new Error("No standings");
+
+        let html = `
+        <div class="match-hero" style="padding:20px; text-align:center;">
+            <img src="${leagueData.logo}" style="width:70px; height:70px; margin-bottom:10px;">
+            <div class="player-name-large" style="font-size:18px;">${leagueData.name}</div>
+        </div>
+        <div class="standings-table">
+            <div class="st-header">
+                <div class="st-rank">#</div>
+                <div class="st-team">الفريق</div>
+                <div class="st-p">لعب</div>
+                <div class="st-gd">فارق</div>
+                <div class="st-pts">نقاط</div>
+            </div>`;
+
+        const standingsArray = leagueData.standings[0]; 
+
+        standingsArray.forEach(row => {
+            html += `
+            <div class="st-row">
+                <div class="st-rank">${row.rank}</div>
+                <div class="st-team"><img src="${row.team.logo}" onerror="this.style.display='none'">${row.team.name}</div>
+                <div class="st-p">${row.all.played}</div>
+                <div class="st-gd" style="direction:ltr;">${row.goalsDiff > 0 ? '+'+row.goalsDiff : row.goalsDiff}</div>
+                <div class="st-pts">${row.points}</div>
+            </div>`;
+        });
+        html += `</div>`;
+        container.innerHTML = html;
+
+    } catch (e) {
+        container.innerHTML = '<div class="empty-msg" style="margin-top:50px;">جدول الترتيب غير متوفر حالياً لهذه البطولة.</div>';
+    }
+}
+
+// === الأخبار باللغة العربية ===
 async function fetchNews() {
     const container = document.getElementById('tab-news');
     if(!container) return;
     
     container.innerHTML = `
         <div class="news-top-nav">
-            <div class="news-top-tab active" onclick="switchNewsSubTab('foryou')">Top Leagues</div>
-            <div class="news-top-tab" onclick="switchNewsSubTab('transfers')">Transfers</div>
+            <div class="news-top-tab active" onclick="switchNewsSubTab('foryou')">دوريات كبرى</div>
+            <div class="news-top-tab" onclick="switchNewsSubTab('transfers')">انتقالات</div>
         </div>
         <div id="news-content-area">
-            <div class="loader" style="margin-top:50px; color:var(--accent-color);">Fetching HD News...</div>
+            <div class="loader" style="margin-top:50px; color:var(--accent-color);">جاري جلب الأخبار...</div>
         </div>
     `;
     
@@ -101,68 +185,44 @@ async function fetchNews() {
         const laligaUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/news?limit=50';
         const globalUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/global/news?limit=50';
 
-        const [eplRes, laligaRes, globalRes] = await Promise.all([
-            fetch(eplUrl), fetch(laligaUrl), fetch(globalUrl)
-        ]);
-
-        const eplData = await eplRes.json();
-        const laligaData = await laligaRes.json();
-        const globalData = await globalRes.json();
+        const [eplRes, laligaRes, globalRes] = await Promise.all([ fetch(eplUrl), fetch(laligaUrl), fetch(globalUrl) ]);
+        const eplData = await eplRes.json(); const laligaData = await laligaRes.json(); const globalData = await globalRes.json();
 
         let allArticles = [];
         if(eplData.articles) allArticles.push(...eplData.articles);
         if(laligaData.articles) allArticles.push(...laligaData.articles);
         if(globalData.articles) allArticles.push(...globalData.articles);
 
-        let uniqueArticles = [];
-        let titles = new Set();
-        allArticles.forEach(a => {
-            if(!titles.has(a.headline)) { titles.add(a.headline); uniqueArticles.push(a); }
-        });
-
+        let uniqueArticles = []; let titles = new Set();
+        allArticles.forEach(a => { if(!titles.has(a.headline)) { titles.add(a.headline); uniqueArticles.push(a); } });
         uniqueArticles.sort((a,b) => new Date(b.published) - new Date(a.published));
-        if(uniqueArticles.length === 0) throw new Error("No news found");
+        if(uniqueArticles.length === 0) throw new Error();
 
         const transferKeywords = ['transfer', 'sign', 'deal', 'loan', 'bid', 'contract', 'move', 'medical', 'agrees', 'agreed', 'swap', 'buy', 'sell'];
         const transferArticles = uniqueArticles.filter(a => transferKeywords.some(kw => a.headline.toLowerCase().includes(kw) || a.description?.toLowerCase().includes(kw)));
-
         const defaultImg = 'https://images.unsplash.com/photo-1518605368461-1e1e38ce81c2?q=80&w=600&auto=format&fit=crop';
 
-        let forYouHtml = `<div id="news-foryou-content"><div class="trending-header"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg> Top Leagues Now</div><div class="news-feed">`;
-
+        let forYouHtml = `<div id="news-foryou-content"><div class="trending-header">أحدث الأخبار العالمية</div><div class="news-feed">`;
         uniqueArticles.slice(0, 30).forEach((article, index) => {
-            let title = article.headline;
-            let link = article.links?.web?.href || '#';
-            let pubDate = new Date(article.published).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+            let title = article.headline; let link = article.links?.web?.href || '#'; let pubDate = new Date(article.published).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
             let img = article.images && article.images.length > 0 ? article.images[0].url : defaultImg;
-
-            if (index === 0) {
-                forYouHtml += `<div class="news-hero-card" onclick="window.open('${link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.src='${defaultImg}'"><div class="news-hero-title">${title}</div><div class="news-date">ESPN FC • ${pubDate}</div></div>`;
-            } else {
-                forYouHtml += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${title}</div><div class="news-date">ESPN FC • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`;
-            }
+            if (index === 0) { forYouHtml += `<div class="news-hero-card" onclick="window.open('${link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.src='${defaultImg}'"><div class="news-hero-title">${title}</div><div class="news-date" style="text-align:left;">ESPN FC • ${pubDate}</div></div>`; } 
+            else { forYouHtml += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${title}</div><div class="news-date" style="text-align:left;">ESPN FC • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`; }
         });
         forYouHtml += `</div></div>`;
 
-        let transfersHtml = `<div id="news-transfers-content" class="hidden"><div class="trending-header" style="color:var(--accent-color);">Live Transfer News & Rumors</div><div class="news-feed">`;
-
+        let transfersHtml = `<div id="news-transfers-content" class="hidden"><div class="trending-header" style="color:var(--accent-color);">أخبار الانتقالات المباشرة</div><div class="news-feed">`;
         if (transferArticles.length > 0) {
             transferArticles.slice(0, 20).forEach(article => {
                 let title = article.headline; let link = article.links?.web?.href || '#'; let pubDate = new Date(article.published).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
                 let img = article.images && article.images.length > 0 ? article.images[0].url : defaultImg;
-                transfersHtml += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title" style="font-weight: 800;">${title}</div><div class="news-date">Transfer Center • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`;
+                transfersHtml += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title" style="font-weight: 800;">${title}</div><div class="news-date" style="text-align:left;">Transfers • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`;
             });
-        } else {
-            transfersHtml += `<div class="empty-msg">No recent transfer updates. Check back later.</div>`;
-        }
-
+        } else { transfersHtml += `<div class="empty-msg">لا توجد أخبار انتقالات حالياً.</div>`; }
         transfersHtml += `</div></div>`;
         document.getElementById('news-content-area').innerHTML = forYouHtml + transfersHtml;
 
-    } catch (e) {
-        console.error(e);
-        document.getElementById('news-content-area').innerHTML = `<div class="empty-msg" style="margin-top:50px;">Error loading HD news.</div>`;
-    }
+    } catch (e) { document.getElementById('news-content-area').innerHTML = `<div class="empty-msg" style="margin-top:50px;">خطأ في جلب الأخبار.</div>`; }
 }
 
 function switchNewsSubTab(tabId) {
@@ -173,29 +233,13 @@ function switchNewsSubTab(tabId) {
     document.getElementById(`news-${tabId}-content`).classList.remove('hidden');
 }
 
-// === الترتيب الديكتاتوري الصارم للمباريات ===
+// === الترتيب الصارم ===
 function getLeaguePriority(league) {
-    const id = league.id;
-    const name = league.name ? league.name.toLowerCase() : '';
-
-    // 1. البطولات العالمية والقارية (كأس العالم، أبطال أوروبا، اليوروباليغ، أبطال آسيا)
+    const id = league.id; const name = league.name ? league.name.toLowerCase() : '';
     if ([2, 3, 4, 1, 15, 17, 848].includes(id)) return 1;
-
-    // 2. الدوريات الخمس الكبرى (إنجليزي، إسباني، إيطالي، ألماني، فرنسي)
-    // ستكون دائماً في القمة بعد البطولات القارية
     if ([39, 140, 135, 78, 61].includes(id)) return 2;
-
-    // 3. دوريات قوية ومشهورة
     if ([307, 253, 88, 94, 40].includes(id)) return 3;
-
-    // 999. سلة المهملات: طرد دوريات الشباب والوديات إلى القاع بلا رحمة!
-    if (name.includes('u21') || name.includes('u20') || name.includes('u19') || name.includes('u17') || 
-        name.includes('women') || name.includes('friendlies') || name.includes('development') || 
-        name.includes('reserve') || name.includes('primavera') || name.includes('youth')) {
-        return 999;
-    }
-
-    // باقي الدوريات في العالم
+    if (name.includes('u21') || name.includes('u20') || name.includes('u19') || name.includes('u17') || name.includes('women') || name.includes('friendlies') || name.includes('development') || name.includes('reserve') || name.includes('primavera') || name.includes('youth')) return 999;
     return 100;
 }
 
@@ -205,7 +249,7 @@ async function fetchMatches(date) {
     if (!container) return;
     if (AppState.matchesCache[date]) { AppState.globalMatches = AppState.matchesCache[date]; renderMatchesList(AppState.globalMatches); return; }
     
-    container.innerHTML = '<div class="loader">Fetching matches...</div>';
+    container.innerHTML = '<div class="loader">جاري جلب المباريات...</div>';
     try {
         const res = await fetch(`${CONFIG.API_URL}/fixtures?date=${date}`);
         if(!res.ok) throw new Error("Server error");
@@ -213,14 +257,12 @@ async function fetchMatches(date) {
         const matches = data.response || [];
         AppState.matchesCache[date] = matches; AppState.globalMatches = matches;
         renderMatchesList(matches);
-    } catch (error) { 
-        container.innerHTML = '<div class="empty-msg">Server is sleeping or busy. Please refresh the page.</div>'; 
-    }
+    } catch (error) { container.innerHTML = '<div class="empty-msg">تعذر الاتصال بالخادم. الرجاء تحديث الصفحة.</div>'; }
 }
 
 function renderMatchesList(matches) {
     const container = document.getElementById('tab-matches');
-    if (!matches || matches.length === 0) { container.innerHTML = '<div class="empty-msg">No matches today</div>'; return; }
+    if (!matches || matches.length === 0) { container.innerHTML = '<div class="empty-msg">لا توجد مباريات اليوم</div>'; return; }
     
     const leaguesGroup = {};
     matches.forEach(m => {
@@ -230,37 +272,28 @@ function renderMatchesList(matches) {
         leaguesGroup[lId].games.push(m);
     });
 
-    // ترتيب الدوريات بالاعتماد على الفلتر الصارم ثم ترتيب أبجدي
     const sortedLeagues = Object.values(leaguesGroup).sort((a, b) => {
-        let priorityA = getLeaguePriority(a.info);
-        let priorityB = getLeaguePriority(b.info);
-        if(priorityA !== priorityB) {
-            return priorityA - priorityB;
-        }
+        let priorityA = getLeaguePriority(a.info); let priorityB = getLeaguePriority(b.info);
+        if(priorityA !== priorityB) return priorityA - priorityB;
         return a.info.name.localeCompare(b.info.name);
     });
 
-    if (sortedLeagues.length === 0) { container.innerHTML = '<div class="empty-msg">No live matches right now</div>'; return; }
+    if (sortedLeagues.length === 0) { container.innerHTML = '<div class="empty-msg">لا توجد مباريات جارية حالياً</div>'; return; }
 
     let html = '';
     sortedLeagues.forEach(group => {
         html += `<div class="league-group"><div class="league-header"><div class="league-title-wrapper"><img src="${group.info.logo}" class="league-logo"><span class="league-name">${group.info.country} - ${group.info.name}</span></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg></div>`;
         group.games.forEach(m => {
             const s = m.fixture.status.short;
-            
-            // حل مشكلة null - null للأهداف
             let hGoals = m.goals.home !== null ? m.goals.home : '';
             let aGoals = m.goals.away !== null ? m.goals.away : '';
-
             let centerContent = '';
             if (Utils.isNotStarted(s)) {
                 const timeStr = new Date(m.fixture.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                centerContent = `<div class="match-center">${timeStr}</div>`;
+                centerContent = `<div class="match-center" style="direction:ltr;">${timeStr}</div>`;
             } else if (Utils.isLiveMatch(s)) {
                 centerContent = `<div class="match-center live"><span style="font-size:10px;">${m.fixture.status.elapsed}'</span><br>${hGoals} - ${aGoals}</div>`;
-            } else {
-                centerContent = `<div class="match-center">${hGoals} - ${aGoals}</div>`;
-            }
+            } else { centerContent = `<div class="match-center">${hGoals} - ${aGoals}</div>`; }
 
             html += `<div class="match-row" onclick="openMatchDetails(${m.fixture.id})"><div class="match-teams-score"><span class="team-name home-name">${m.teams.home.name}</span><img src="${m.teams.home.logo}" class="team-logo">${centerContent}<img src="${m.teams.away.logo}" class="team-logo"><span class="team-name away-name">${m.teams.away.name}</span></div></div>`;
         });
@@ -291,21 +324,21 @@ async function openMatchDetails(id) {
     const modal = document.getElementById('match-modal');
     const container = document.getElementById('match-info-container');
     modal.classList.remove('hidden');
-    container.innerHTML = '<div class="loader">Fetching details...</div>';
+    container.innerHTML = '<div class="loader" style="margin-top:50px;">جاري جلب التفاصيل...</div>';
     try {
         const [matchRes, injuriesRes] = await Promise.all([fetch(`${CONFIG.API_URL}/fixtures?id=${id}`), fetch(`${CONFIG.API_URL}/injuries?fixture=${id}`)]);
         const matchData = await matchRes.json(); const injuriesData = await injuriesRes.json();
         renderMatchDetailsModal(matchData.response?.[0], injuriesData.response || [], container);
-    } catch (e) { container.innerHTML = '<div class="empty-msg">Error fetching details</div>'; }
+    } catch (e) { container.innerHTML = '<div class="empty-msg">خطأ في جلب التفاصيل</div>'; }
 }
 
 function renderMatchDetailsModal(m, injuries, container) {
     if(!m) return;
     let matchStatus = m.fixture.status.short;
     let scoreOrTime = Utils.isNotStarted(matchStatus) ? new Date(m.fixture.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : `${m.goals.home ?? 0} - ${m.goals.away ?? 0}`;
-    let subText = Utils.isNotStarted(matchStatus) ? 'Scheduled' : Utils.isLiveMatch(matchStatus) ? `<span style="color:var(--accent-color)">${m.fixture.status.elapsed}'</span>` : 'FT';
+    let subText = Utils.isNotStarted(matchStatus) ? 'لم تبدأ' : Utils.isLiveMatch(matchStatus) ? `<span style="color:var(--accent-color)">${m.fixture.status.elapsed}'</span>` : 'انتهت';
 
-    let html = `<div class="match-hero"><div class="hero-team"><img src="${m.teams.home.logo}"><span class="p-name">${m.teams.home.name}</span></div><div class="hero-score-time"><div class="hero-score">${scoreOrTime}</div><div class="hero-sub">${subText}</div></div><div class="hero-team"><img src="${m.teams.away.logo}"><span class="p-name">${m.teams.away.name}</span></div></div><div class="tabs-container"><div class="tab-btn" onclick="switchModalTab('stats')">Stats</div><div class="tab-btn active" onclick="switchModalTab('lineups')">Lineups</div></div>`;
+    let html = `<div class="match-hero"><div class="hero-team"><img src="${m.teams.home.logo}"><span class="p-name">${m.teams.home.name}</span></div><div class="hero-score-time"><div class="hero-score" style="direction:ltr;">${scoreOrTime}</div><div class="hero-sub">${subText}</div></div><div class="hero-team"><img src="${m.teams.away.logo}"><span class="p-name">${m.teams.away.name}</span></div></div><div class="tabs-container"><div class="tab-btn" onclick="switchModalTab('stats')">إحصائيات</div><div class="tab-btn active" onclick="switchModalTab('lineups')">التشكيلة</div></div>`;
 
     let statsHtml = '<div id="modal-stats" class="modal-tab-content hidden">';
     if (m.statistics && m.statistics.length > 1) {
@@ -315,19 +348,19 @@ function renderMatchDetailsModal(m, injuries, container) {
             let total = hNum + aNum; let hPercent = total > 0 ? (hNum / total) * 100 : 50; let aPercent = total > 0 ? (aNum / total) * 100 : 50;
             statsHtml += `<div class="stat-row"><div class="stat-header"><span>${hVal}</span><span>${stat.type}</span><span>${aVal}</span></div><div class="stat-bar-container"><div class="stat-bar-home" style="width:${hPercent}%"></div><div class="stat-bar-away" style="width:${aPercent}%"></div></div></div>`;
         });
-    } else { statsHtml += '<div class="empty-msg">Stats not available yet</div>'; }
+    } else { statsHtml += '<div class="empty-msg">الإحصائيات غير متوفرة بعد</div>'; }
     statsHtml += '</div>';
 
     let lineupsHtml = '<div id="modal-lineups" class="modal-tab-content">';
     if (m.lineups && m.lineups.length > 1) {
-        lineupsHtml += buildPitchHtml(m.lineups[0], m.teams.home) + buildPitchHtml(m.lineups[1], m.teams.away) + `<div class="lineup-section"><div class="section-title">Substitutes</div>`;
+        lineupsHtml += buildPitchHtml(m.lineups[0], m.teams.home) + buildPitchHtml(m.lineups[1], m.teams.away) + `<div class="lineup-section"><div class="section-title">البدلاء</div>`;
         let maxSubs = Math.max(m.lineups[0].substitutes.length, m.lineups[1].substitutes.length);
         for(let i=0; i<maxSubs; i++) {
             let hP = m.lineups[0].substitutes[i]?.player; let aP = m.lineups[1].substitutes[i]?.player;
             lineupsHtml += `<div class="player-row">${hP ? `<div class="player-side player-home" onclick="openPlayerDetails(${hP.id})"><span class="p-num">${hP.number||''}</span><img src="https://media.api-sports.io/football/players/${hP.id}.png" class="sub-player-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><span class="p-name">${hP.name||'-'}</span></div>` : '<div class="player-side player-home"></div>'}${aP ? `<div class="player-side player-away" onclick="openPlayerDetails(${aP.id})"><span class="p-name">${aP.name||'-'}</span><img src="https://media.api-sports.io/football/players/${aP.id}.png" class="sub-player-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><span class="p-num">${aP.number||''}</span></div>` : '<div class="player-side player-away"></div>'}</div>`;
         }
         lineupsHtml += `</div>`;
-    } else { lineupsHtml += `<div class="empty-msg">Lineups not available</div>`; }
+    } else { lineupsHtml += `<div class="empty-msg">التشكيلة غير متوفرة</div>`; }
     lineupsHtml += '</div>';
 
     container.innerHTML = html + statsHtml + lineupsHtml;
@@ -338,7 +371,7 @@ async function openPlayerDetails(playerId) {
     const modal = document.getElementById('player-modal');
     const container = document.getElementById('player-info-container');
     modal.classList.remove('hidden');
-    container.innerHTML = '<div class="loader">Loading player data...</div>';
+    container.innerHTML = '<div class="loader" style="margin-top:50px;">جاري جلب بيانات اللاعب...</div>';
 
     try {
         const res = await fetch(`${CONFIG.API_URL}/players?id=${playerId}&season=2023`);
@@ -346,8 +379,8 @@ async function openPlayerDetails(playerId) {
         if(!pData) throw new Error("No data");
 
         const p = pData.player; const s = pData.statistics?.[0] || {};
-        container.innerHTML = `<div class="player-hero"><img src="${p.photo}" class="player-photo-large" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><div class="player-name-large">${p.firstname} ${p.lastname}</div><div class="player-team-info"><img src="${s.team?.logo}" onerror="this.style.display='none'">${s.team?.name || ''} • ${p.nationality}</div></div><div class="player-stats-grid"><div class="p-stat-box"><div class="p-stat-title">Age</div><div class="p-stat-value">${p.age || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">Height</div><div class="p-stat-value">${p.height || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">Position</div><div class="p-stat-value">${s.games?.position || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">Rating</div><div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(s.games?.rating || 0).toFixed(1) || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">Goals</div><div class="p-stat-value">${s.goals?.total || 0}</div></div><div class="p-stat-box"><div class="p-stat-title">Assists</div><div class="p-stat-value">${s.goals?.assists || 0}</div></div></div>`;
-    } catch (e) { container.innerHTML = `<div class="empty-msg">Detailed info not available.</div>`; }
+        container.innerHTML = `<div class="player-hero"><img src="${p.photo}" class="player-photo-large" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><div class="player-name-large">${p.firstname} ${p.lastname}</div><div class="player-team-info"><img src="${s.team?.logo}" onerror="this.style.display='none'">${s.team?.name || ''} • ${p.nationality}</div></div><div class="player-stats-grid"><div class="p-stat-box"><div class="p-stat-title">العمر</div><div class="p-stat-value">${p.age || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">الطول</div><div class="p-stat-value">${p.height || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">المركز</div><div class="p-stat-value">${s.games?.position || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">التقييم</div><div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(s.games?.rating || 0).toFixed(1) || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">الأهداف</div><div class="p-stat-value">${s.goals?.total || 0}</div></div><div class="p-stat-box"><div class="p-stat-title">الصناعة</div><div class="p-stat-value">${s.goals?.assists || 0}</div></div></div>`;
+    } catch (e) { container.innerHTML = `<div class="empty-msg">بيانات اللاعب غير متوفرة.</div>`; }
 }
 
 setupDatesBar();
