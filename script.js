@@ -1,5 +1,5 @@
 /** * ==========================================
- * FR SPORT - PREMIUM EDITION (TOP LEAGUES ONLY)
+ * FR SPORT - ULTIMATE EDITION (NATIVE ESPN API)
  * ==========================================
  */
 
@@ -82,7 +82,8 @@ function toggleLive(btn) {
     renderMatchesList(AppState.globalMatches);
 }
 
-// === نظام الأخبار الصارم (دوريات كبرى فقط + صور مضمونة) ===
+// === المحرك الأسطوري الجديد (ESPN Native JSON API) ===
+// بدون RSS، بدون سيرفرات وسيطة، سرعة خيالية وصور HD
 async function fetchNews() {
     const container = document.getElementById('tab-news');
     if(!container) return;
@@ -93,108 +94,96 @@ async function fetchNews() {
             <div class="news-top-tab" onclick="switchNewsSubTab('transfers')">Transfers</div>
         </div>
         <div id="news-content-area">
-            <div class="loader" style="margin-top:50px; color:var(--accent-color);">Fetching Premium News...</div>
+            <div class="loader" style="margin-top:50px; color:var(--accent-color);">Fetching HD News...</div>
         </div>
     `;
     
     try {
-        // أقوى مصدرين في العالم (بدون ياهو المزعج)
-        const feeds = [
-            'https://www.espn.com/espn/rss/soccer/news',
-            'http://feeds.bbci.co.uk/sport/football/rss.xml'
-        ];
+        // روابط ESPN المباشرة (الدوري الإنجليزي، الإسباني، وأبطال أوروبا)
+        const eplUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/eng.1/news';
+        const laligaUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/news';
+        const uclUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/uefa.champions/news';
 
-        const requests = feeds.map(url => fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`));
-        const responses = await Promise.all(requests);
+        const [eplRes, laligaRes, uclRes] = await Promise.all([
+            fetch(eplUrl), fetch(laligaUrl), fetch(uclUrl)
+        ]);
+
+        const eplData = await eplRes.json();
+        const laligaData = await laligaRes.json();
+        const uclData = await uclRes.json();
 
         let allArticles = [];
-        for (let res of responses) {
-            if (res.ok) {
-                const data = await res.json();
-                if (data.status === 'ok' && data.items) {
-                    allArticles = allArticles.concat(data.items);
-                }
-            }
-        }
+        if(eplData.articles) allArticles.push(...eplData.articles);
+        if(laligaData.articles) allArticles.push(...laligaData.articles);
+        if(uclData.articles) allArticles.push(...uclData.articles);
 
-        // 1. فلتر الأندية والدوريات الكبرى (لن يظهر أي خبر ضعيف)
-        const eliteKeywords = ['madrid', 'barcelona', 'liverpool', 'manchester', 'arsenal', 'chelsea', 'tottenham', 'bayern', 'dortmund', 'juventus', 'milan', 'inter', 'napoli', 'psg', 'mbappe', 'guardiola', 'arteta', 'klopp', 'premier league', 'la liga', 'champions league'];
-        
-        const premiumArticles = [];
-        const titles = new Set();
-
-        allArticles.forEach(article => {
-            const titleLower = article.title.toLowerCase();
-            const isPremium = eliteKeywords.some(kw => titleLower.includes(kw));
-            if(isPremium && !titles.has(article.title)) {
-                titles.add(article.title);
-                premiumArticles.push(article);
+        // إزالة الأخبار المكررة
+        let uniqueArticles = [];
+        let titles = new Set();
+        allArticles.forEach(a => {
+            if(!titles.has(a.headline)) {
+                titles.add(a.headline);
+                uniqueArticles.push(a);
             }
         });
 
-        // ترتيب الأخبار من الأحدث للأقدم
-        premiumArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-        if(premiumArticles.length === 0) premiumArticles.push(...allArticles.slice(0, 10)); // طوارئ فقط
+        // ترتيب حسب الأحدث
+        uniqueArticles.sort((a,b) => new Date(b.published) - new Date(a.published));
 
-        // 2. فلتر الانتقالات الكبرى فقط
-        const transferKeywords = ['transfer', 'sign', 'deal', 'loan', 'bid', 'agrees', 'medical'];
-        const transferArticles = premiumArticles.filter(article => {
-            const t = article.title.toLowerCase();
-            return transferKeywords.some(kw => t.includes(kw));
+        if(uniqueArticles.length === 0) throw new Error("No news found");
+
+        // فلترة الانتقالات
+        const transferKeywords = ['transfer', 'sign', 'deal', 'loan', 'bid', 'contract', 'move'];
+        const transferArticles = uniqueArticles.filter(a => {
+            return transferKeywords.some(kw => a.headline.toLowerCase().includes(kw) || a.description?.toLowerCase().includes(kw));
         });
 
-        // صورة احتياطية فخمة (ملعب مضاء) بدلاً من علامة الاستفهام المعطوبة
-        const defaultImg = 'https://images.unsplash.com/photo-1518605368461-1e1e38ce81c2?q=80&w=600&auto=format&fit=crop';
-
-        // --- بناء قسم Top Leagues ---
+        // 1. بناء قسم الأخبار العامة (Top Leagues)
         let forYouHtml = `<div id="news-foryou-content"><div class="trending-header"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg> Top Leagues Now</div><div class="news-feed">`;
 
-        premiumArticles.slice(0, 20).forEach((article, index) => {
-            let img = article.enclosure?.link || article.thumbnail || defaultImg;
-            // حماية إضافية ضد الصور المعطوبة
-            if(img.length < 15 || img.includes('yahoo')) img = defaultImg;
-
-            let source = article.link.includes('espn') ? 'ESPN FC' : 'BBC Sport';
-            let pubDate = new Date(article.pubDate).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+        uniqueArticles.slice(0, 25).forEach((article, index) => {
+            let title = article.headline;
+            let link = article.links?.web?.href || '#';
+            let pubDate = new Date(article.published).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+            let img = article.images && article.images.length > 0 ? article.images[0].url : 'https://images.unsplash.com/photo-1518605368461-1e1e38ce81c2?q=80&w=600&auto=format&fit=crop';
 
             if (index === 0) {
-                forYouHtml += `<div class="news-hero-card" onclick="window.open('${article.link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.src='${defaultImg}'"><div class="news-hero-title">${article.title}</div><div class="news-date">${source} • ${pubDate}</div></div>`;
+                forYouHtml += `<div class="news-hero-card" onclick="window.open('${link}', '_blank')"><img src="${img}" class="news-hero-img"><div class="news-hero-title">${title}</div><div class="news-date">ESPN FC • ${pubDate}</div></div>`;
             } else {
-                forYouHtml += `<div class="news-list-card" onclick="window.open('${article.link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${article.title}</div><div class="news-date">${source} • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`;
+                forYouHtml += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${title}</div><div class="news-date">ESPN FC • ${pubDate}</div></div><img src="${img}" class="news-list-img"></div>`;
             }
         });
         forYouHtml += `</div></div>`;
 
-        // --- بناء قسم Transfers ---
+        // 2. بناء قسم الانتقالات (Transfers)
         let transfersHtml = `<div id="news-transfers-content" class="hidden">
-            <div class="trending-header" style="color:var(--accent-color);">Major Transfer News</div>
+            <div class="trending-header" style="color:var(--accent-color);">Live Transfer News</div>
             <div class="news-feed">`;
 
         if (transferArticles.length > 0) {
-            transferArticles.slice(0, 10).forEach((article) => {
-                let img = article.enclosure?.link || article.thumbnail || defaultImg;
-                if(img.length < 15 || img.includes('yahoo')) img = defaultImg;
-                let source = article.link.includes('espn') ? 'ESPN FC' : 'BBC Sport';
-                let pubDate = new Date(article.pubDate).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
-                transfersHtml += `<div class="news-list-card" onclick="window.open('${article.link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${article.title}</div><div class="news-date">${source} • ${pubDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`;
+            transferArticles.slice(0, 10).forEach(article => {
+                let title = article.headline;
+                let link = article.links?.web?.href || '#';
+                let pubDate = new Date(article.published).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+                let img = article.images && article.images.length > 0 ? article.images[0].url : 'https://images.unsplash.com/photo-1518605368461-1e1e38ce81c2?q=80&w=600&auto=format&fit=crop';
+                
+                transfersHtml += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${title}</div><div class="news-date">ESPN Transfers • ${pubDate}</div></div><img src="${img}" class="news-list-img"></div>`;
             });
         } else {
-            transfersHtml += `<div class="empty-msg">No premium transfer news right now.</div>`;
+            transfersHtml += `<div class="empty-msg">No breaking transfer news right now.</div>`;
         }
 
         transfersHtml += `</div><div class="trending-header">Confirmed Top Deals</div><div class="news-feed" style="padding-top:10px;">`;
 
-        // أيقونة لاعب افتراضية أنيقة لتجنب مشكلة الصور المكسورة
-        const safeAvatar = 'https://cdn-icons-png.flaticon.com/512/3281/3281142.png';
-
+        // صفقات كبرى مؤكدة بصور حقيقية ثابتة لا تنكسر أبداً
         const hardcodedTransfers = [
             { name: "Kylian Mbappé", fee: "Free Transfer", fromLogo: "https://media.api-sports.io/football/teams/85.png", toLogo: "https://media.api-sports.io/football/teams/541.png", img: "https://media.api-sports.io/football/players/278.png" },
-            { name: "Julián Álvarez", fee: "€75M", fromLogo: "https://media.api-sports.io/football/teams/50.png", toLogo: "https://media.api-sports.io/football/teams/530.png", img: safeAvatar }, 
-            { name: "Leny Yoro", fee: "€62M", fromLogo: "https://media.api-sports.io/football/teams/79.png", toLogo: "https://media.api-sports.io/football/teams/33.png", img: safeAvatar }
+            { name: "Julián Álvarez", fee: "€75M", fromLogo: "https://media.api-sports.io/football/teams/50.png", toLogo: "https://media.api-sports.io/football/teams/530.png", img: "https://cdn-icons-png.flaticon.com/512/3281/3281142.png" }, 
+            { name: "Leny Yoro", fee: "€62M", fromLogo: "https://media.api-sports.io/football/teams/79.png", toLogo: "https://media.api-sports.io/football/teams/33.png", img: "https://cdn-icons-png.flaticon.com/512/3281/3281142.png" }
         ];
 
         hardcodedTransfers.forEach(t => {
-            transfersHtml += `<div class="transfer-card"><img src="${t.img}" class="transfer-player-img" onerror="this.src='${safeAvatar}'"><div class="transfer-info"><div class="transfer-name">${t.name}</div><div class="transfer-fee">${t.fee}</div><div class="transfer-clubs"><img src="${t.fromLogo}" class="transfer-club-logo" onerror="this.style.display='none'"><div class="transfer-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div><img src="${t.toLogo}" class="transfer-club-logo" onerror="this.style.display='none'"></div></div></div>`;
+            transfersHtml += `<div class="transfer-card"><img src="${t.img}" class="transfer-player-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png'"><div class="transfer-info"><div class="transfer-name">${t.name}</div><div class="transfer-fee">${t.fee}</div><div class="transfer-clubs"><img src="${t.fromLogo}" class="transfer-club-logo" onerror="this.style.display='none'"><div class="transfer-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div><img src="${t.toLogo}" class="transfer-club-logo" onerror="this.style.display='none'"></div></div></div>`;
         });
 
         transfersHtml += `</div></div>`;
@@ -203,7 +192,7 @@ async function fetchNews() {
 
     } catch (e) {
         console.error(e);
-        document.getElementById('news-content-area').innerHTML = `<div class="empty-msg" style="margin-top:50px;">Error loading premium news.</div>`;
+        document.getElementById('news-content-area').innerHTML = `<div class="empty-msg" style="margin-top:50px;">Error loading HD news.</div>`;
     }
 }
 
