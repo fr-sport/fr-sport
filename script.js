@@ -1,5 +1,5 @@
 /** * ==========================================
- * FR SPORT - MAIN APPLICATION SCRIPT (FOTMOB STYLE + NEWS)
+ * FR SPORT - MAIN APPLICATION SCRIPT (FOTMOB STYLE + NEWS + TRANSFERS)
  * ==========================================
  */
 
@@ -84,71 +84,120 @@ function toggleLive(btn) {
     renderMatchesList(AppState.globalMatches);
 }
 
-// === دالة جلب الأخبار (FotMob Layout) ===
+// === دالة جلب الأخبار (مزدوجة BBC + Yahoo) مع قسم الانتقالات ===
 async function fetchNews() {
     const container = document.getElementById('tab-news');
     if(!container) return;
-    container.innerHTML = '<div class="loader">Fetching massive news...</div>';
+    container.innerHTML = '<div class="loader">Loading massive global news...</div>';
     
     try {
-        const rssUrl = encodeURIComponent('https://www.skysports.com/rss/12040');
-        const res = await fetch(`https://api.allorigins.win/get?url=${rssUrl}`);
-        const data = await res.json();
+        const bbcUrl = 'http://feeds.bbci.co.uk/sport/football/rss.xml';
+        const yahooUrl = 'https://sports.yahoo.com/soccer/rss.xml';
         
-        const parser = new DOMParser();
-        const xmlDoc = parser.parseFromString(data.contents, "text/xml");
-        const items = Array.from(xmlDoc.querySelectorAll("item"));
+        // جلب الأخبار من المصدرين في نفس الوقت لسرعة فائقة
+        const [bbcRes, yahooRes] = await Promise.all([
+            fetch(`https://api.rss2json.com/v1/api.json?rss_url=${bbcUrl}`),
+            fetch(`https://api.rss2json.com/v1/api.json?rss_url=${yahooUrl}`)
+        ]);
 
-        if(items.length === 0) throw new Error("No news found");
+        const bbcData = await bbcRes.json();
+        const yahooData = await yahooRes.json();
+        
+        let allArticles = [];
+        if (bbcData.status === 'ok') allArticles = allArticles.concat(bbcData.items);
+        if (yahooData.status === 'ok') allArticles = allArticles.concat(yahooData.items);
+
+        // ترتيب الأخبار حسب الأحدث
+        allArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
+
+        if(allArticles.length === 0) throw new Error("No news found");
 
         let html = `
         <div class="news-top-nav">
-            <div class="news-top-tab active">For You</div>
-            <div class="news-top-tab">Latest</div>
-            <div class="news-top-tab">Transfers</div>
+            <div class="news-top-tab active" onclick="switchNewsSubTab('foryou')">For You</div>
+            <div class="news-top-tab" onclick="switchNewsSubTab('transfers')">Transfers</div>
         </div>
-        <div class="trending-header">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
-            Trending News
-        </div>
-        <div class="news-feed">
+        
+        <div id="news-foryou-content">
+            <div class="trending-header">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+                Trending Now
+            </div>
+            <div class="news-feed">
         `;
 
-        items.forEach((item, index) => {
-            let title = item.querySelector("title")?.textContent || "No Title";
-            let link = item.querySelector("link")?.textContent || "#";
-            let pubDateStr = item.querySelector("pubDate")?.textContent;
-            let pubDate = pubDateStr ? new Date(pubDateStr).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'}) : "";
-
-            let enclosure = item.querySelector("enclosure");
-            let img = enclosure ? enclosure.getAttribute("url") : 'https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT';
+        allArticles.forEach((article, index) => {
+            let title = article.title || "No Title";
+            let link = article.link || "#";
+            let pubDate = new Date(article.pubDate).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+            let img = article.thumbnail || (article.enclosure ? article.enclosure.link : '') || 'https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT';
+            let source = article.link.includes('bbc') ? 'BBC Sport' : 'Yahoo Sports';
 
             if (index === 0) {
                 html += `
                 <div class="news-hero-card" onclick="window.open('${link}', '_blank')">
-                    <img src="${img}" class="news-hero-img" loading="lazy">
+                    <img src="${img}" class="news-hero-img" loading="lazy" onerror="this.src='https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT'">
                     <div class="news-hero-title">${title}</div>
-                    <div class="news-date">Sky Sports • ${pubDate}</div>
+                    <div class="news-date">${source} • ${pubDate}</div>
                 </div>`;
             } else {
                 html += `
                 <div class="news-list-card" onclick="window.open('${link}', '_blank')">
                     <div class="news-list-content">
                         <div class="news-list-title">${title}</div>
-                        <div class="news-date">Sky Sports • ${pubDate}</div>
+                        <div class="news-date">${source} • ${pubDate}</div>
                     </div>
-                    <img src="${img}" class="news-list-img" loading="lazy">
+                    <img src="${img}" class="news-list-img" loading="lazy" onerror="this.src='https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT'">
                 </div>`;
             }
         });
         
-        html += `</div>`; 
+        html += `</div></div>`;
+
+        // === قسم الانتقالات (Transfers) مع الشعارات والأسهم ===
+        const recentTransfers = [
+            { name: "Kylian Mbappé", fee: "Free Transfer", fromLogo: "https://media.api-sports.io/football/teams/85.png", toLogo: "https://media.api-sports.io/football/teams/541.png", img: "https://media.api-sports.io/football/players/278.png" },
+            { name: "Julián Álvarez", fee: "€75M + €20M", fromLogo: "https://media.api-sports.io/football/teams/50.png", toLogo: "https://media.api-sports.io/football/teams/530.png", img: "https://media.api-sports.io/football/players/9089.png" },
+            { name: "Leny Yoro", fee: "€62M", fromLogo: "https://media.api-sports.io/football/teams/79.png", toLogo: "https://media.api-sports.io/football/teams/33.png", img: "https://media.api-sports.io/football/players/335804.png" },
+            { name: "Riccardo Calafiori", fee: "€45M", fromLogo: "https://media.api-sports.io/football/teams/503.png", toLogo: "https://media.api-sports.io/football/teams/42.png", img: "https://media.api-sports.io/football/players/162024.png" },
+            { name: "João Neves", fee: "€60M", fromLogo: "https://media.api-sports.io/football/teams/228.png", toLogo: "https://media.api-sports.io/football/teams/85.png", img: "https://media.api-sports.io/football/players/353066.png" }
+        ];
+
+        html += `<div id="news-transfers-content" class="hidden"><div class="news-feed" style="padding-top:20px;">`;
+        recentTransfers.forEach(t => {
+            html += `
+            <div class="transfer-card">
+                <img src="${t.img}" class="transfer-player-img" onerror="this.src='https://via.placeholder.com/60/111/fff?text=P'">
+                <div class="transfer-info">
+                    <div class="transfer-name">${t.name}</div>
+                    <div class="transfer-fee">${t.fee}</div>
+                    <div class="transfer-clubs">
+                        <img src="${t.fromLogo}" class="transfer-club-logo">
+                        <div class="transfer-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>
+                        <img src="${t.toLogo}" class="transfer-club-logo">
+                    </div>
+                </div>
+            </div>`;
+        });
+        html += `</div></div>`;
+
         container.innerHTML = html;
 
     } catch (e) {
         console.error(e);
         container.innerHTML = '<div class="empty-msg">Error loading news. Try again later.</div>';
     }
+}
+
+// دالة التبديل بين الأخبار والانتقالات
+function switchNewsSubTab(tabId) {
+    document.querySelectorAll('.news-top-tab').forEach(t => t.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    document.getElementById('news-foryou-content').classList.add('hidden');
+    document.getElementById('news-transfers-content').classList.add('hidden');
+    
+    document.getElementById(`news-${tabId}-content`).classList.remove('hidden');
 }
 
 function getLeaguePriority(league) {
@@ -389,113 +438,4 @@ function renderMatchDetailsModal(m, injuries, container) {
 
     let lineupsHtml = '<div id="modal-lineups" class="modal-tab-content">';
     if (m.lineups && m.lineups.length > 1) {
-        const [hL, aL] = m.lineups;
-        
-        lineupsHtml += buildPitchHtml(hL, m.teams.home, false);
-        lineupsHtml += buildPitchHtml(aL, m.teams.away, true);
-
-        lineupsHtml += `<div class="lineup-section"><div class="section-title">Substitutes</div>`;
-        let maxSubs = Math.max(hL.substitutes.length, aL.substitutes.length);
-        for(let i=0; i<maxSubs; i++) {
-            let hP = hL.substitutes[i]?.player; let aP = aL.substitutes[i]?.player;
-            lineupsHtml += buildPlayerRow(hP, aP);
-        }
-        lineupsHtml += `</div>`;
-    } else {
-        if (Utils.isNotStarted(matchStatus)) {
-            lineupsHtml += `
-            <div class="empty-msg" style="margin-top: 40px;">
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="1.5" style="margin-bottom:15px; opacity: 0.8;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                <br>
-                <span style="font-size:16px; font-weight:bold; color:var(--text-main);">Lineups not available yet</span><br>
-                <span style="font-size:13px; margin-top:5px; display:block;">Confirmed lineups will appear approximately 1 hour before kick-off.</span>
-            </div>`;
-        } else {
-            lineupsHtml += '<div class="empty-msg">Lineups not available</div>';
-        }
-    }
-
-    if (injuries.length > 0) {
-        lineupsHtml += `<div class="lineup-section"><div class="section-title" style="color:#ff3b30">Missing Players</div>`;
-        const hInj = injuries.filter(i => i.team.id === m.teams.home.id);
-        const aInj = injuries.filter(i => i.team.id === m.teams.away.id);
-        let maxInj = Math.max(hInj.length, aInj.length);
-        for(let i=0; i<maxInj; i++) {
-            let hP = hInj[i]?.player; let aP = aInj[i]?.player;
-            lineupsHtml += buildPlayerRow(hP, aP);
-        }
-        lineupsHtml += `</div>`;
-    }
-    lineupsHtml += '</div>';
-
-    container.innerHTML = html + previewHtml + statsHtml + lineupsHtml;
-}
-
-function buildPlayerRow(hP, aP) {
-    let homeHtml = '<div class="player-side player-home"></div>';
-    if (hP) {
-        let imgUrl = `https://media.api-sports.io/football/players/${hP.id}.png`;
-        homeHtml = `
-        <div class="player-side player-home" onclick="openPlayerDetails(${hP.id})">
-            <span class="p-num">${hP.number||''}</span>
-            <img src="${imgUrl}" class="sub-player-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23555\\' stroke-width=\\'2\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 0 0-16 0\\'/></svg>';">
-            <span class="p-name">${hP.name||'-'}</span>
-        </div>`;
-    }
-
-    let awayHtml = '<div class="player-side player-away"></div>';
-    if (aP) {
-        let imgUrl = `https://media.api-sports.io/football/players/${aP.id}.png`;
-        awayHtml = `
-        <div class="player-side player-away" onclick="openPlayerDetails(${aP.id})">
-            <span class="p-name">${aP.name||'-'}</span>
-            <img src="${imgUrl}" class="sub-player-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23555\\' stroke-width=\\'2\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 0 0-16 0\\'/></svg>';">
-            <span class="p-num">${aP.number||''}</span>
-        </div>`;
-    }
-    
-    return `<div class="player-row">${homeHtml}${awayHtml}</div>`;
-}
-
-async function openPlayerDetails(playerId) {
-    if(!playerId) return;
-    const modal = document.getElementById('player-modal');
-    const container = document.getElementById('player-info-container');
-    modal.classList.remove('hidden');
-    container.innerHTML = '<div class="loader">Fetching player data...</div>';
-
-    try {
-        const res = await fetch(`${CONFIG.API_URL}/players?id=${playerId}&season=2023`);
-        const data = await res.json();
-        const pData = data.response?.[0];
-        if(!pData) throw new Error("No data");
-
-        const player = pData.player;
-        const stats = pData.statistics?.[0] || {};
-        const team = stats.team || {};
-
-        let html = `
-            <div class="player-hero">
-                <img src="${player.photo}" class="player-photo-large" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23555\\' stroke-width=\\'2\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 0 0-16 0\\'/></svg>';">
-                <div class="player-name-large">${player.firstname} ${player.lastname}</div>
-                <div class="player-team-info">
-                    <img src="${team.logo}" onerror="this.style.display='none'">
-                    ${team.name || 'Unknown Team'} • ${player.nationality}
-                </div>
-            </div>
-            <div class="player-stats-grid">
-                <div class="p-stat-box"><div class="p-stat-title">Age</div><div class="p-stat-value">${player.age || '-'}</div></div>
-                <div class="p-stat-box"><div class="p-stat-title">Height</div><div class="p-stat-value">${player.height || '-'}</div></div>
-                <div class="p-stat-box"><div class="p-stat-title">Position</div><div class="p-stat-value">${stats.games?.position || '-'}</div></div>
-                <div class="p-stat-box"><div class="p-stat-title">Rating</div><div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(stats.games?.rating || 0).toFixed(1) || '-'}</div></div>
-                <div class="p-stat-box"><div class="p-stat-title">Goals</div><div class="p-stat-value">${stats.goals?.total || 0}</div></div>
-                <div class="p-stat-box"><div class="p-stat-title">Assists</div><div class="p-stat-value">${stats.goals?.assists || 0}</div></div>
-            </div>`;
-        container.innerHTML = html;
-    } catch (e) {
-        container.innerHTML = `<div class="empty-msg">Detailed info not available.<br><span style="font-size:10px; color:#555">ID: ${playerId}</span></div>`;
-    }
-}
-
-setupDatesBar();
-fetchMatches(new Date().toISOString().split('T')[0]);
+        const [h
