@@ -1,5 +1,5 @@
 /** * ==========================================
- * FR SPORT - ULTIMATE ARABIC EDITION (WITH TRANSLATION DICTIONARY)
+ * FR SPORT - ULTIMATE ARABIC EDITION (FULL TRANSLATION)
  * ==========================================
  */
 
@@ -11,22 +11,30 @@ const CONFIG = {
 
 const AppState = { matchesCache: {}, globalMatches: [], isLiveMode: false, currentDate: '' };
 
-// === قاموس FR SPORT الذهبي للترجمة (أندية، منتخبات، دوريات) ===
+// === قاموس FR SPORT الذهبي للترجمة (أضف أي فريق هنا مستقبلاً) ===
 const ARABIC_DICTIONARY = {
+    // الدول
+    "World": "عالمي",
+    "England": "إنجلترا",
+    "Spain": "إسبانيا",
+    "Italy": "إيطاليا",
+    "Germany": "ألمانيا",
+    "France": "فرنسا",
+    "Portugal": "البرتغال",
+    "Saudi Arabia": "السعودية",
+
     // الدوريات والبطولات
-    "Premier League": "الدوري الإنجليزي",
+    "Premier League": "الدوري الإنجليزي الممتاز",
+    "Championship": "دوري البطولة الإنجليزية",
     "La Liga": "الدوري الإسباني",
     "Serie A": "الدوري الإيطالي",
     "Bundesliga": "الدوري الألماني",
     "Ligue 1": "الدوري الفرنسي",
+    "Primeira Liga": "الدوري البرتغالي",
     "UEFA Champions League": "دوري أبطال أوروبا",
     "UEFA Europa League": "الدوري الأوروبي",
     "Saudi Pro League": "الدوري السعودي",
-    "World Cup": "كأس العالم",
-    "Euro Championship": "بطولة أمم أوروبا",
-    "Copa America": "كوبا أمريكا",
     "AFC Champions League": "دوري أبطال آسيا",
-    "Club Friendlies": "مباريات ودية للأندية",
 
     // الأندية الإنجليزية
     "Arsenal": "أرسنال",
@@ -37,21 +45,16 @@ const ARABIC_DICTIONARY = {
     "Manchester United": "مانشستر يونايتد",
     "Newcastle": "نيوكاسل",
     "Tottenham": "توتنهام",
-    "Everton": "إيفرتون",
-    "West Ham": "وست هام",
-    "Brighton": "برايتون",
+    "Middlesbrough": "ميدلزبره",
+    "Birmingham": "برمنغهام",
 
     // الأندية الإسبانية
     "Real Madrid": "ريال مدريد",
     "Barcelona": "برشلونة",
     "Atletico Madrid": "أتلتيكو مدريد",
     "Sevilla": "إشبيلية",
-    "Valencia": "فالنسيا",
-    "Villarreal": "فياريال",
-    "Real Sociedad": "ريال سوسيداد",
-    "Athletic Club": "أتلتيك بيلباو",
     "Getafe": "خيتافي",
-    "Girona": "جيرونا",
+    "Valencia": "فالنسيا",
 
     // الأندية الإيطالية
     "Juventus": "يوفنتوس",
@@ -59,62 +62,23 @@ const ARABIC_DICTIONARY = {
     "Inter": "إنتر ميلان",
     "Napoli": "نابولي",
     "AS Roma": "روما",
-    "Lazio": "لاتسيو",
-    "Atalanta": "أتالانتا",
-    "Fiorentina": "فيورنتينا",
     "Bologna": "بولونيا",
+    "Fiorentina": "فيورنتينا",
+    "Pisa": "بيزا",
+    "Udinese": "أودينيزي",
 
-    // الأندية الألمانية
-    "Bayern Munich": "بايرن ميونخ",
-    "Borussia Dortmund": "بوروسيا دورتموند",
-    "Bayer Leverkusen": "باير ليفركوزن",
-    "RB Leipzig": "لايبزيغ",
-
-    // الأندية الفرنسية
-    "Paris Saint Germain": "باريس سان جيرمان",
-    "Marseille": "مارسيليا",
-    "Lyon": "ليون",
-    "Monaco": "موناكو",
-
-    // الأندية السعودية
+    // أندية آسيوية وعربية
+    "Al-Duhail SC": "الدحيل",
+    "Al-Ahli Jeddah": "الأهلي السعودي",
+    "Tractor Sazi": "تراكتور سازي",
+    "Shabab Al Ahli Dubai": "شباب الأهلي دبي",
     "Al Hilal": "الهلال",
-    "Al Nassr": "النصر",
-    "Al Ittihad": "النصر",
-    "Al Ahli": "الأهلي",
-    "Al Shabab": "الشباب",
-
-    // أندية أخرى
-    "Ajax": "أياكس",
-    "PSV Eindhoven": "آيندهوفن",
-    "Benfica": "بنفيكا",
-    "Porto": "بورتو",
-    "Sporting CP": "سبورتينغ لشبونة",
-
-    // المنتخبات
-    "Argentina": "الأرجنتين",
-    "Brazil": "البرازيل",
-    "France": "فرنسا",
-    "England": "إنجلترا",
-    "Spain": "إسبانيا",
-    "Germany": "ألمانيا",
-    "Italy": "إيطاليا",
-    "Portugal": "البرتغال",
-    "Netherlands": "هولندا",
-    "Belgium": "بلجيكا",
-    "Croatia": "كرواتيا",
-    "Morocco": "المغرب",
-    "Egypt": "المغرب",
-    "Saudi Arabia": "السعودية",
-    "Qatar": "قطر",
-    "Iraq": "العراق",
-    "Syria": "سوريا",
-    "Algeria": "الجزائر"
+    "Al Nassr": "النصر"
 };
 
 // دالة الترجمة الذكية
 function translateName(name) {
     if(!name) return "";
-    // إذا كان الاسم موجوداً في القاموس، قم بإرجاع الترجمة، وإلا أرجع الاسم الإنجليزي كما هو
     return ARABIC_DICTIONARY[name] || name;
 }
 
@@ -131,7 +95,6 @@ const Utils = {
     isNotStarted: (s) => CONFIG.NOT_STARTED_STATUSES.includes(s)
 };
 
-// === قائمة البطولات الكبرى لتبويب "البطولات" ===
 const TOP_LEAGUES = [
     { id: 39, nameAr: "الدوري الإنجليزي الممتاز", logo: "https://media.api-sports.io/football/leagues/39.png" },
     { id: 140, nameAr: "الدوري الإسباني", logo: "https://media.api-sports.io/football/leagues/140.png" },
@@ -236,7 +199,6 @@ async function openLeagueStandings(leagueId) {
         
         if(!leagueData || !leagueData.standings || leagueData.standings.length === 0) throw new Error("No standings");
 
-        // ترجمة اسم الدوري في النافذة
         const translatedLeagueName = translateName(leagueData.name);
 
         let html = `
@@ -256,7 +218,6 @@ async function openLeagueStandings(leagueId) {
         const standingsArray = leagueData.standings[0]; 
 
         standingsArray.forEach(row => {
-            // ترجمة اسم الفريق داخل جدول الترتيب
             const translatedTeamName = translateName(row.team.name);
             html += `
             <div class="st-row">
@@ -390,10 +351,10 @@ function renderMatchesList(matches) {
 
     let html = '';
     sortedLeagues.forEach(group => {
-        // ترجمة اسم الدوري في قائمة المباريات
         const translatedLeagueName = translateName(group.info.name);
+        const translatedCountry = translateName(group.info.country); // تمت إضافة ترجمة الدولة هنا
 
-        html += `<div class="league-group"><div class="league-header"><div class="league-title-wrapper"><img src="${group.info.logo}" class="league-logo"><span class="league-name">${group.info.country} - ${translatedLeagueName}</span></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg></div>`;
+        html += `<div class="league-group"><div class="league-header"><div class="league-title-wrapper"><img src="${group.info.logo}" class="league-logo"><span class="league-name">${translatedCountry} - ${translatedLeagueName}</span></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg></div>`;
         group.games.forEach(m => {
             const s = m.fixture.status.short;
             let hGoals = m.goals.home !== null ? m.goals.home : '';
@@ -406,7 +367,6 @@ function renderMatchesList(matches) {
                 centerContent = `<div class="match-center live"><span style="font-size:10px;">${m.fixture.status.elapsed}'</span><br>${hGoals} - ${aGoals}</div>`;
             } else { centerContent = `<div class="match-center">${hGoals} - ${aGoals}</div>`; }
 
-            // ترجمة أسماء الفرق
             const translatedHomeTeam = translateName(m.teams.home.name);
             const translatedAwayTeam = translateName(m.teams.away.name);
 
@@ -422,10 +382,7 @@ function switchModalTab(tab) { document.querySelectorAll('.tab-btn').forEach(b =
 
 function buildPitchHtml(teamLineup, teamInfo) {
     if (!teamLineup || !teamLineup.startXI || teamLineup.startXI.length === 0) return '';
-    
-    // ترجمة اسم الفريق فوق الملعب
     const translatedTeamName = translateName(teamInfo.name);
-
     let html = `<div class="pitch-wrapper"><div class="pitch-header"><div class="pitch-team"><img src="${teamInfo.logo}">${translatedTeamName}</div><div class="pitch-formation">${teamLineup.formation || ''}</div></div><div class="pitch">`;
     const rows = {};
     teamLineup.startXI.forEach(item => { let gridParts = item.player.grid ? item.player.grid.split(':') : []; let rowNum = gridParts.length > 0 ? parseInt(gridParts[0]) : 1; if(!rows[rowNum]) rows[rowNum] = []; rows[rowNum].push(item.player); });
@@ -457,7 +414,6 @@ function renderMatchDetailsModal(m, injuries, container) {
     let scoreOrTime = Utils.isNotStarted(matchStatus) ? new Date(m.fixture.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' }) : `${m.goals.home ?? 0} - ${m.goals.away ?? 0}`;
     let subText = Utils.isNotStarted(matchStatus) ? 'لم تبدأ' : Utils.isLiveMatch(matchStatus) ? `<span style="color:var(--accent-color)">${m.fixture.status.elapsed}'</span>` : 'انتهت';
 
-    // ترجمة أسماء الفرق في واجهة المباراة العلوية
     const translatedHomeTeam = translateName(m.teams.home.name);
     const translatedAwayTeam = translateName(m.teams.away.name);
 
@@ -502,13 +458,7 @@ async function openPlayerDetails(playerId) {
         if(!pData) throw new Error("No data");
 
         const p = pData.player; const s = pData.statistics?.[0] || {};
-        
-        // ترجمة اسم الفريق في نافذة اللاعب
         const translatedTeamName = translateName(s.team?.name);
+        const translatedNationality = translateName(p.nationality);
 
-        container.innerHTML = `<div class="player-hero"><img src="${p.photo}" class="player-photo-large" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><div class="player-name-large">${p.firstname} ${p.lastname}</div><div class="player-team-info"><img src="${s.team?.logo}" onerror="this.style.display='none'">${translatedTeamName || ''} • ${p.nationality}</div></div><div class="player-stats-grid"><div class="p-stat-box"><div class="p-stat-title">العمر</div><div class="p-stat-value">${p.age || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">الطول</div><div class="p-stat-value">${p.height || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">المركز</div><div class="p-stat-value">${s.games?.position || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">التقييم</div><div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(s.games?.rating || 0).toFixed(1) || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">الأهداف</div><div class="p-stat-value">${s.goals?.total || 0}</div></div><div class="p-stat-box"><div class="p-stat-title">الصناعة</div><div class="p-stat-value">${s.goals?.assists || 0}</div></div></div>`;
-    } catch (e) { container.innerHTML = `<div class="empty-msg">بيانات اللاعب غير متوفرة.</div>`; }
-}
-
-setupDatesBar();
-fetchMatches(new Date().toISOString().split('T')[0]);
+        container.innerHTML = `<div class="player-hero"><img src="${p.photo}" class="player-photo-large" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><div class="player-name-large">${p.firstname} ${p.lastname}</div><div class="player-team-info"><img src="${s.team?.logo}" onerror="this.style.display='none'">${translatedTeamName || ''} • ${translatedNationality}</div></div><div class="player-stats-grid"><div class="p-stat-box"><div class="p-stat-title">العمر</div><div class="p-stat-value">${p.age || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">الطول</div><div class="p-stat-value">${p.height || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">المركز</div><div class="p-stat-value">${s.games?.position || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">التقييم</div><div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(s.games?.rating || 0).toFixed(1) || '-'}</div>
