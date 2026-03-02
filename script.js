@@ -46,19 +46,16 @@ function selectDate(dateStr) {
     const activeBtn = document.getElementById(`btn-${dateStr}`);
     if(activeBtn) { activeBtn.classList.add('active'); activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center' }); }
     
-    // العودة إلى تبويب المباريات تلقائياً عند تغيير التاريخ
     const matchesTabBtn = document.querySelector('.nav-item:nth-child(1)');
     if(matchesTabBtn) switchTab(matchesTabBtn);
 
     fetchMatches(dateStr);
 }
 
-// === دالة التنقل بين التبويبات ===
 function switchTab(el) {
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
     el.classList.add('active');
     
-    // إخفاء كل الصفحات
     document.getElementById('tab-matches').classList.add('hidden');
     const newsTab = document.getElementById('tab-news');
     if(newsTab) newsTab.classList.add('hidden');
@@ -73,7 +70,6 @@ function switchTab(el) {
         if(newsTab) newsTab.classList.remove('hidden');
         if(datesWrapper) datesWrapper.style.display = 'none'; 
         
-        // جلب الأخبار إذا كانت الشاشة فارغة
         if(newsTab && (newsTab.innerHTML.includes('Click') || newsTab.innerHTML.trim() === '')) {
             fetchNews();
         }
@@ -88,41 +84,67 @@ function toggleLive(btn) {
     renderMatchesList(AppState.globalMatches);
 }
 
-// === دالة جلب الأخبار (Sky Sports - English) ===
+// === دالة جلب الأخبار (FotMob Layout) ===
 async function fetchNews() {
     const container = document.getElementById('tab-news');
     if(!container) return;
-    container.innerHTML = '<div class="loader">Fetching latest news...</div>';
+    container.innerHTML = '<div class="loader">Fetching massive news...</div>';
     
     try {
-        const rssUrl = 'https://www.skysports.com/rss/12040';
-        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`);
+        const rssUrl = encodeURIComponent('https://www.skysports.com/rss/12040');
+        const res = await fetch(`https://api.allorigins.win/get?url=${rssUrl}`);
         const data = await res.json();
         
-        if (data.status !== 'ok') throw new Error("API Error");
-        
-        const articles = data.items;
-        if(!articles || articles.length === 0) throw new Error("No news");
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(data.contents, "text/xml");
+        const items = Array.from(xmlDoc.querySelectorAll("item"));
 
-        let html = '';
-        articles.forEach(article => {
-            let img = article.enclosure.link || article.thumbnail || 'https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT';
-            let pubDate = new Date(article.pubDate).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+        if(items.length === 0) throw new Error("No news found");
 
-            html += `
-            <div class="news-card" onclick="window.open('${article.link}', '_blank')">
-                <img src="${img}" class="news-img" loading="lazy" onerror="this.src='https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT'">
-                <div class="news-content" style="direction: ltr; text-align: left;">
-                    <div class="news-title">${article.title}</div>
-                    <div class="news-date">
-                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:4px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        ${pubDate} • <span class="news-source" style="margin-left:4px;">Sky Sports</span>
+        let html = `
+        <div class="news-top-nav">
+            <div class="news-top-tab active">For You</div>
+            <div class="news-top-tab">Latest</div>
+            <div class="news-top-tab">Transfers</div>
+        </div>
+        <div class="trending-header">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+            Trending News
+        </div>
+        <div class="news-feed">
+        `;
+
+        items.forEach((item, index) => {
+            let title = item.querySelector("title")?.textContent || "No Title";
+            let link = item.querySelector("link")?.textContent || "#";
+            let pubDateStr = item.querySelector("pubDate")?.textContent;
+            let pubDate = pubDateStr ? new Date(pubDateStr).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'}) : "";
+
+            let enclosure = item.querySelector("enclosure");
+            let img = enclosure ? enclosure.getAttribute("url") : 'https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT';
+
+            if (index === 0) {
+                html += `
+                <div class="news-hero-card" onclick="window.open('${link}', '_blank')">
+                    <img src="${img}" class="news-hero-img" loading="lazy">
+                    <div class="news-hero-title">${title}</div>
+                    <div class="news-date">Sky Sports • ${pubDate}</div>
+                </div>`;
+            } else {
+                html += `
+                <div class="news-list-card" onclick="window.open('${link}', '_blank')">
+                    <div class="news-list-content">
+                        <div class="news-list-title">${title}</div>
+                        <div class="news-date">Sky Sports • ${pubDate}</div>
                     </div>
-                </div>
-            </div>`;
+                    <img src="${img}" class="news-list-img" loading="lazy">
+                </div>`;
+            }
         });
         
+        html += `</div>`; 
         container.innerHTML = html;
+
     } catch (e) {
         console.error(e);
         container.innerHTML = '<div class="empty-msg">Error loading news. Try again later.</div>';
@@ -330,7 +352,6 @@ function renderMatchDetailsModal(m, injuries, container) {
     </div>
     `;
 
-    // Preview Tab
     let venueName = m.fixture.venue?.name || 'Unknown Stadium';
     let venueCity = m.fixture.venue?.city || '';
     let referee = m.fixture.referee || 'Referee not announced';
@@ -347,7 +368,6 @@ function renderMatchDetailsModal(m, injuries, container) {
         </div>
     </div>`;
 
-    // Stats Tab
     let statsHtml = '<div id="modal-stats" class="modal-tab-content hidden">';
     if (m.statistics && m.statistics.length > 1) {
         const hStats = m.statistics[0].statistics; const aStats = m.statistics[1].statistics;
@@ -367,7 +387,6 @@ function renderMatchDetailsModal(m, injuries, container) {
     }
     statsHtml += '</div>';
 
-    // Lineups Tab
     let lineupsHtml = '<div id="modal-lineups" class="modal-tab-content">';
     if (m.lineups && m.lineups.length > 1) {
         const [hL, aL] = m.lineups;
@@ -440,10 +459,8 @@ function buildPlayerRow(hP, aP) {
 
 async function openPlayerDetails(playerId) {
     if(!playerId) return;
-    
     const modal = document.getElementById('player-modal');
     const container = document.getElementById('player-info-container');
-    
     modal.classList.remove('hidden');
     container.innerHTML = '<div class="loader">Fetching player data...</div>';
 
@@ -451,7 +468,6 @@ async function openPlayerDetails(playerId) {
         const res = await fetch(`${CONFIG.API_URL}/players?id=${playerId}&season=2023`);
         const data = await res.json();
         const pData = data.response?.[0];
-
         if(!pData) throw new Error("No data");
 
         const player = pData.player;
@@ -467,46 +483,19 @@ async function openPlayerDetails(playerId) {
                     ${team.name || 'Unknown Team'} • ${player.nationality}
                 </div>
             </div>
-
             <div class="player-stats-grid">
-                <div class="p-stat-box">
-                    <div class="p-stat-title">Age</div>
-                    <div class="p-stat-value">${player.age || '-'} Years</div>
-                </div>
-                <div class="p-stat-box">
-                    <div class="p-stat-title">Height</div>
-                    <div class="p-stat-value">${player.height || '-'}</div>
-                </div>
-                <div class="p-stat-box">
-                    <div class="p-stat-title">Position</div>
-                    <div class="p-stat-value">${stats.games?.position || '-'}</div>
-                </div>
-                <div class="p-stat-box">
-                    <div class="p-stat-title">Rating</div>
-                    <div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(stats.games?.rating || 0).toFixed(1) || '-'}</div>
-                </div>
-                <div class="p-stat-box">
-                    <div class="p-stat-title">Goals</div>
-                    <div class="p-stat-value">${stats.goals?.total || 0}</div>
-                </div>
-                <div class="p-stat-box">
-                    <div class="p-stat-title">Assists</div>
-                    <div class="p-stat-value">${stats.goals?.assists || 0}</div>
-                </div>
-            </div>
-        `;
-        container.innerHTML = html;
-
-    } catch (e) {
-        console.error(e);
-        container.innerHTML = `
-            <div class="empty-msg">
-                Detailed info not available for this player.<br>
-                <span style="font-size:10px; color:#555">ID: ${playerId}</span>
+                <div class="p-stat-box"><div class="p-stat-title">Age</div><div class="p-stat-value">${player.age || '-'}</div></div>
+                <div class="p-stat-box"><div class="p-stat-title">Height</div><div class="p-stat-value">${player.height || '-'}</div></div>
+                <div class="p-stat-box"><div class="p-stat-title">Position</div><div class="p-stat-value">${stats.games?.position || '-'}</div></div>
+                <div class="p-stat-box"><div class="p-stat-title">Rating</div><div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(stats.games?.rating || 0).toFixed(1) || '-'}</div></div>
+                <div class="p-stat-box"><div class="p-stat-title">Goals</div><div class="p-stat-value">${stats.goals?.total || 0}</div></div>
+                <div class="p-stat-box"><div class="p-stat-title">Assists</div><div class="p-stat-value">${stats.goals?.assists || 0}</div></div>
             </div>`;
+        container.innerHTML = html;
+    } catch (e) {
+        container.innerHTML = `<div class="empty-msg">Detailed info not available.<br><span style="font-size:10px; color:#555">ID: ${playerId}</span></div>`;
     }
 }
 
-// البدء عند تحميل الصفحة
 setupDatesBar();
 fetchMatches(new Date().toISOString().split('T')[0]);
