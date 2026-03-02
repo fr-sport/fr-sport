@@ -1,5 +1,5 @@
 /** * ==========================================
- * FR SPORT - MAIN APPLICATION SCRIPT (FOTMOB STYLE)
+ * FR SPORT - MAIN APPLICATION SCRIPT (FOTMOB STYLE + NEWS)
  * ==========================================
  */
 
@@ -45,21 +45,86 @@ function selectDate(dateStr) {
     document.querySelectorAll('.date-item').forEach(el => el.classList.remove('active'));
     const activeBtn = document.getElementById(`btn-${dateStr}`);
     if(activeBtn) { activeBtn.classList.add('active'); activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center' }); }
+    
+    // العودة إلى تبويب المباريات تلقائياً عند تغيير التاريخ
+    const matchesTabBtn = document.querySelector('.nav-item:nth-child(1)');
+    if(matchesTabBtn) switchTab(matchesTabBtn);
+
     fetchMatches(dateStr);
 }
 
+// === دالة التنقل بين التبويبات (تمت إضافة الأخبار وإخفاء شريط التواريخ) ===
 function switchTab(el) {
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
     el.classList.add('active');
-    const isMatchesTab = el.innerText.includes('Matches');
-    document.getElementById('tab-matches').classList.toggle('hidden', !isMatchesTab);
-    document.getElementById('tab-other').classList.toggle('hidden', isMatchesTab);
+    
+    // إخفاء كل الصفحات
+    document.getElementById('tab-matches').classList.add('hidden');
+    const newsTab = document.getElementById('tab-news');
+    if(newsTab) newsTab.classList.add('hidden');
+    
+    const tabName = el.innerText.trim();
+    const datesWrapper = document.querySelector('.dates-wrapper');
+    
+    if(tabName === 'Matches') {
+        document.getElementById('tab-matches').classList.remove('hidden');
+        if(datesWrapper) datesWrapper.style.display = 'block'; // إظهار التواريخ
+    } else if(tabName === 'News') {
+        if(newsTab) newsTab.classList.remove('hidden');
+        if(datesWrapper) datesWrapper.style.display = 'none'; // إخفاء التواريخ
+        
+        // جلب الأخبار إذا كانت الشاشة فارغة
+        if(newsTab && (newsTab.innerHTML.includes('Click') || newsTab.innerHTML.trim() === '')) {
+            fetchNews();
+        }
+    } else {
+        // لباقي التبويبات التي سنبرمجها لاحقاً
+        if(datesWrapper) datesWrapper.style.display = 'none';
+    }
 }
 
 function toggleLive(btn) {
     btn.classList.toggle('active');
     AppState.isLiveMode = btn.classList.contains('active');
     renderMatchesList(AppState.globalMatches);
+}
+
+// === دالة جلب الأخبار (RSS Fetching) ===
+async function fetchNews() {
+    const container = document.getElementById('tab-news');
+    container.innerHTML = '<div class="loader">Fetching latest news...</div>';
+    
+    try {
+        const rssUrl = 'https://www.filgoal.com/articles/rss';
+        const res = await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${rssUrl}`);
+        const data = await res.json();
+        const articles = data.items;
+
+        if(!articles || articles.length === 0) throw new Error("No news");
+
+        let html = '';
+        articles.forEach(article => {
+            let img = article.enclosure.link || article.thumbnail || 'https://via.placeholder.com/400x200?text=FR+SPORT+NEWS';
+            let pubDate = new Date(article.pubDate).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
+
+            html += `
+            <div class="news-card" onclick="window.open('${article.link}', '_blank')">
+                <img src="${img}" class="news-img" loading="lazy">
+                <div class="news-content">
+                    <div class="news-title">${article.title}</div>
+                    <div class="news-date">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        ${pubDate} • <span class="news-source">FR SPORT</span>
+                    </div>
+                </div>
+            </div>`;
+        });
+        
+        container.innerHTML = html;
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = '<div class="empty-msg">Error loading news. Try again later.</div>';
+    }
 }
 
 function getLeaguePriority(league) {
@@ -440,5 +505,6 @@ async function openPlayerDetails(playerId) {
     }
 }
 
+// البدء عند تحميل الصفحة
 setupDatesBar();
 fetchMatches(new Date().toISOString().split('T')[0]);
