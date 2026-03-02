@@ -1,8 +1,3 @@
-/** * ==========================================
- * FR SPORT - MAIN APPLICATION SCRIPT (FOTMOB STYLE + NEWS + TRANSFERS)
- * ==========================================
- */
-
 const CONFIG = {
     API_URL: "https://spring-dream-011d.farhad10180.workers.dev",
     LIVE_STATUSES: ['1H', '2H', 'HT', 'ET', 'P', 'LIVE', 'PEN'],
@@ -20,8 +15,8 @@ const Utils = {
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         return `${days[dateObj.getDay()]} ${dateObj.getDate().toString().padStart(2, '0')} ${months[dateObj.getMonth()]}`;
     },
-    isLiveMatch: (statusShort) => CONFIG.LIVE_STATUSES.includes(statusShort),
-    isNotStarted: (statusShort) => CONFIG.NOT_STARTED_STATUSES.includes(statusShort)
+    isLiveMatch: (s) => CONFIG.LIVE_STATUSES.includes(s),
+    isNotStarted: (s) => CONFIG.NOT_STARTED_STATUSES.includes(s)
 };
 
 function setupDatesBar() {
@@ -69,7 +64,6 @@ function switchTab(el) {
     } else if(tabName === 'News') {
         if(newsTab) newsTab.classList.remove('hidden');
         if(datesWrapper) datesWrapper.style.display = 'none'; 
-        
         if(newsTab && (newsTab.innerHTML.includes('Click') || newsTab.innerHTML.trim() === '')) {
             fetchNews();
         }
@@ -84,199 +78,130 @@ function toggleLive(btn) {
     renderMatchesList(AppState.globalMatches);
 }
 
-// === دالة جلب الأخبار (مزدوجة BBC + Yahoo) مع قسم الانتقالات ===
+// نظام الأخبار الجديد المضاد للحظر (Anti-Ban News Fetcher)
 async function fetchNews() {
     const container = document.getElementById('tab-news');
     if(!container) return;
-    container.innerHTML = '<div class="loader">Loading massive global news...</div>';
+    container.innerHTML = '<div class="loader" style="color:var(--accent-color);">Loading latest news...</div>';
     
     try {
-        const bbcUrl = 'http://feeds.bbci.co.uk/sport/football/rss.xml';
-        const yahooUrl = 'https://sports.yahoo.com/soccer/rss.xml';
+        const rssUrl = 'http://feeds.bbci.co.uk/sport/football/rss.xml';
+        const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(rssUrl)}`;
+        const res = await fetch(proxyUrl);
         
-        // جلب الأخبار من المصدرين في نفس الوقت لسرعة فائقة
-        const [bbcRes, yahooRes] = await Promise.all([
-            fetch(`https://api.rss2json.com/v1/api.json?rss_url=${bbcUrl}`),
-            fetch(`https://api.rss2json.com/v1/api.json?rss_url=${yahooUrl}`)
-        ]);
+        if(!res.ok) throw new Error("API Error");
+        const xmlText = await res.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        const items = Array.from(xmlDoc.querySelectorAll("item"));
 
-        const bbcData = await bbcRes.json();
-        const yahooData = await yahooRes.json();
-        
-        let allArticles = [];
-        if (bbcData.status === 'ok') allArticles = allArticles.concat(bbcData.items);
-        if (yahooData.status === 'ok') allArticles = allArticles.concat(yahooData.items);
-
-        // ترتيب الأخبار حسب الأحدث
-        allArticles.sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
-
-        if(allArticles.length === 0) throw new Error("No news found");
+        if(items.length === 0) throw new Error("No news found");
 
         let html = `
         <div class="news-top-nav">
             <div class="news-top-tab active" onclick="switchNewsSubTab('foryou')">For You</div>
             <div class="news-top-tab" onclick="switchNewsSubTab('transfers')">Transfers</div>
         </div>
-        
         <div id="news-foryou-content">
-            <div class="trending-header">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
-                Trending Now
-            </div>
-            <div class="news-feed">
-        `;
+            <div class="trending-header"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2.5"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg> Trending Now</div>
+            <div class="news-feed">`;
 
-        allArticles.forEach((article, index) => {
-            let title = article.title || "No Title";
-            let link = article.link || "#";
-            let pubDate = new Date(article.pubDate).toLocaleTimeString('en-US', {hour: 'numeric', minute: '2-digit'});
-            let img = article.thumbnail || (article.enclosure ? article.enclosure.link : '') || 'https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT';
-            let source = article.link.includes('bbc') ? 'BBC Sport' : 'Yahoo Sports';
+        items.slice(0, 15).forEach((item, index) => {
+            let title = item.querySelector("title")?.textContent || "News";
+            let link = item.querySelector("link")?.textContent || "#";
+            let img = item.querySelector("thumbnail")?.getAttribute("url") || 'https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT';
 
             if (index === 0) {
-                html += `
-                <div class="news-hero-card" onclick="window.open('${link}', '_blank')">
-                    <img src="${img}" class="news-hero-img" loading="lazy" onerror="this.src='https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT'">
-                    <div class="news-hero-title">${title}</div>
-                    <div class="news-date">${source} • ${pubDate}</div>
-                </div>`;
+                html += `<div class="news-hero-card" onclick="window.open('${link}', '_blank')"><img src="${img}" class="news-hero-img"><div class="news-hero-title">${title}</div><div class="news-date">BBC Sport</div></div>`;
             } else {
-                html += `
-                <div class="news-list-card" onclick="window.open('${link}', '_blank')">
-                    <div class="news-list-content">
-                        <div class="news-list-title">${title}</div>
-                        <div class="news-date">${source} • ${pubDate}</div>
-                    </div>
-                    <img src="${img}" class="news-list-img" loading="lazy" onerror="this.src='https://via.placeholder.com/400x200/151515/c5934b?text=FR+SPORT'">
-                </div>`;
+                html += `<div class="news-list-card" onclick="window.open('${link}', '_blank')"><div class="news-list-content"><div class="news-list-title">${title}</div><div class="news-date">BBC Sport</div></div><img src="${img}" class="news-list-img"></div>`;
             }
         });
-        
         html += `</div></div>`;
 
-        // === قسم الانتقالات (Transfers) مع الشعارات والأسهم ===
-        const recentTransfers = [
+        // قسم الانتقالات
+        const transfers = [
             { name: "Kylian Mbappé", fee: "Free Transfer", fromLogo: "https://media.api-sports.io/football/teams/85.png", toLogo: "https://media.api-sports.io/football/teams/541.png", img: "https://media.api-sports.io/football/players/278.png" },
-            { name: "Julián Álvarez", fee: "€75M + €20M", fromLogo: "https://media.api-sports.io/football/teams/50.png", toLogo: "https://media.api-sports.io/football/teams/530.png", img: "https://media.api-sports.io/football/players/9089.png" },
-            { name: "Leny Yoro", fee: "€62M", fromLogo: "https://media.api-sports.io/football/teams/79.png", toLogo: "https://media.api-sports.io/football/teams/33.png", img: "https://media.api-sports.io/football/players/335804.png" },
-            { name: "Riccardo Calafiori", fee: "€45M", fromLogo: "https://media.api-sports.io/football/teams/503.png", toLogo: "https://media.api-sports.io/football/teams/42.png", img: "https://media.api-sports.io/football/players/162024.png" },
-            { name: "João Neves", fee: "€60M", fromLogo: "https://media.api-sports.io/football/teams/228.png", toLogo: "https://media.api-sports.io/football/teams/85.png", img: "https://media.api-sports.io/football/players/353066.png" }
+            { name: "Julián Álvarez", fee: "€75M", fromLogo: "https://media.api-sports.io/football/teams/50.png", toLogo: "https://media.api-sports.io/football/teams/530.png", img: "https://media.api-sports.io/football/players/9089.png" },
+            { name: "Leny Yoro", fee: "€62M", fromLogo: "https://media.api-sports.io/football/teams/79.png", toLogo: "https://media.api-sports.io/football/teams/33.png", img: "https://media.api-sports.io/football/players/335804.png" }
         ];
 
         html += `<div id="news-transfers-content" class="hidden"><div class="news-feed" style="padding-top:20px;">`;
-        recentTransfers.forEach(t => {
-            html += `
-            <div class="transfer-card">
-                <img src="${t.img}" class="transfer-player-img" onerror="this.src='https://via.placeholder.com/60/111/fff?text=P'">
-                <div class="transfer-info">
-                    <div class="transfer-name">${t.name}</div>
-                    <div class="transfer-fee">${t.fee}</div>
-                    <div class="transfer-clubs">
-                        <img src="${t.fromLogo}" class="transfer-club-logo">
-                        <div class="transfer-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div>
-                        <img src="${t.toLogo}" class="transfer-club-logo">
-                    </div>
-                </div>
-            </div>`;
+        transfers.forEach(t => {
+            html += `<div class="transfer-card"><img src="${t.img}" class="transfer-player-img"><div class="transfer-info"><div class="transfer-name">${t.name}</div><div class="transfer-fee">${t.fee}</div><div class="transfer-clubs"><img src="${t.fromLogo}" class="transfer-club-logo"><div class="transfer-arrow"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg></div><img src="${t.toLogo}" class="transfer-club-logo"></div></div></div>`;
         });
         html += `</div></div>`;
-
         container.innerHTML = html;
 
     } catch (e) {
-        console.error(e);
-        container.innerHTML = '<div class="empty-msg">Error loading news. Try again later.</div>';
+        container.innerHTML = `<div class="empty-msg" style="margin-top:50px;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" stroke-width="2" style="margin-bottom:15px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg><br>
+            News server is busy.<br>Please try again in a few minutes.
+        </div>`;
     }
 }
 
-// دالة التبديل بين الأخبار والانتقالات
 function switchNewsSubTab(tabId) {
     document.querySelectorAll('.news-top-tab').forEach(t => t.classList.remove('active'));
     event.target.classList.add('active');
-    
     document.getElementById('news-foryou-content').classList.add('hidden');
     document.getElementById('news-transfers-content').classList.add('hidden');
-    
     document.getElementById(`news-${tabId}-content`).classList.remove('hidden');
 }
 
 function getLeaguePriority(league) {
-    const id = league.id;
-    const country = league.country ? league.country.toLowerCase() : '';
-    if (id === 2) return 1; if (id === 3) return 2; if (id === 39) return 3; 
-    if (id === 140) return 4; if (id === 78) return 5; if (id === 135) return 6; 
-    if (id === 61) return 7; if (id === 307) return 8; 
-    const topEurope = ['england', 'spain', 'germany', 'italy', 'france'];
-    if (topEurope.includes(country)) return 9;
-    const otherEurope = ['portugal', 'netherlands', 'belgium', 'scotland', 'turkey', 'greece', 'europe', 'world'];
-    if (otherEurope.includes(country)) return 10;
-    const asia = ['saudi arabia', 'uae', 'qatar', 'japan', 'south korea', 'iran', 'australia', 'asia', 'iraq'];
-    if (asia.includes(country)) return 11;
-    const america = ['brazil', 'argentina', 'usa', 'mexico', 'colombia', 'chile', 'uruguay', 'south-america'];
-    if (america.includes(country)) return 12;
-    return 13; 
+    const top = ['england', 'spain', 'germany', 'italy', 'france'];
+    if (league.id === 2 || league.id === 3 || league.id === 39) return 1;
+    if (top.includes(league.country?.toLowerCase())) return 2;
+    return 3;
 }
 
+// نظام جلب المباريات المضاد للانهيار
 async function fetchMatches(date) {
     AppState.currentDate = date;
     const container = document.getElementById('tab-matches');
     if (!container) return;
     if (AppState.matchesCache[date]) { AppState.globalMatches = AppState.matchesCache[date]; renderMatchesList(AppState.globalMatches); return; }
-    container.innerHTML = '<div class="loader">Fetching matches...</div>';
+    
+    container.innerHTML = '<div class="loader" style="color:var(--accent-color); margin-top:50px;">Fetching matches...</div>';
+    
     try {
         const res = await fetch(`${CONFIG.API_URL}/fixtures?date=${date}`);
+        if (!res.ok) throw new Error("Server error");
         const data = await res.json();
         const matches = data.response || [];
-        AppState.matchesCache[date] = matches; AppState.globalMatches = matches;
+        AppState.matchesCache[date] = matches; 
+        AppState.globalMatches = matches;
         renderMatchesList(matches);
-    } catch (error) { container.innerHTML = '<div class="empty-msg">Connection Error</div>'; }
+    } catch (error) { 
+        container.innerHTML = `<div class="empty-msg" style="margin-top:50px;">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" style="margin-bottom:15px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg><br>
+            Unable to connect to the server.<br>Please check your internet or API Worker.
+        </div>`; 
+    }
 }
 
 function renderMatchesList(matches) {
     const container = document.getElementById('tab-matches');
-    if (!matches || matches.length === 0) { container.innerHTML = '<div class="empty-msg">No matches today</div>'; return; }
+    if (!matches || matches.length === 0) { container.innerHTML = '<div class="empty-msg" style="margin-top:50px;">No matches found for this day.</div>'; return; }
+    
     const leaguesGroup = {};
     matches.forEach(m => {
         if (AppState.isLiveMode && !Utils.isLiveMatch(m.fixture.status.short)) return;
         if (!leaguesGroup[m.league.name]) { leaguesGroup[m.league.name] = { info: m.league, games: [] }; }
         leaguesGroup[m.league.name].games.push(m);
     });
+    
     const sortedLeagues = Object.values(leaguesGroup).sort((a, b) => getLeaguePriority(a.info) - getLeaguePriority(b.info));
-    if (sortedLeagues.length === 0) { container.innerHTML = '<div class="empty-msg">No live matches right now</div>'; return; }
+    if (sortedLeagues.length === 0) { container.innerHTML = '<div class="empty-msg" style="margin-top:50px;">No live matches right now.</div>'; return; }
 
     let html = '';
     sortedLeagues.forEach(group => {
-        html += `
-        <div class="league-group">
-            <div class="league-header">
-                <div class="league-title-wrapper">
-                    <img src="${group.info.logo}" class="league-logo" loading="lazy">
-                    <span class="league-name">${group.info.country} - ${group.info.name}</span>
-                </div>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg>
-            </div>`;
+        html += `<div class="league-group"><div class="league-header"><div class="league-title-wrapper"><img src="${group.info.logo}" class="league-logo"><span class="league-name">${group.info.country} - ${group.info.name}</span></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg></div>`;
         group.games.forEach(m => {
             const s = m.fixture.status.short;
-            let centerContent = '';
-            if (Utils.isNotStarted(s)) {
-                const timeStr = new Date(m.fixture.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-                centerContent = `<div class="match-center">${timeStr}</div>`;
-            } else if (Utils.isLiveMatch(s)) {
-                centerContent = `<div class="match-center live"><span style="font-size:10px;">${m.fixture.status.elapsed}'</span><br>${m.goals.home} - ${m.goals.away}</div>`;
-            } else {
-                centerContent = `<div class="match-center">${m.goals.home} - ${m.goals.away}</div>`;
-            }
-            html += `
-            <div class="match-row" onclick="openMatchDetails(${m.fixture.id})">
-                <div class="match-teams-score">
-                    <span class="team-name home-name">${m.teams.home.name}</span>
-                    <img src="${m.teams.home.logo}" class="team-logo" loading="lazy">
-                    ${centerContent}
-                    <img src="${m.teams.away.logo}" class="team-logo" loading="lazy">
-                    <span class="team-name away-name">${m.teams.away.name}</span>
-                </div>
-                <div class="tv-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline></svg></div>
-            </div>`;
+            let center = Utils.isNotStarted(s) ? `<div class="match-center">${new Date(m.fixture.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true })}</div>` : Utils.isLiveMatch(s) ? `<div class="match-center live"><span style="font-size:10px;">${m.fixture.status.elapsed}'</span><br>${m.goals.home} - ${m.goals.away}</div>` : `<div class="match-center">${m.goals.home} - ${m.goals.away}</div>`;
+            html += `<div class="match-row" onclick="openMatchDetails(${m.fixture.id})"><div class="match-teams-score"><span class="team-name home-name">${m.teams.home.name}</span><img src="${m.teams.home.logo}" class="team-logo">${center}<img src="${m.teams.away.logo}" class="team-logo"><span class="team-name away-name">${m.teams.away.name}</span></div></div>`;
         });
         html += `</div>`;
     });
@@ -284,158 +209,75 @@ function renderMatchesList(matches) {
 }
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+function switchModalTab(tab) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.add('hidden')); event.target.classList.add('active'); document.getElementById(`modal-${tab}`).classList.remove('hidden'); }
 
-function switchModalTab(tab) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.add('hidden'));
-    event.target.classList.add('active');
-    document.getElementById(`modal-${tab}`).classList.remove('hidden');
-}
-
-function buildPitchHtml(teamLineup, teamInfo, isAway) {
-    if (!teamLineup || !teamLineup.startXI || teamLineup.startXI.length === 0) return '';
-    
-    let html = `<div class="pitch-wrapper">
-        <div class="pitch-header">
-            <div class="pitch-team"><img src="${teamInfo.logo}">${teamInfo.name}</div>
-            <div class="pitch-formation">${teamLineup.formation || ''}</div>
-        </div>
-        <div class="pitch">`;
-
+// رسم الملعب
+function buildPitchHtml(teamLineup, teamInfo) {
+    if (!teamLineup?.startXI?.length) return '';
+    let html = `<div class="pitch-wrapper"><div class="pitch-header"><div class="pitch-team"><img src="${teamInfo.logo}">${teamInfo.name}</div><div class="pitch-formation">${teamLineup.formation || ''}</div></div><div class="pitch">`;
     const rows = {};
-    teamLineup.startXI.forEach(item => {
-        let p = item.player;
-        let gridParts = p.grid ? p.grid.split(':') : [];
-        let rowNum = gridParts.length > 0 ? parseInt(gridParts[0]) : 1;
-        if(!rows[rowNum]) rows[rowNum] = [];
-        rows[rowNum].push(p);
-    });
-
-    let rowKeys = Object.keys(rows).map(Number).sort((a,b) => a - b);
-    
-    rowKeys.forEach(key => {
+    teamLineup.startXI.forEach(item => { let grid = item.player.grid?.split(':') || []; let r = parseInt(grid[0]||1); if(!rows[r]) rows[r]=[]; rows[r].push(item.player); });
+    Object.keys(rows).sort().forEach(k => {
         html += `<div class="pitch-row">`;
-        let playersInRow = rows[key].sort((a,b) => {
-            let colA = a.grid ? parseInt(a.grid.split(':')[1]) : 0;
-            let colB = b.grid ? parseInt(b.grid.split(':')[1]) : 0;
-            return colA - colB;
-        });
-
-        playersInRow.forEach(p => {
-            let imgUrl = `https://media.api-sports.io/football/players/${p.id}.png`;
-            let lastName = p.name.split(' ').pop();
-            html += `
-                <div class="pitch-player" onclick="openPlayerDetails(${p.id})">
-                    <div class="pitch-player-img-wrapper">
-                        <img src="${imgUrl}" class="pitch-player-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23555\\' stroke-width=\\'2\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 0 0-16 0\\'/></svg>'; this.style.backgroundColor='#111';">
-                        <div class="pitch-player-num">${p.number || ''}</div>
-                    </div>
-                    <div class="pitch-player-name">${lastName}</div>
-                </div>
-            `;
+        rows[k].sort((a,b)=> (parseInt(a.grid?.split(':')[1]||0) - parseInt(b.grid?.split(':')[1]||0))).forEach(p => {
+            html += `<div class="pitch-player" onclick="openPlayerDetails(${p.id})"><div class="pitch-player-img-wrapper"><img src="https://media.api-sports.io/football/players/${p.id}.png" class="pitch-player-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\\'http://www.w3.org/2000/svg\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'%23555\\' stroke-width=\\'2\\'><circle cx=\\'12\\' cy=\\'8\\' r=\\'4\\'/><path d=\\'M20 21a8 8 0 0 0-16 0\\'/></svg>';"><div class="pitch-player-num">${p.number||''}</div></div><div class="pitch-player-name">${p.name.split(' ').pop()}</div></div>`;
         });
         html += `</div>`;
     });
+    return html + `</div></div>`;
+}
 
-    html += `</div></div>`;
-    return html;
+function buildPlayerRow(hP, aP) {
+    let hH = hP ? `<div class="player-side player-home" onclick="openPlayerDetails(${hP.id})"><span class="p-num">${hP.number||''}</span><img src="https://media.api-sports.io/football/players/${hP.id}.png" class="sub-player-img" onerror="this.style.display='none'"><span class="p-name">${hP.name||'-'}</span></div>` : '<div class="player-side player-home"></div>';
+    let aH = aP ? `<div class="player-side player-away" onclick="openPlayerDetails(${aP.id})"><span class="p-name">${aP.name||'-'}</span><img src="https://media.api-sports.io/football/players/${aP.id}.png" class="sub-player-img" onerror="this.style.display='none'"><span class="p-num">${aP.number||''}</span></div>` : '<div class="player-side player-away"></div>';
+    return `<div class="player-row">${hH}${aH}</div>`;
 }
 
 async function openMatchDetails(id) {
     const modal = document.getElementById('match-modal');
     const container = document.getElementById('match-info-container');
     modal.classList.remove('hidden');
-    container.innerHTML = '<div class="loader">Fetching details...</div>';
-
+    container.innerHTML = '<div class="loader" style="margin-top:50px;">Loading Match Details...</div>';
     try {
-        const [matchRes, injuriesRes] = await Promise.all([
-            fetch(`${CONFIG.API_URL}/fixtures?id=${id}`),
-            fetch(`${CONFIG.API_URL}/injuries?fixture=${id}`)
-        ]);
-        const matchData = await matchRes.json();
-        const injuriesData = await injuriesRes.json();
-        const m = matchData.response?.[0];
-        if(!m) throw new Error("Match not found");
-        renderMatchDetailsModal(m, injuriesData.response || [], container);
-    } catch (e) {
-        container.innerHTML = '<div class="empty-msg">Error fetching details</div>';
-    }
+        const [mRes, iRes] = await Promise.all([fetch(`${CONFIG.API_URL}/fixtures?id=${id}`), fetch(`${CONFIG.API_URL}/injuries?fixture=${id}`)]);
+        const mData = await mRes.json(); const iData = await iRes.json();
+        renderMatchDetailsModal(mData.response?.[0], iData.response || [], container);
+    } catch(e) { container.innerHTML = '<div class="empty-msg">Failed to load details.</div>'; }
 }
 
 function renderMatchDetailsModal(m, injuries, container) {
-    let matchStatus = m.fixture.status.short;
-    let scoreOrTime = '';
-    let subText = '';
-
-    if (Utils.isNotStarted(matchStatus)) {
-        scoreOrTime = new Date(m.fixture.date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-        subText = new Date(m.fixture.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-    } else if (Utils.isLiveMatch(matchStatus)) {
-        scoreOrTime = `${m.goals.home ?? 0} - ${m.goals.away ?? 0}`;
-        subText = `<span style="color:var(--accent-color)">${m.fixture.status.elapsed}'</span>`;
-    } else {
-        scoreOrTime = `${m.goals.home ?? 0} - ${m.goals.away ?? 0}`;
-        subText = 'FT';
-    }
-
-    let html = `
-    <div class="match-hero">
-        <div class="hero-team">
-            <img src="${m.teams.home.logo}">
-            <span class="p-name">${m.teams.home.name}</span>
-        </div>
-        <div class="hero-score-time">
-            <div class="hero-score">${scoreOrTime}</div>
-            <div class="hero-sub">${subText}</div>
-        </div>
-        <div class="hero-team">
-            <img src="${m.teams.away.logo}">
-            <span class="p-name">${m.teams.away.name}</span>
-        </div>
-    </div>
+    if(!m) return;
+    let s = m.fixture.status.short;
+    let time = Utils.isNotStarted(s) ? new Date(m.fixture.date).toLocaleTimeString('en-US', {hour:'numeric',minute:'2-digit'}) : `${m.goals.home||0} - ${m.goals.away||0}`;
+    let sub = Utils.isNotStarted(s) ? 'Scheduled' : Utils.isLiveMatch(s) ? `<span style="color:var(--accent-color)">${m.fixture.status.elapsed}'</span>` : 'FT';
     
-    <div class="tabs-container">
-        <div class="tab-btn" onclick="switchModalTab('preview')">Preview</div>
-        <div class="tab-btn" onclick="switchModalTab('stats')">Stats</div>
-        <div class="tab-btn active" onclick="switchModalTab('lineups')">Lineups</div>
-    </div>
-    `;
+    let html = `<div class="match-hero"><div class="hero-team"><img src="${m.teams.home.logo}"><span class="p-name">${m.teams.home.name}</span></div><div class="hero-score-time"><div class="hero-score">${time}</div><div class="hero-sub">${sub}</div></div><div class="hero-team"><img src="${m.teams.away.logo}"><span class="p-name">${m.teams.away.name}</span></div></div><div class="tabs-container"><div class="tab-btn" onclick="switchModalTab('stats')">Stats</div><div class="tab-btn active" onclick="switchModalTab('lineups')">Lineups</div></div>`;
+    
+    html += '<div id="modal-stats" class="modal-tab-content hidden">';
+    if(m.statistics?.length>1) m.statistics[0].statistics.forEach((st, i) => { let hV=st.value||0; let aV=m.statistics[1].statistics[i].value||0; let t=parseInt(hV)+parseInt(aV); let hp=t>0?(parseInt(hV)/t)*100:50; let ap=t>0?(parseInt(aV)/t)*100:50; html += `<div class="stat-row"><div class="stat-header"><span>${hV}</span><span>${st.type}</span><span>${aV}</span></div><div class="stat-bar-container"><div class="stat-bar-home" style="width:${hp}%"></div><div class="stat-bar-away" style="width:${ap}%"></div></div></div>`; });
+    html += '</div><div id="modal-lineups" class="modal-tab-content">';
+    if(m.lineups?.length>1) {
+        html += buildPitchHtml(m.lineups[0], m.teams.home) + buildPitchHtml(m.lineups[1], m.teams.away) + `<div class="lineup-section"><div class="section-title">Substitutes</div>`;
+        let max = Math.max(m.lineups[0].substitutes.length, m.lineups[1].substitutes.length);
+        for(let i=0; i<max; i++) html += buildPlayerRow(m.lineups[0].substitutes[i]?.player, m.lineups[1].substitutes[i]?.player);
+        html += '</div>';
+    } else { html += `<div class="empty-msg">Lineups not available yet.</div>`; }
+    container.innerHTML = html + '</div>';
+}
 
-    let venueName = m.fixture.venue?.name || 'Unknown Stadium';
-    let venueCity = m.fixture.venue?.city || '';
-    let referee = m.fixture.referee || 'Referee not announced';
+async function openPlayerDetails(id) {
+    if(!id) return;
+    document.getElementById('player-modal').classList.remove('hidden');
+    const c = document.getElementById('player-info-container');
+    c.innerHTML = '<div class="loader" style="margin-top:50px;">Loading player info...</div>';
+    try {
+        const res = await fetch(`${CONFIG.API_URL}/players?id=${id}&season=2023`);
+        const p = (await res.json()).response?.[0];
+        if(!p) throw new Error();
+        c.innerHTML = `<div class="player-hero"><img src="${p.player.photo}" class="player-photo-large"><div class="player-name-large">${p.player.name}</div></div><div class="player-stats-grid"><div class="p-stat-box"><div class="p-stat-title">Age</div><div class="p-stat-value">${p.player.age}</div></div><div class="p-stat-box"><div class="p-stat-title">Rating</div><div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(p.statistics[0]?.games?.rating||0).toFixed(1)}</div></div></div>`;
+    } catch(e) { c.innerHTML = '<div class="empty-msg">Player data unavailable.</div>'; }
+}
 
-    let previewHtml = `
-    <div id="modal-preview" class="modal-tab-content hidden">
-        <div class="info-card">
-            <div class="info-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
-            <div><div class="info-text-main">${venueName}</div><div class="info-text-sub">${venueCity}</div></div>
-        </div>
-        <div class="info-card">
-            <div class="info-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></div>
-            <div><div class="info-text-main">${referee}</div><div class="info-text-sub">Referee</div></div>
-        </div>
-    </div>`;
-
-    let statsHtml = '<div id="modal-stats" class="modal-tab-content hidden">';
-    if (m.statistics && m.statistics.length > 1) {
-        const hStats = m.statistics[0].statistics; const aStats = m.statistics[1].statistics;
-        hStats.forEach((stat, i) => {
-            let hVal = stat.value ?? 0; let aVal = aStats[i].value ?? 0;
-            let hNum = parseInt(String(hVal).replace('%','')) || 0; let aNum = parseInt(String(aVal).replace('%','')) || 0;
-            let total = hNum + aNum;
-            let hPercent = total > 0 ? (hNum / total) * 100 : 50; let aPercent = total > 0 ? (aNum / total) * 100 : 50;
-            statsHtml += `
-            <div class="stat-row">
-                <div class="stat-header"><span>${hVal}</span><span>${stat.type}</span><span>${aVal}</span></div>
-                <div class="stat-bar-container"><div class="stat-bar-home" style="width:${hPercent}%"></div><div class="stat-bar-away" style="width:${aPercent}%"></div></div>
-            </div>`;
-        });
-    } else {
-        statsHtml += '<div class="empty-msg">Stats not available yet</div>';
-    }
-    statsHtml += '</div>';
-
-    let lineupsHtml = '<div id="modal-lineups" class="modal-tab-content">';
-    if (m.lineups && m.lineups.length > 1) {
-        const [h
+// التشغيل الأولي
+setupDatesBar();
+fetchMatches(new Date().toISOString().split('T')[0]);
