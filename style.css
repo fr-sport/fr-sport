@@ -1,7 +1,9 @@
 :root { --bg-color: #000000; --card-bg: #151515; --text-main: #ffffff; --text-muted: #8e8e93; --accent-color: #c5934b; --border-color: rgba(255, 255, 255, 0.10); }
 body { margin: 0; background-color: var(--bg-color); color: var(--text-main); font-family: -apple-system, sans-serif; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; user-select: none; }
 .hidden { display: none !important; }
-.team-logo, .league-logo { image-rendering: -webkit-optimize-contrast; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.5)); }
+
+/* === الشعارات الآن أصلية وبدون فلاتر مشوهة === */
+.team-logo, .league-logo { object-fit: contain; background: transparent; }
 
 .top-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 15px; position: sticky; top: 0; z-index: 100; background-color: var(--bg-color); border-bottom: 1px solid var(--border-color); }
 .header-right { font-size: 20px; font-weight: 900; letter-spacing: 1px; font-style: italic; color: var(--accent-color); }
@@ -23,7 +25,7 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .league-group { background: var(--card-bg); border-radius: 12px; margin-bottom: 15px; overflow: hidden; }
 .league-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #1a1a1a; cursor: pointer; border-bottom: 1px solid var(--border-color);}
 .league-title-wrapper { display: flex; align-items: center; gap: 10px; flex-direction: row;} 
-.league-logo { width: 20px; height: 20px; border-radius: 50%; background: #fff; padding: 1px; }
+.league-logo { width: 20px; height: 20px; border-radius: 50%; background: transparent; }
 .league-name { font-size: 13px; font-weight: bold; color: var(--text-main); }
 
 .match-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 15px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); cursor: pointer; gap: 10px;}
@@ -32,7 +34,7 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .team-name { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .home-name { text-align: right; padding-right: 10px; } 
 .away-name { text-align: left; padding-left: 10px; }   
-.team-logo { width: 24px; height: 24px; object-fit: contain; justify-self: center; }
+.team-logo { width: 24px; height: 24px; justify-self: center; }
 .match-center { text-align: center; font-size: 12px; font-weight: bold; color: var(--text-main); }
 .match-center.live { color: var(--accent-color); }
 .tv-icon { width: 20px; color: var(--text-muted); flex-shrink: 0; display:flex; justify-content:flex-end;}
@@ -49,7 +51,7 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .full-modal-body { padding: 0 15px 50px 15px;}
 .match-hero { display: flex; justify-content: space-between; align-items: center; padding: 30px 20px; margin-bottom: 10px; }
 .hero-team { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 33%; text-align: center; }
-.hero-team img { width: 60px; height: 60px; object-fit: contain; }
+.hero-team img { width: 60px; height: 60px; object-fit: contain; background: transparent; }
 .hero-score-time { display: flex; flex-direction: column; align-items: center; width: 33%; gap: 5px;}
 .hero-score { font-size: 42px; font-weight: 300; color: var(--text-main); line-height: 1;}
 .hero-sub { font-size: 14px; color: var(--text-muted); font-weight: 600;}
