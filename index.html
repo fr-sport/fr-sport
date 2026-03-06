@@ -5,16 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FR SPORT</title>
     
-    <link rel="icon" type="image/png" href="android-chrome-192x192.png?v=3000">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png?v=3000">
-    <link rel="manifest" href="manifest.json?v=3000">
+    <link rel="icon" type="image/png" href="android-chrome-192x192.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
-    <link rel="stylesheet" href="style.css?v=3000">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+    <div id="sidebar-overlay" class="hidden" onclick="toggleSidebar()"></div>
+
+    <nav id="sidebar" class="sidebar">
+        <div class="sidebar-profile-section">
+            <div class="sidebar-avatar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </div>
+        </div>
+
+        <div class="sidebar-content">
+            <div class="sidebar-item">
+                <div class="sidebar-item-right">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#4facfe" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span id="text-sb-account">الحساب</span>
+                </div>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+
+            <div class="sidebar-divider" id="text-sb-main-screen">الشاشة الرئيسية</div>
+
+            <div class="sidebar-item">
+                <div class="sidebar-item-right">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#4facfe" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                    <span id="text-sb-home">قم باختيار الشاشة الرئيسية</span>
+                </div>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+
+            <div class="sidebar-divider" id="text-sb-news-leagues">الأخبار والبطولات</div>
+
+            <div class="sidebar-item" onclick="toggleSidebar(); switchTab(document.querySelector('[data-tab=\'leagues\']'))">
+                <div class="sidebar-item-right">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#4facfe" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+                    <span id="text-sb-all-leagues">كل البطولات</span>
+                </div>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+
+            <div class="sidebar-divider" id="text-sb-settings">إعدادات</div>
+
+            <div class="sidebar-item" onclick="toggleLanguage()">
+                <div class="sidebar-item-right">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#4facfe" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    <span id="text-sb-language">اللغة</span>
+                </div>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+
+            <div class="sidebar-item">
+                <div class="sidebar-item-right">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#4facfe" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    <span id="text-sb-notifications">إشعارات</span>
+                </div>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+        </div>
+    </nav>
 
     <header class="top-header">
         <div class="header-right">FR SPORT</div>
@@ -22,10 +80,7 @@
             <button class="live-btn" onclick="toggleLive(this)">
                 <span class="live-dot"></span> <span id="text-live">مباشر</span>
             </button>
-            <div class="icon-btn" onclick="toggleLanguage()">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-            </div>
-            <div class="icon-btn">
+            <div class="icon-btn" onclick="toggleSidebar()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </div>
         </div>
@@ -85,33 +140,28 @@
 
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchTab(this)" data-tab="matches">
-            <div class="icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><path d="M3 9h18"></path><path d="M9 21V9"></path></svg></div>
+            <div class="icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="3" x2="12" y2="21"></line><circle cx="12" cy="12" r="3"></circle></svg></div>
             <span id="nav-matches">المباريات</span>
         </div>
         <div class="nav-item" onclick="switchTab(this)" data-tab="news">
-            <div class="icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8l-4 4v14a2 2 0 0 0 2 2z"></path><line x1="14" y1="2" x2="14" y2="8"></line><line x1="14" y1="8" x2="20" y2="8"></line><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg></div>
+            <div class="icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2" ry="2"></rect><line x1="7" y1="8" x2="17" y2="8"></line><line x1="7" y1="12" x2="17" y2="12"></line><line x1="7" y1="16" x2="11" y2="16"></line></svg></div>
             <span id="nav-news">أخبار</span>
         </div>
         <div class="nav-item" onclick="switchTab(this)" data-tab="leagues">
-            <div class="icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg></div>
+            <div class="icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10M6 4v5a6 6 0 0 0 12 0V4M4 4h2v5H4zM18 4h2v5h-2z"></path></svg></div>
             <span id="nav-leagues">البطولات</span>
         </div>
         <div class="nav-item" onclick="switchTab(this)" data-tab="following">
-            <div class="icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div>
+            <div class="icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg></div>
             <span id="nav-following">يتابع</span>
         </div>
         <div class="nav-item" onclick="switchTab(this)" data-tab="search">
-            <div class="icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
+            <div class="icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
             <span id="nav-search">بحث</span>
         </div>
     </nav>
 
-    <script src="script.js?v=3000"></script>
+    <script src="script.js"></script>
 
-    <script>
-      if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => { navigator.serviceWorker.register('/fr-sport/sw.js'); });
-      }
-    </script>
 </body>
 </html>
