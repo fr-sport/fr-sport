@@ -3,7 +3,7 @@
     --card-bg: #151515;
     --text-main: #ffffff;
     --text-muted: #8e8e93;
-    --accent-color: #c5934b;
+    --accent-color: #c5934b; /* البرونزي المعتمد */
     --border-color: rgba(255, 255, 255, 0.10);
 }
 
@@ -52,18 +52,74 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 [dir="ltr"] .away-name { text-align: left; padding-left: 10px; } 
 
 .team-logo { width: 24px; height: 24px; justify-self: center; }
-.match-center { text-align: center; font-size: 12px; font-weight: bold; color: var(--text-main); direction: ltr;}
+
+.match-center { text-align: center; font-size: 10px; font-weight: bold; color: #b3b3b3; direction: ltr;}
 .match-center.live { color: var(--accent-color); }
 .tv-icon { width: 20px; color: var(--text-muted); flex-shrink: 0; display:flex; }
 [dir="rtl"] .tv-icon { justify-content:flex-start;}
 [dir="ltr"] .tv-icon { justify-content:flex-end;}
 
-/* === القائمة السفلية === */
-.bottom-nav { position: fixed; bottom: 0; left:0; width: 100%; background: #050505; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; padding: 8px 10px 25px 10px; z-index: 1000; box-sizing: border-box; }
-.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 10px; font-weight: 600; flex: 1; cursor: pointer; padding: 6px 0; border-radius: 10px; }
-.nav-item svg { width: 24px; height: 24px; stroke: var(--text-muted);}
-.nav-item.active { color: var(--accent-color); }
-.nav-item.active svg { stroke: var(--accent-color); }
+/* === القائمة السفلية (حركة FotMob والآيفون) === */
+.bottom-nav { 
+    position: fixed; 
+    bottom: 0; 
+    left: 0; 
+    width: 100%; 
+    background: rgba(15, 15, 15, 0.85); 
+    backdrop-filter: blur(15px); 
+    -webkit-backdrop-filter: blur(15px);
+    border-top: 1px solid rgba(255, 255, 255, 0.08); 
+    display: flex; 
+    justify-content: space-around; 
+    padding: 10px 5px calc(15px + env(safe-area-inset-bottom)); 
+    z-index: 1000; 
+    box-sizing: border-box; 
+}
+
+.nav-item { 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    gap: 4px; 
+    color: #8e8e93; 
+    font-size: 10px; 
+    font-weight: 500; 
+    flex: 1; 
+    cursor: pointer; 
+    transition: color 0.3s ease; /* انتقال سلس للون النص */
+}
+
+/* حالة الأيقونة قبل التحديد */
+.nav-item svg { 
+    width: 24px; 
+    height: 24px; 
+    stroke: #8e8e93;
+    stroke-width: 1.8; 
+    fill: transparent;
+    transition: stroke 0.3s ease, stroke-width 0.3s ease;
+    transform-origin: center;
+}
+
+/* حالة النص عند التحديد */
+.nav-item.active { 
+    color: var(--accent-color); 
+    font-weight: 700;
+}
+
+/* حالة الأيقونة عند التحديد (تغيير اللون + زيادة السُمك + تشغيل الحركة) */
+.nav-item.active svg { 
+    stroke: var(--accent-color); 
+    stroke-width: 2.4; /* تصبح الأيقونة عريضة ومليئة مثل FotMob */
+    animation: fotmobBounce 0.45s ease-in-out forwards; /* تشغيل حركة الارتداد */
+}
+
+/* هندسة حركة الارتداد (Pop/Bounce) المطابقة لـ FotMob */
+@keyframes fotmobBounce {
+    0%   { transform: scale(1); }
+    35%  { transform: scale(0.75); } /* انكماش سريع للداخل */
+    65%  { transform: scale(1.1); }  /* ارتداد وتمدد للخارج */
+    100% { transform: scale(1); }    /* استقرار في الحجم الطبيعي */
+}
 
 /* === النوافذ المنبثقة (Modals) === */
 .full-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 2000; overflow-y: auto; display: flex; flex-direction: column;}
@@ -74,7 +130,7 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .hero-team { display: flex; flex-direction: column; align-items: center; gap: 12px; width: 33%; text-align: center; }
 .hero-team img { width: 60px; height: 60px; object-fit: contain; background: transparent; }
 .hero-score-time { display: flex; flex-direction: column; align-items: center; width: 33%; gap: 5px;}
-.hero-score { font-size: 42px; font-weight: 300; color: var(--text-main); line-height: 1; direction: ltr;}
+.hero-score { font-size: 32px; font-weight: 300; color: #b3b3b3; line-height: 1; direction: ltr;}
 .hero-sub { font-size: 14px; color: var(--text-muted); font-weight: 600;}
 
 .tabs-container { display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 20px; }
@@ -101,7 +157,6 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .player-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #222; font-size: 13px; cursor: pointer;}
 .player-side { display: flex; align-items: center; gap: 8px; width: 48%; }
 
-/* محاذاة البدلاء حسب اللغة */
 [dir="rtl"] .player-home { justify-content: flex-start; text-align: right; }
 [dir="rtl"] .player-away { justify-content: flex-end; flex-direction: row-reverse; text-align: left; }
 [dir="ltr"] .player-home { justify-content: flex-start; text-align: left; }
@@ -151,7 +206,6 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .transfer-clubs { display: flex; align-items: center; gap: 10px; }
 .transfer-club-logo { width: 24px; height: 24px; object-fit: contain; }
 
-/* عكس اتجاه الصور والأسهم حسب اللغة */
 [dir="rtl"] .transfer-player-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); margin-left: 15px; flex-shrink: 0; }
 [dir="ltr"] .transfer-player-img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-color); margin-right: 15px; flex-shrink: 0; }
 [dir="rtl"] .transfer-arrow { color: var(--accent-color); display: flex; align-items: center; justify-content: center; transform: scaleX(-1); }
@@ -182,3 +236,95 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .st-pts { width: 35px; text-align: center; font-weight: 900; color: var(--text-main); flex-shrink: 0; font-size: 14px; }
 
 .loader, .empty-msg { text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px; }
+
+
+/* ============================================================
+   القائمة الجانبية (Sidebar) - النسخة العكسية المقوصة الأنيقة
+   ============================================================ */
+
+#sidebar-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.8); z-index: 4000;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar {
+    position: fixed; top: 0; width: 280px; height: 100%;
+    background-color: #000000; /* خلفية القائمة الكبيرة سوداء */
+    z-index: 4001; overflow-y: auto;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex; flex-direction: column;
+}
+
+/* اتجاه فتح القائمة وتقويس الحواف الخارجية الكبيرة حسب اللغة */
+[dir="rtl"] .sidebar { 
+    right: 0; 
+    transform: translateX(100%); 
+    border-top-left-radius: 35px; /* تقويس الزاوية العلوية الخارجية */
+    border-bottom-left-radius: 35px; /* تقويس الزاوية السفلية الخارجية */
+    border-left: 1px solid var(--accent-color); /* حد جمالي برونزي */
+}
+[dir="ltr"] .sidebar { 
+    left: 0; 
+    transform: translateX(-100%); 
+    border-top-right-radius: 35px;
+    border-bottom-right-radius: 35px;
+    border-right: 1px solid var(--accent-color);
+}
+.sidebar.open { transform: translateX(0) !important; }
+
+/* الجزء العلوي (صورة البروفايل) */
+.sidebar-profile-section {
+    padding: 50px 20px 20px;
+    display: flex; justify-content: center; align-items: center;
+    background-color: transparent; 
+}
+.sidebar-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: var(--accent-color); /* دائرة برونزية */
+    color: #000000; /* الأيقونة بداخلها باللون الأسود */
+    display: flex; justify-content: center; align-items: center;
+    box-shadow: 0 4px 15px rgba(197, 147, 75, 0.2);
+}
+.sidebar-avatar svg { width: 40px; height: 40px; }
+
+.sidebar-content { padding: 10px 0 30px; }
+
+/* عناوين الأقسام داخل القائمة */
+.sidebar-divider {
+    padding: 20px 20px 8px; font-size: 11px; font-weight: 900;
+    color: var(--text-muted); /* لون النص للمجموعات رمادي خفيف */
+    text-transform: uppercase; letter-spacing: 1.5px;
+}
+
+/* عناصر القائمة (الخانات البرونزية المقوصة) */
+.sidebar-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 15px;
+    background-color: var(--accent-color); /* الخانة باللون البرونزي */
+    margin: 6px 15px; 
+    border-radius: 15px; /* زوايا الخانة مقوصة بشدة */
+    cursor: pointer; transition: 0.3s;
+}
+
+/* تأثير عند الضغط على الخانة */
+.sidebar-item:active {
+    transform: scale(0.96);
+    background-color: #b08242; /* برونزي أغمق قليلاً عند الضغط */
+}
+
+.sidebar-item-right {
+    display: flex; align-items: center; gap: 12px;
+    color: #000000; /* نص أسود صريح للتباين */
+    font-size: 14px; font-weight: 800;
+}
+.sidebar-item-right svg { 
+    width: 22px; height: 22px; 
+    color: #000000; /* أيقونات سوداء داخل الخانة البرونزية */
+}
+
+.chevron { width: 16px; height: 16px; color: #000000; opacity: 0.8; } /* سهم أسود */
+
+/* تعديل دوران سهم العناصر حسب اللغة */
+[dir="rtl"] .chevron { transform: rotate(0deg); }
+[dir="ltr"] .chevron { transform: rotate(180deg); }
