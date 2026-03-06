@@ -19,7 +19,13 @@ const UI_DICTIONARY = {
         topLeaguesNow: "دوريات كبرى", liveTransfers: "انتقالات", topNews: "أحدث الأخبار الرياضية", topDeals: "أخبار الانتقالات والصفقات",
         standings: "جدول الترتيب", team: "الفريق", played: "لعب", gd: "فارق", pts: "نقاط",
         stats: "إحصائيات", lineups: "التشكيلة", subs: "البدلاء", age: "العمر", height: "الطول",
-        position: "المركز", rating: "التقييم", goals: "الأهداف", assists: "الصناعة", notStarted: "لم تبدأ", finished: "انتهت"
+        position: "المركز", rating: "التقييم", goals: "الأهداف", assists: "الصناعة", notStarted: "لم تبدأ", finished: "انتهت",
+        loading: "جاري التحميل...", errorLoad: "حدث خطأ. يرجى المحاولة.", noData: "البيانات غير متوفرة حالياً", transfersWord: "انتقالات",
+        statsUnavailable: "الإحصائيات غير متوفرة", lineupsUnavailable: "التشكيلة غير متوفرة", standingsUnavailable: "جدول الترتيب غير متوفر",
+        // القائمة الجانبية
+        sbAccount: "الحساب", sbMainScreen: "الشاشة الرئيسية", sbHome: "قم باختيار الشاشة الرئيسية",
+        sbNewsLeagues: "الأخبار والبطولات", sbAllLeagues: "كل البطولات", sbSettings: "إعدادات",
+        sbLanguage: "اللغة", sbNotifications: "إشعارات"
     },
     en: {
         live: "Live", matches: "Matches", news: "News", leagues: "Leagues", following: "Following", search: "Search",
@@ -28,36 +34,94 @@ const UI_DICTIONARY = {
         topLeaguesNow: "Top Leagues", liveTransfers: "Transfers", topNews: "Latest Global News", topDeals: "Live Transfer News & Rumors",
         standings: "Standings", team: "Team", played: "P", gd: "GD", pts: "Pts",
         stats: "Stats", lineups: "Lineups", subs: "Substitutes", age: "Age", height: "Height",
-        position: "Position", rating: "Rating", goals: "Goals", assists: "Assists", notStarted: "Scheduled", finished: "FT"
+        position: "Position", rating: "Rating", goals: "Goals", assists: "Assists", notStarted: "Scheduled", finished: "FT",
+        loading: "Loading...", errorLoad: "Error loading. Please try again.", noData: "Data unavailable", transfersWord: "Transfers",
+        statsUnavailable: "Stats unavailable", lineupsUnavailable: "Lineups unavailable", standingsUnavailable: "Standings unavailable",
+        // Sidebar
+        sbAccount: "Account", sbMainScreen: "Main Screen", sbHome: "Choose Main Screen",
+        sbNewsLeagues: "News & Leagues", sbAllLeagues: "All Leagues", sbSettings: "Settings",
+        sbLanguage: "Language", sbNotifications: "Notifications"
     }
 };
 
 const ARABIC_DICTIONARY = {
-    // الدول
     "World": "عالمي", "England": "إنجلترا", "Spain": "إسبانيا", "Italy": "إيطاليا", "Germany": "ألمانيا", "France": "فرنسا", "Portugal": "البرتغال", "Saudi Arabia": "السعودية", "USA": "أمريكا", "Turkey": "تركيا", "Cyprus": "قبرص", "Brazil": "البرازيل", "Egypt": "مصر", "Morocco": "المغرب",
-
-    // الدوريات والبطولات
     "Premier League": "الدوري الإنجليزي", "Championship": "دوري البطولة الإنجليزية", "La Liga": "الدوري الإسباني", "Serie A": "الدوري الإيطالي", "Bundesliga": "الدوري الألماني", "Ligue 1": "الدوري الفرنسي", "Primeira Liga": "الدوري البرتغالي", "UEFA Champions League": "دوري أبطال أوروبا", "UEFA Europa League": "الدوري الأوروبي", "Saudi Pro League": "الدوري السعودي", "AFC Champions League": "دوري أبطال آسيا", "Major League Soccer": "الدوري الأمريكي", "1. Division": "الدوري القبرصي", "1. Lig": "الدوري التركي الدرجة الأولى",
-
-    // الأندية الإنجليزية
     "Arsenal": "أرسنال", "Aston Villa": "أستون فيلا", "Chelsea": "تشيلسي", "Liverpool": "ليفربول", "Manchester City": "مانشستر سيتي", "Manchester United": "مانشستر يونايتد", "Newcastle": "نيوكاسل", "Tottenham": "توتنهام", "Middlesbrough": "ميدلزبره", "Birmingham": "برمنغهام",
-
-    // الأندية الإسبانية
     "Real Madrid": "ريال مدريد", "Barcelona": "برشلونة", "Atletico Madrid": "أتلتيكو مدريد", "Sevilla": "إشبيلية", "Getafe": "خيتافي", "Valencia": "فالنسيا",
-
-    // الأندية الإيطالية
     "Juventus": "يوفنتوس", "AC Milan": "ميلان", "Inter": "إنتر ميلان", "Napoli": "نابولي", "AS Roma": "روما", "Bologna": "بولونيا", "Fiorentina": "فيورنتينا", "Pisa": "بيزا", "Udinese": "أودينيزي",
-
-    // أندية أمريكية وعالمية أخرى
     "Inter Miami": "إنتر ميامي", "Orlando City SC": "أورلاندو سيتي", "San Diego": "سان دييغو", "St. Louis City": "سانت لويس سيتي", "Apollon Limassol": "أبولون ليماسول", "Omonia Nicosia": "أومونيا نيقوسيا", "Çorum FK": "كوروم", "Manisa F.K.": "مانيسا",
     "Al-Duhail SC": "الدحيل", "Al-Ahli Jeddah": "الأهلي السعودي", "Tractor Sazi": "تراكتور سازي", "Shabab Al Ahli Dubai": "شباب الأهلي دبي", "Al Hilal": "الهلال", "Al Nassr": "النصر"
 };
 
+/* ==========================================
+ * نظام الترجمة الفورية الذكي (Google Translate)
+ * ========================================== */
+const DYNAMIC_DICTIONARY_KEY = 'frsport_dynamic_dict';
+let dynamicDictionary = JSON.parse(localStorage.getItem(DYNAMIC_DICTIONARY_KEY) || '{}');
+
+async function fetchGoogleTranslation(text) {
+    if (!text) return "";
+    try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=${encodeURIComponent(text)}`;
+        const res = await fetch(url);
+        const data = await res.json();
+        return data[0][0][0];
+    } catch (e) {
+        console.error("خطأ في الترجمة:", text);
+        return text; 
+    }
+}
+
+async function prepareTranslations(namesArray) {
+    if (AppState.currentLang !== 'ar') return;
+    
+    let needsSave = false;
+    const uniqueNames = [...new Set(namesArray)];
+    
+    const translationPromises = uniqueNames.map(async (name) => {
+        if (name && !ARABIC_DICTIONARY[name] && !dynamicDictionary[name]) {
+            const translated = await fetchGoogleTranslation(name);
+            dynamicDictionary[name] = translated;
+            needsSave = true;
+        }
+    });
+
+    await Promise.all(translationPromises);
+
+    if (needsSave) {
+        localStorage.setItem(DYNAMIC_DICTIONARY_KEY, JSON.stringify(dynamicDictionary));
+    }
+}
+
 function translateName(name) { 
     if(!name) return "";
-    if (AppState.currentLang === 'ar') return ARABIC_DICTIONARY[name] || name; 
+    if (AppState.currentLang === 'ar') {
+        return ARABIC_DICTIONARY[name] || dynamicDictionary[name] || name; 
+    }
     return name; 
 }
+
+/* ==========================================
+ * القائمة الجانبية (Sidebar Logic)
+ * ========================================== */
+function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (!sidebar || !overlay) return;
+
+    if (sidebar.classList.contains('open')) {
+        sidebar.classList.remove('open');
+        overlay.classList.add('hidden');
+        document.body.style.overflow = '';
+    } else {
+        sidebar.classList.add('open');
+        overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+/* ========================================== */
 
 const Utils = {
     formatDateLoc: (dateObj, offset) => {
@@ -77,7 +141,6 @@ const Utils = {
     },
     formatTimeLoc: (dateStr) => {
         const d = new Date(dateStr);
-        // تم توحيد الأرقام لتكون 123 دائماً بدلاً من ١٢٣ لضمان تناسق التصميم
         let timeEn = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
         if (AppState.currentLang === 'ar') {
             return timeEn.replace('AM', 'ص').replace('PM', 'م');
@@ -99,13 +162,25 @@ const TOP_LEAGUES = [
 ];
 
 function toggleLanguage() {
+    // إغلاق القائمة الجانبية عند تغيير اللغة
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebar.classList.contains('open')) toggleSidebar();
+
     AppState.currentLang = AppState.currentLang === 'ar' ? 'en' : 'ar';
     localStorage.setItem('frsport_lang', AppState.currentLang);
     document.getElementById('html-tag').setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
     document.getElementById('html-tag').setAttribute('lang', AppState.currentLang);
     updateUI();
     setupDatesBar();
-    if(!document.getElementById('tab-matches').classList.contains('hidden')) fetchMatches(AppState.currentDate);
+    
+    if(!document.getElementById('tab-matches').classList.contains('hidden')) {
+        if (AppState.globalMatches && AppState.globalMatches.length > 0) {
+            renderMatchesList(AppState.globalMatches);
+        } else {
+            fetchMatches(AppState.currentDate);
+        }
+    }
+    
     if(!document.getElementById('tab-news').classList.contains('hidden')) fetchNews();
     if(!document.getElementById('tab-leagues').classList.contains('hidden')) renderLeaguesTab();
 }
@@ -119,6 +194,16 @@ function updateUI() {
     document.getElementById('nav-following').innerText = d.following;
     document.getElementById('nav-search').innerText = d.search;
     
+    // تعريب القائمة الجانبية
+    if(document.getElementById('text-sb-account')) document.getElementById('text-sb-account').innerText = d.sbAccount;
+    if(document.getElementById('text-sb-main-screen')) document.getElementById('text-sb-main-screen').innerText = d.sbMainScreen;
+    if(document.getElementById('text-sb-home')) document.getElementById('text-sb-home').innerText = d.sbHome;
+    if(document.getElementById('text-sb-news-leagues')) document.getElementById('text-sb-news-leagues').innerText = d.sbNewsLeagues;
+    if(document.getElementById('text-sb-all-leagues')) document.getElementById('text-sb-all-leagues').innerText = d.sbAllLeagues;
+    if(document.getElementById('text-sb-settings')) document.getElementById('text-sb-settings').innerText = d.sbSettings;
+    if(document.getElementById('text-sb-language')) document.getElementById('text-sb-language').innerText = d.sbLanguage;
+    if(document.getElementById('text-sb-notifications')) document.getElementById('text-sb-notifications').innerText = d.sbNotifications;
+
     const loadingMatches = document.getElementById('text-loading-matches');
     if(loadingMatches) loadingMatches.innerText = d.loadingMatches;
     const standingsTitle = document.getElementById('text-standings-title');
@@ -150,6 +235,10 @@ function selectDate(dateStr) {
 }
 
 function switchTab(el) {
+    // إغلاق القائمة الجانبية عند تغيير التبويب
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar && sidebar.classList.contains('open')) toggleSidebar();
+
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
     el.classList.add('active');
     
@@ -262,7 +351,7 @@ async function fetchNews() {
         const transferArticles = uniqueArticles.filter(a => transferKeywords.some(kw => a.title.toLowerCase().includes(kw)));
         const defaultImg = 'https://images.unsplash.com/photo-1518605368461-1e1e38ce81c2?q=80&w=600&auto=format&fit=crop';
 
-        let combinedHtml = `<div class="news-top-nav"><div class="news-top-tab active" onclick="switchNewsSubTab('foryou')">${d.topLeaguesNow}</div><div class="news-top-tab" onclick="switchNewsSubTab('transfers')">${d.liveTransfers}</div></div><div id="news-content-area">`;
+        let combinedHtml = `<div class="news-top-nav"><div class="news-top-tab active" onclick="switchNewsSubTab('foryou', this)">${d.topLeaguesNow}</div><div class="news-top-tab" onclick="switchNewsSubTab('transfers', this)">${d.liveTransfers}</div></div><div id="news-content-area">`;
 
         let forYouHtml = `<div id="news-foryou-content"><div class="trending-header">${d.topNews}</div><div class="news-feed">`;
         uniqueArticles.slice(0, 30).forEach((article, index) => {
@@ -271,9 +360,9 @@ async function fetchNews() {
             let alignClass = AppState.currentLang === 'ar' ? 'text-align:right; direction:rtl;' : 'text-align:left; direction:ltr;'; 
 
             if (index === 0) { 
-                forYouHtml += `<div class="news-hero-card" onclick="window.open('${article.link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.src='${defaultImg}'"><div class="news-hero-title" style="${alignClass}">${article.title}</div><div class="news-date" style="${alignClass} color:var(--accent-color);">${article.source} • ${pDate}</div></div>`; 
+                forYouHtml += `<div class="news-hero-card" onclick="window.open('${article.link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.onerror=null; this.src='${defaultImg}'"><div class="news-hero-title" style="${alignClass}">${article.title}</div><div class="news-date" style="${alignClass} color:var(--accent-color);">${article.source} • ${pDate}</div></div>`; 
             } else { 
-                forYouHtml += `<div class="news-list-card" onclick="window.open('${article.link}', '_blank')"><div class="news-list-content"><div class="news-list-title" style="${alignClass}">${article.title}</div><div class="news-date" style="${alignClass} color:var(--accent-color);">${article.source} • ${pDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`; 
+                forYouHtml += `<div class="news-list-card" onclick="window.open('${article.link}', '_blank')"><div class="news-list-content"><div class="news-list-title" style="${alignClass}">${article.title}</div><div class="news-date" style="${alignClass} color:var(--accent-color);">${article.source} • ${pDate}</div></div><img src="${img}" class="news-list-img" onerror="this.onerror=null; this.src='${defaultImg}'"></div>`; 
             }
         });
         forYouHtml += `</div></div>`;
@@ -284,9 +373,9 @@ async function fetchNews() {
                 let img = article.img || defaultImg;
                 let pDate = Utils.formatTimeLoc(article.pubDate);
                 let alignClass = AppState.currentLang === 'ar' ? 'text-align:right; direction:rtl;' : 'text-align:left; direction:ltr;';
-                transfersHtml += `<div class="news-list-card" onclick="window.open('${article.link}', '_blank')"><div class="news-list-content"><div class="news-list-title" style="font-weight: 800; ${alignClass}">${article.title}</div><div class="news-date" style="${alignClass} color:var(--accent-color);">Transfers • ${pDate}</div></div><img src="${img}" class="news-list-img" onerror="this.src='${defaultImg}'"></div>`;
+                transfersHtml += `<div class="news-list-card" onclick="window.open('${article.link}', '_blank')"><div class="news-list-content"><div class="news-list-title" style="font-weight: 800; ${alignClass}">${article.title}</div><div class="news-date" style="${alignClass} color:var(--accent-color);">${d.transfersWord} • ${pDate}</div></div><img src="${img}" class="news-list-img" onerror="this.onerror=null; this.src='${defaultImg}'"></div>`;
             });
-        } else { transfersHtml += `<div class="empty-msg">لا توجد أخبار انتقالات حالياً.</div>`; }
+        } else { transfersHtml += `<div class="empty-msg">${d.noData}</div>`; }
         transfersHtml += `</div></div>`;
         
         combinedHtml += forYouHtml + transfersHtml + `</div>`;
@@ -296,29 +385,21 @@ async function fetchNews() {
     } catch (e) { console.error("News sync failed", e); }
 }
 
-function switchNewsSubTab(tabId) {
+function switchNewsSubTab(tabId, el) {
     document.querySelectorAll('.news-top-tab').forEach(t => t.classList.remove('active'));
-    event.target.classList.add('active');
+    if(el) el.classList.add('active');
     document.getElementById('news-foryou-content').classList.add('hidden');
     document.getElementById('news-transfers-content').classList.add('hidden');
     document.getElementById(`news-${tabId}-content`).classList.remove('hidden');
 }
 
-// الدالة المسؤولة عن ترتيب البطولات وحذف التافه منها
 function getLeaguePriority(league) {
     const id = league.id; const name = league.name ? league.name.toLowerCase() : '';
-    
-    // 1. البطولات القارية (أبطال أوروبا، اليوروباليغ، أبطال آسيا، الخ)
     if ([2, 3, 4, 1, 15, 17, 848, 9, 10].includes(id)) return 1;
-    // 2. الدوريات الخمس الكبرى
     if ([39, 140, 135, 78, 61].includes(id)) return 2;
-    // 3. دوريات قوية ومشهورة (مثل الإنجليزي الدرجة الأولى، السعودي، الأمريكي)
     if ([307, 253, 88, 94, 40, 41, 42].includes(id)) return 3;
-    
-    // 999. طرد دوريات الشباب والنساء والوديات والدرجات السفلى تماماً
     if (name.includes('u21') || name.includes('u20') || name.includes('u19') || name.includes('u17') || name.includes('women') || name.includes('friendlies') || name.includes('development') || name.includes('reserve') || name.includes('primavera') || name.includes('youth') || name.includes('paulista') || name.includes('carioca') || name.includes('division 2') || name.includes('division 3')) return 999;
-    
-    return 10; // البطولات الأخرى المتبقية
+    return 10;
 }
 
 async function fetchMatches(date) {
@@ -348,15 +429,15 @@ async function fetchMatches(date) {
         const matches = data.response || [];
         AppState.matchesCache[date] = matches; 
         AppState.globalMatches = matches;
-        renderMatchesList(matches);
+        await renderMatchesList(matches);
     } catch (error) { 
         if(!container.innerHTML.includes('match-row')) {
-            container.innerHTML = '<div class="empty-msg">Server Error. Please try again.</div>'; 
+            container.innerHTML = `<div class="empty-msg">${d.errorLoad}</div>`; 
         }
     }
 }
 
-function renderMatchesList(matches) {
+async function renderMatchesList(matches) {
     const container = document.getElementById('tab-matches');
     const d = UI_DICTIONARY[AppState.currentLang];
     const cacheKey = `frsport_matches_${AppState.currentDate}_${AppState.currentLang}`;
@@ -367,19 +448,29 @@ function renderMatchesList(matches) {
         return; 
     }
     
+    let namesToTranslate = [];
+    matches.forEach(m => {
+        if(m.league.name) namesToTranslate.push(m.league.name);
+        if(m.league.country) namesToTranslate.push(m.league.country);
+        if(m.teams.home.name) namesToTranslate.push(m.teams.home.name);
+        if(m.teams.away.name) namesToTranslate.push(m.teams.away.name);
+    });
+
+    if (AppState.currentLang === 'ar') {
+        if(!container.innerHTML.includes('match-row') && !container.innerHTML.includes('league-group')) {
+            container.innerHTML = `<div class="loader" style="margin-top:20px; font-size:12px; color:var(--accent-color);">جاري تعريب الأسماء...</div>`;
+        }
+        await prepareTranslations(namesToTranslate);
+    }
+
     const leaguesGroup = {};
     matches.forEach(m => {
         if (AppState.isLiveMode && !Utils.isLiveMatch(m.fixture.status.short)) return;
-        
         const priority = getLeaguePriority(m.league);
-        
-        // 1. التخلص من الدوريات التافهة كلياً
         if (priority === 999) return; 
 
-        // 2. إذا كانت البطولة ليست من النخبة (1، 2، 3) وليس لها ترجمة في القاموس، احذفها! 
-        // هذا الفلتر سيخفي أي مباراة مجهولة بالإنجليزية.
         if (priority === 10 && AppState.currentLang === 'ar') {
-             const isTranslated = !!ARABIC_DICTIONARY[m.league.name] || !!ARABIC_DICTIONARY[m.league.country];
+             const isTranslated = !!translateName(m.league.name) || !!translateName(m.league.country);
              if (!isTranslated) return; 
         }
 
@@ -443,27 +534,31 @@ async function openLeagueStandings(leagueId) {
     if(cachedStandings) {
         container.innerHTML = cachedStandings;
     } else {
-        container.innerHTML = `<div class="loader" style="margin-top:50px;">Loading...</div>`;
+        container.innerHTML = `<div class="loader" style="margin-top:50px;">${d.loading}</div>`;
     }
 
     try {
-        const res = await fetch(`${CONFIG.API_URL}/standings?league=${leagueId}&season=2023`);
+        const res = await fetch(`${CONFIG.API_URL}/standings?league=${leagueId}&season=2025`);
         const data = await res.json();
         const leagueData = data.response?.[0]?.league;
         if(!leagueData || !leagueData.standings || leagueData.standings.length === 0) throw new Error("No standings");
+
+        let namesToTranslate = [leagueData.name];
+        leagueData.standings[0].forEach(row => { if(row.team.name) namesToTranslate.push(row.team.name); });
+        await prepareTranslations(namesToTranslate);
 
         const translatedLeagueName = translateName(leagueData.name);
         let html = `<div class="match-hero" style="padding:20px; text-align:center;"><img src="${leagueData.logo}" style="width:70px; height:70px; margin-bottom:10px;"><div class="player-name-large" style="font-size:18px;">${translatedLeagueName}</div></div><div class="standings-table"><div class="st-header"><div class="st-rank">#</div><div class="st-team">${d.team}</div><div class="st-p">${d.played}</div><div class="st-gd">${d.gd}</div><div class="st-pts">${d.pts}</div></div>`;
 
         leagueData.standings[0].forEach(row => {
             const translatedTeamName = translateName(row.team.name);
-            html += `<div class="st-row"><div class="st-rank">${row.rank}</div><div class="st-team"><img src="${row.team.logo}" onerror="this.style.display='none'">${translatedTeamName}</div><div class="st-p">${row.all.played}</div><div class="st-gd" style="direction:ltr;">${row.goalsDiff > 0 ? '+'+row.goalsDiff : row.goalsDiff}</div><div class="st-pts">${row.points}</div></div>`;
+            html += `<div class="st-row"><div class="st-rank">${row.rank}</div><div class="st-team"><img src="${row.team.logo}" onerror="this.onerror=null; this.style.display='none'">${translatedTeamName}</div><div class="st-p">${row.all.played}</div><div class="st-gd" style="direction:ltr;">${row.goalsDiff > 0 ? '+'+row.goalsDiff : row.goalsDiff}</div><div class="st-pts">${row.points}</div></div>`;
         });
         html += `</div>`;
         
         container.innerHTML = html;
         localStorage.setItem(cacheKey, html);
-    } catch (e) { if(!container.innerHTML.includes('st-row')) container.innerHTML = `<div class="empty-msg" style="margin-top:50px;">Standings unavailable.</div>`; }
+    } catch (e) { if(!container.innerHTML.includes('st-row')) container.innerHTML = `<div class="empty-msg" style="margin-top:50px;">${d.standingsUnavailable}</div>`; }
 }
 
 function buildPitchHtml(teamLineup, teamInfo) {
@@ -475,7 +570,7 @@ function buildPitchHtml(teamLineup, teamInfo) {
     Object.keys(rows).sort((a,b)=>a-b).forEach(key => {
         html += `<div class="pitch-row">`;
         rows[key].sort((a,b) => (a.grid ? parseInt(a.grid.split(':')[1]) : 0) - (b.grid ? parseInt(b.grid.split(':')[1]) : 0)).forEach(p => {
-            html += `<div class="pitch-player" onclick="openPlayerDetails(${p.id})"><div class="pitch-player-img-wrapper"><img src="https://media.api-sports.io/football/players/${p.id}.png" class="pitch-player-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png'; this.style.backgroundColor='#111';"><div class="pitch-player-num">${p.number || ''}</div></div><div class="pitch-player-name">${p.name.split(' ').pop()}</div></div>`;
+            html += `<div class="pitch-player" onclick="openPlayerDetails(${p.id})"><div class="pitch-player-img-wrapper"><img src="https://media.api-sports.io/football/players/${p.id}.png" class="pitch-player-img" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png'; this.style.backgroundColor='#111';"><div class="pitch-player-num">${p.number || ''}</div></div><div class="pitch-player-name">${p.name.split(' ').pop()}</div></div>`;
         });
         html += `</div>`;
     });
@@ -487,12 +582,18 @@ async function openMatchDetails(id) {
     const container = document.getElementById('match-info-container');
     const d = UI_DICTIONARY[AppState.currentLang];
     modal.classList.remove('hidden');
-    container.innerHTML = `<div class="loader" style="margin-top:50px;">Loading...</div>`;
+    container.innerHTML = `<div class="loader" style="margin-top:50px;">${d.loading}</div>`;
     try {
         const [matchRes, injuriesRes] = await Promise.all([fetch(`${CONFIG.API_URL}/fixtures?id=${id}`), fetch(`${CONFIG.API_URL}/injuries?fixture=${id}`)]);
         const matchData = await matchRes.json(); const injuriesData = await injuriesRes.json();
-        renderMatchDetailsModal(matchData.response?.[0], injuriesData.response || [], container);
-    } catch (e) { container.innerHTML = '<div class="empty-msg">Error loading details.</div>'; }
+        const m = matchData.response?.[0];
+        
+        if(m) {
+            await prepareTranslations([m.teams.home.name, m.teams.away.name]);
+        }
+        
+        renderMatchDetailsModal(m, injuriesData.response || [], container);
+    } catch (e) { container.innerHTML = `<div class="empty-msg">${d.errorLoad}</div>`; }
 }
 
 function renderMatchDetailsModal(m, injuries, container) {
@@ -514,19 +615,19 @@ function renderMatchDetailsModal(m, injuries, container) {
             let statType = AppState.currentLang === 'ar' ? (ARABIC_DICTIONARY[stat.type] || stat.type) : stat.type;
             statsHtml += `<div class="stat-row"><div class="stat-header"><span>${hVal}</span><span>${statType}</span><span>${aVal}</span></div><div class="stat-bar-container"><div class="stat-bar-home" style="width:${hPercent}%"></div><div class="stat-bar-away" style="width:${aPercent}%"></div></div></div>`;
         });
-    } else { statsHtml += `<div class="empty-msg">Stats unavailable</div>`; }
+    } else { statsHtml += `<div class="empty-msg">${d.statsUnavailable}</div>`; }
     statsHtml += '</div>';
     
     let lineupsHtml = '<div id="modal-lineups" class="modal-tab-content">';
     if (m.lineups && m.lineups.length > 1) {
         lineupsHtml += buildPitchHtml(m.lineups[0], m.teams.home) + buildPitchHtml(m.lineups[1], m.teams.away) + `<div class="lineup-section"><div class="section-title">${d.subs}</div>`;
-        let maxSubs = Math.max(m.lineups[0].substitutes.length, m.lineups[1].substitutes.length);
+        let maxSubs = Math.max(m.lineups?.[0]?.substitutes?.length || 0, m.lineups?.[1]?.substitutes?.length || 0);
         for(let i=0; i<maxSubs; i++) {
             let hP = m.lineups[0].substitutes[i]?.player; let aP = m.lineups[1].substitutes[i]?.player;
-            lineupsHtml += `<div class="player-row">${hP ? `<div class="player-side player-home" onclick="openPlayerDetails(${hP.id})"><span class="p-num">${hP.number||''}</span><img src="https://media.api-sports.io/football/players/${hP.id}.png" class="sub-player-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><span class="p-name">${hP.name||'-'}</span></div>` : '<div class="player-side player-home"></div>'}${aP ? `<div class="player-side player-away" onclick="openPlayerDetails(${aP.id})"><span class="p-name">${aP.name||'-'}</span><img src="https://media.api-sports.io/football/players/${aP.id}.png" class="sub-player-img" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><span class="p-num">${aP.number||''}</span></div>` : '<div class="player-side player-away"></div>'}</div>`;
+            lineupsHtml += `<div class="player-row">${hP ? `<div class="player-side player-home" onclick="openPlayerDetails(${hP.id})"><span class="p-num">${hP.number||''}</span><img src="https://media.api-sports.io/football/players/${hP.id}.png" class="sub-player-img" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><span class="p-name">${hP.name||'-'}</span></div>` : '<div class="player-side player-home"></div>'}${aP ? `<div class="player-side player-away" onclick="openPlayerDetails(${aP.id})"><span class="p-name">${aP.name||'-'}</span><img src="https://media.api-sports.io/football/players/${aP.id}.png" class="sub-player-img" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><span class="p-num">${aP.number||''}</span></div>` : '<div class="player-side player-away"></div>'}</div>`;
         }
         lineupsHtml += `</div>`;
-    } else { lineupsHtml += `<div class="empty-msg">Lineups unavailable</div>`; }
+    } else { lineupsHtml += `<div class="empty-msg">${d.lineupsUnavailable}</div>`; }
     lineupsHtml += '</div>';
     container.innerHTML = html + statsHtml + lineupsHtml;
 }
@@ -537,17 +638,24 @@ async function openPlayerDetails(playerId) {
     const container = document.getElementById('player-info-container');
     const d = UI_DICTIONARY[AppState.currentLang];
     modal.classList.remove('hidden');
-    container.innerHTML = `<div class="loader" style="margin-top:50px;">Loading...</div>`;
+    container.innerHTML = `<div class="loader" style="margin-top:50px;">${d.loading}</div>`;
 
     try {
-        const res = await fetch(`${CONFIG.API_URL}/players?id=${playerId}&season=2023`);
+        const res = await fetch(`${CONFIG.API_URL}/players?id=${playerId}&season=2025`);
         const pData = (await res.json()).response?.[0];
         if(!pData) throw new Error("No data");
         const p = pData.player; const s = pData.statistics?.[0] || {};
+        
+        let namesToTranslate = [];
+        if(s.team?.name) namesToTranslate.push(s.team.name);
+        if(p.nationality) namesToTranslate.push(p.nationality);
+        await prepareTranslations(namesToTranslate);
+
         const translatedTeamName = translateName(s.team?.name);
         const translatedNationality = translateName(p.nationality);
-        container.innerHTML = `<div class="player-hero"><img src="${p.photo}" class="player-photo-large" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><div class="player-name-large">${p.firstname} ${p.lastname}</div><div class="player-team-info"><img src="${s.team?.logo}" onerror="this.style.display='none'">${translatedTeamName || ''} • ${translatedNationality}</div></div><div class="player-stats-grid"><div class="p-stat-box"><div class="p-stat-title">${d.age}</div><div class="p-stat-value">${p.age || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.height}</div><div class="p-stat-value">${p.height || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.position}</div><div class="p-stat-value">${s.games?.position || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.rating}</div><div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(s.games?.rating || 0).toFixed(1) || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.goals}</div><div class="p-stat-value">${s.goals?.total || 0}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.assists}</div><div class="p-stat-value">${s.goals?.assists || 0}</div></div></div>`;
-    } catch (e) { container.innerHTML = `<div class="empty-msg">Data unavailable.</div>`; }
+        
+        container.innerHTML = `<div class="player-hero"><img src="${p.photo}" class="player-photo-large" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><div class="player-name-large">${p.firstname} ${p.lastname}</div><div class="player-team-info"><img src="${s.team?.logo}" onerror="this.onerror=null; this.style.display='none'">${translatedTeamName || ''} • ${translatedNationality}</div></div><div class="player-stats-grid"><div class="p-stat-box"><div class="p-stat-title">${d.age}</div><div class="p-stat-value">${p.age || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.height}</div><div class="p-stat-value">${p.height || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.position}</div><div class="p-stat-value">${s.games?.position || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.rating}</div><div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(s.games?.rating || 0).toFixed(1) || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.goals}</div><div class="p-stat-value">${s.goals?.total || 0}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.assists}</div><div class="p-stat-value">${s.goals?.assists || 0}</div></div></div>`;
+    } catch (e) { container.innerHTML = `<div class="empty-msg">${d.noData}</div>`; }
 }
 
 document.getElementById('html-tag').setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
