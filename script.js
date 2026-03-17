@@ -1,46 +1,83 @@
-/** * ==========================================
- * FR SPORT - ULTIMATE BILINGUAL EDITION (STRICT FILTER & CLEAN NUMBERS)
- * ==========================================
- */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+import { getFirestore, collection, getDocs, doc, getDoc, query, where, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDL53-XOe8FFCqoWNzHdJJnLksYoxihxGw",
+  authDomain: "fr-sport-19893.firebaseapp.com",
+  projectId: "fr-sport-19893",
+  storageBucket: "fr-sport-19893.firebasestorage.app",
+  messagingSenderId: "627967441082",
+  appId: "1:627967441082:web:4600e2d1ceea5789722a83",
+  measurementId: "G-NS69W4HDMW"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// نظام المستخدم لتخزين المفضلة في Firebase
+let userId = localStorage.getItem('fr_user_id');
+if (!userId) {
+    userId = 'user_' + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('fr_user_id', userId);
+}
 
 const CONFIG = {
-    API_URL: "https://spring-dream-011d.farhad10180.workers.dev",
     LIVE_STATUSES: ['1H', '2H', 'HT', 'ET', 'P', 'LIVE', 'PEN'],
     NOT_STARTED_STATUSES: ['NS', 'TBD']
 };
 
-const AppState = { matchesCache: {}, globalMatches: [], isLiveMode: false, currentDate: '', currentLang: localStorage.getItem('frsport_lang') || 'ar' };
+const AppState = { 
+    matchesCache: {}, 
+    globalMatches: [], 
+    followingLeagues: [], // تخزين البطولات المفضلة
+    isLiveMode: false, 
+    currentDate: '', 
+    currentLang: localStorage.getItem('frsport_lang') || 'ar' 
+};
+
+// جلب المفضلة من Firebase عند بدء التطبيق
+async function loadFollowingData() {
+    try {
+        const docSnap = await getDoc(doc(db, "users_following", userId));
+        if (docSnap.exists() && docSnap.data().leagues) {
+            AppState.followingLeagues = docSnap.data().leagues;
+        }
+    } catch(e) { console.error("Error loading following data:", e); }
+}
+loadFollowingData();
 
 const UI_DICTIONARY = {
     ar: {
         live: "مباشر", matches: "المباريات", news: "أخبار", leagues: "البطولات", following: "يتابع", search: "بحث",
         today: "اليوم", yesterday: "الأمس", tomorrow: "غداً", loadingMatches: "جاري جلب المباريات...",
-        noMatches: "لا توجد مباريات اليوم", noLiveMatches: "لا توجد مباريات جارية حالياً", loadingNews: "جاري جلب الأخبار...",
+        noMatches: "لا توجد مباريات في هذا التاريخ", noLiveMatches: "لا توجد مباريات جارية حالياً", loadingNews: "جاري جلب الأخبار...",
         topLeaguesNow: "دوريات كبرى", liveTransfers: "انتقالات", topNews: "أحدث الأخبار الرياضية", topDeals: "أخبار الانتقالات والصفقات",
         standings: "جدول الترتيب", team: "الفريق", played: "لعب", gd: "فارق", pts: "نقاط",
         stats: "إحصائيات", lineups: "التشكيلة", subs: "البدلاء", age: "العمر", height: "الطول",
         position: "المركز", rating: "التقييم", goals: "الأهداف", assists: "الصناعة", notStarted: "لم تبدأ", finished: "انتهت",
-        loading: "جاري التحميل...", errorLoad: "حدث خطأ. يرجى المحاولة.", noData: "البيانات غير متوفرة حالياً", transfersWord: "انتقالات",
+        loading: "جاري التحميل...", errorLoad: "حدث خطأ في الاتصال بقاعدة البيانات.", noData: "البيانات غير متوفرة حالياً", transfersWord: "انتقالات",
         statsUnavailable: "الإحصائيات غير متوفرة", lineupsUnavailable: "التشكيلة غير متوفرة", standingsUnavailable: "جدول الترتيب غير متوفر",
-        // القائمة الجانبية
+        close: "إغلاق", todayBtn: "اليوم",
         sbAccount: "الحساب", sbMainScreen: "الشاشة الرئيسية", sbHome: "قم باختيار الشاشة الرئيسية",
         sbNewsLeagues: "الأخبار والبطولات", sbAllLeagues: "كل البطولات", sbSettings: "إعدادات",
-        sbLanguage: "اللغة", sbNotifications: "إشعارات"
+        sbLanguage: "اللغة", sbNotifications: "إشعارات",
+        follow: "متابعة", unfollow: "إلغاء المتابعة", noFollowing: "لم تقم بمتابعة أي بطولة بعد."
     },
     en: {
         live: "Live", matches: "Matches", news: "News", leagues: "Leagues", following: "Following", search: "Search",
         today: "Today", yesterday: "Yesterday", tomorrow: "Tomorrow", loadingMatches: "Fetching matches...",
-        noMatches: "No matches today", noLiveMatches: "No live matches right now", loadingNews: "Fetching news...",
+        noMatches: "No matches on this date", noLiveMatches: "No live matches right now", loadingNews: "Fetching news...",
         topLeaguesNow: "Top Leagues", liveTransfers: "Transfers", topNews: "Latest Global News", topDeals: "Live Transfer News & Rumors",
         standings: "Standings", team: "Team", played: "P", gd: "GD", pts: "Pts",
         stats: "Stats", lineups: "Lineups", subs: "Substitutes", age: "Age", height: "Height",
         position: "Position", rating: "Rating", goals: "Goals", assists: "Assists", notStarted: "Scheduled", finished: "FT",
-        loading: "Loading...", errorLoad: "Error loading. Please try again.", noData: "Data unavailable", transfersWord: "Transfers",
+        loading: "Loading...", errorLoad: "Error loading database. Please try again.", noData: "Data unavailable", transfersWord: "Transfers",
         statsUnavailable: "Stats unavailable", lineupsUnavailable: "Lineups unavailable", standingsUnavailable: "Standings unavailable",
-        // Sidebar
+        close: "Close", todayBtn: "Today",
         sbAccount: "Account", sbMainScreen: "Main Screen", sbHome: "Choose Main Screen",
         sbNewsLeagues: "News & Leagues", sbAllLeagues: "All Leagues", sbSettings: "Settings",
-        sbLanguage: "Language", sbNotifications: "Notifications"
+        sbLanguage: "Language", sbNotifications: "Notifications",
+        follow: "Follow", unfollow: "Unfollow", noFollowing: "You are not following any leagues yet."
     }
 };
 
@@ -54,9 +91,6 @@ const ARABIC_DICTIONARY = {
     "Al-Duhail SC": "الدحيل", "Al-Ahli Jeddah": "الأهلي السعودي", "Tractor Sazi": "تراكتور سازي", "Shabab Al Ahli Dubai": "شباب الأهلي دبي", "Al Hilal": "الهلال", "Al Nassr": "النصر"
 };
 
-/* ==========================================
- * نظام الترجمة الفورية الذكي (Google Translate)
- * ========================================== */
 const DYNAMIC_DICTIONARY_KEY = 'frsport_dynamic_dict';
 let dynamicDictionary = JSON.parse(localStorage.getItem(DYNAMIC_DICTIONARY_KEY) || '{}');
 
@@ -68,17 +102,14 @@ async function fetchGoogleTranslation(text) {
         const data = await res.json();
         return data[0][0][0];
     } catch (e) {
-        console.error("خطأ في الترجمة:", text);
         return text; 
     }
 }
 
 async function prepareTranslations(namesArray) {
     if (AppState.currentLang !== 'ar') return;
-    
     let needsSave = false;
     const uniqueNames = [...new Set(namesArray)];
-    
     const translationPromises = uniqueNames.map(async (name) => {
         if (name && !ARABIC_DICTIONARY[name] && !dynamicDictionary[name]) {
             const translated = await fetchGoogleTranslation(name);
@@ -86,9 +117,7 @@ async function prepareTranslations(namesArray) {
             needsSave = true;
         }
     });
-
     await Promise.all(translationPromises);
-
     if (needsSave) {
         localStorage.setItem(DYNAMIC_DICTIONARY_KEY, JSON.stringify(dynamicDictionary));
     }
@@ -102,14 +131,36 @@ function translateName(name) {
     return name; 
 }
 
-/* ==========================================
- * القائمة الجانبية (Sidebar Logic)
- * ========================================== */
+function isTranslated(name) {
+    if (AppState.currentLang !== 'ar') return true;
+    return !!(ARABIC_DICTIONARY[name] || dynamicDictionary[name]);
+}
+
+function observeTranslations() {
+    if (AppState.currentLang !== 'ar') return;
+    const observer = new IntersectionObserver((entries) => {
+        const toFetch = entries.filter(e => e.isIntersecting).map(e => e.target);
+        if (toFetch.length === 0) return;
+        const names = [...new Set(toFetch.map(el => el.getAttribute('data-trans')))];
+        toFetch.forEach(el => observer.unobserve(el));
+        prepareTranslations(names).then(() => {
+            toFetch.forEach(el => {
+                const orig = el.getAttribute('data-trans');
+                if (dynamicDictionary[orig] || ARABIC_DICTIONARY[orig]) {
+                    el.textContent = translateName(orig);
+                    el.removeAttribute('data-trans');
+                    el.classList.remove('lazy-text');
+                }
+            });
+        });
+    }, { rootMargin: '100px' });
+    document.querySelectorAll('.lazy-text').forEach(el => observer.observe(el));
+}
+
 function toggleSidebar() {
     const sidebar = document.getElementById('sidebar');
     const overlay = document.getElementById('sidebar-overlay');
     if (!sidebar || !overlay) return;
-
     if (sidebar.classList.contains('open')) {
         sidebar.classList.remove('open');
         overlay.classList.add('hidden');
@@ -120,15 +171,13 @@ function toggleSidebar() {
         document.body.style.overflow = 'hidden';
     }
 }
-
-/* ========================================== */
+window.toggleSidebar = toggleSidebar; 
 
 const Utils = {
     formatDateLoc: (dateObj, offset) => {
         if (offset === 0) return UI_DICTIONARY[AppState.currentLang].today; 
         if (offset === -1) return UI_DICTIONARY[AppState.currentLang].yesterday; 
         if (offset === 1) return UI_DICTIONARY[AppState.currentLang].tomorrow;
-        
         if (AppState.currentLang === 'ar') {
             const days = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
             const months = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
@@ -140,6 +189,7 @@ const Utils = {
         }
     },
     formatTimeLoc: (dateStr) => {
+        if(!dateStr || !dateStr.includes('T')) return dateStr || '';
         const d = new Date(dateStr);
         let timeEn = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
         if (AppState.currentLang === 'ar') {
@@ -148,7 +198,11 @@ const Utils = {
         return timeEn;
     },
     isLiveMatch: (s) => CONFIG.LIVE_STATUSES.includes(s),
-    isNotStarted: (s) => CONFIG.NOT_STARTED_STATUSES.includes(s)
+    isNotStarted: (s) => CONFIG.NOT_STARTED_STATUSES.includes(s),
+    getCurrentSeason: () => {
+        const d = new Date();
+        return d.getMonth() < 6 ? d.getFullYear() - 1 : d.getFullYear();
+    }
 };
 
 const TOP_LEAGUES = [
@@ -161,29 +215,43 @@ const TOP_LEAGUES = [
     { id: 307, nameAr: "الدوري السعودي", nameEn: "Saudi Pro League", logo: "https://media.api-sports.io/football/leagues/307.png" }
 ];
 
-function toggleLanguage() {
-    // إغلاق القائمة الجانبية عند تغيير اللغة
-    const sidebar = document.getElementById('sidebar');
-    if (sidebar && sidebar.classList.contains('open')) toggleSidebar();
+function toggleLanguageMenu() {
+    const submenu = document.getElementById('language-submenu');
+    submenu.classList.toggle('open');
+    const chevron = document.getElementById('lang-chevron');
+    if (submenu.classList.contains('open')) {
+        chevron.style.transform = AppState.currentLang === 'ar' ? 'rotate(270deg)' : 'rotate(90deg)';
+    } else {
+        chevron.style.transform = AppState.currentLang === 'ar' ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+}
+window.toggleLanguageMenu = toggleLanguageMenu;
 
-    AppState.currentLang = AppState.currentLang === 'ar' ? 'en' : 'ar';
+function setLanguage(lang) {
+    if (AppState.currentLang === lang) {
+        toggleLanguageMenu();
+        return; 
+    }
+    AppState.currentLang = lang;
     localStorage.setItem('frsport_lang', AppState.currentLang);
     document.getElementById('html-tag').setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
     document.getElementById('html-tag').setAttribute('lang', AppState.currentLang);
     updateUI();
     setupDatesBar();
     
-    if(!document.getElementById('tab-matches').classList.contains('hidden')) {
-        if (AppState.globalMatches && AppState.globalMatches.length > 0) {
-            renderMatchesList(AppState.globalMatches);
-        } else {
-            fetchMatches(AppState.currentDate);
-        }
-    }
-    
-    if(!document.getElementById('tab-news').classList.contains('hidden')) fetchNews();
-    if(!document.getElementById('tab-leagues').classList.contains('hidden')) renderLeaguesTab();
+    // Refresh current tab
+    const activeTab = document.querySelector('.nav-item.active').getAttribute('data-tab');
+    if (activeTab === 'matches') {
+        if (AppState.globalMatches && AppState.globalMatches.length > 0) renderMatchesList(AppState.globalMatches);
+        else fetchMatches(AppState.currentDate);
+    } else if (activeTab === 'news') fetchNews();
+    else if (activeTab === 'leagues') renderLeaguesTab();
+    else if (activeTab === 'following') renderFollowingTab();
+
+    toggleLanguageMenu();
+    toggleSidebar();
 }
+window.setLanguage = setLanguage;
 
 function updateUI() {
     const d = UI_DICTIONARY[AppState.currentLang];
@@ -193,8 +261,6 @@ function updateUI() {
     document.getElementById('nav-leagues').innerText = d.leagues;
     document.getElementById('nav-following').innerText = d.following;
     document.getElementById('nav-search').innerText = d.search;
-    
-    // تعريب القائمة الجانبية
     if(document.getElementById('text-sb-account')) document.getElementById('text-sb-account').innerText = d.sbAccount;
     if(document.getElementById('text-sb-main-screen')) document.getElementById('text-sb-main-screen').innerText = d.sbMainScreen;
     if(document.getElementById('text-sb-home')) document.getElementById('text-sb-home').innerText = d.sbHome;
@@ -203,22 +269,47 @@ function updateUI() {
     if(document.getElementById('text-sb-settings')) document.getElementById('text-sb-settings').innerText = d.sbSettings;
     if(document.getElementById('text-sb-language')) document.getElementById('text-sb-language').innerText = d.sbLanguage;
     if(document.getElementById('text-sb-notifications')) document.getElementById('text-sb-notifications').innerText = d.sbNotifications;
-
     const loadingMatches = document.getElementById('text-loading-matches');
     if(loadingMatches) loadingMatches.innerText = d.loadingMatches;
     const standingsTitle = document.getElementById('text-standings-title');
     if(standingsTitle) standingsTitle.innerText = d.standings;
+    if(document.getElementById('text-cal-close')) document.getElementById('text-cal-close').innerText = d.close;
+    if(document.getElementById('text-cal-today')) document.getElementById('text-cal-today').innerText = d.todayBtn;
 }
 
 function setupDatesBar() {
     const container = document.getElementById('dates-container');
     if (!container) return;
-    let html = ''; const today = new Date();
+    const realTodayStr = new Date().toISOString().split('T')[0]; 
+    const centerDateStr = AppState.currentDate || realTodayStr;
+    const centerDate = new Date(centerDateStr);
+    let html = ''; 
     for (let i = -7; i <= 7; i++) {
-        let d = new Date(); d.setDate(today.getDate() + i);
-        let dateStr = d.toISOString().split('T')[0];
-        let active = dateStr === AppState.currentDate || (i === 0 && !AppState.currentDate) ? "active" : "";
-        html += `<div class="date-item ${active}" id="btn-${dateStr}" onclick="selectDate('${dateStr}')">${Utils.formatDateLoc(d, i)}</div>`;
+        let d = new Date(centerDate); 
+        d.setDate(centerDate.getDate() + i);
+        let month = String(d.getMonth() + 1).padStart(2, '0');
+        let day = String(d.getDate()).padStart(2, '0');
+        let dateStr = `${d.getFullYear()}-${month}-${day}`;
+        let active = dateStr === centerDateStr ? "active" : "";
+        let realTodayObj = new Date(realTodayStr);
+        let diffTime = d.getTime() - realTodayObj.getTime();
+        let diffDays = Math.round(diffTime / (1000 * 3600 * 24));
+        let displayText = '';
+        if (diffDays === 0) displayText = UI_DICTIONARY[AppState.currentLang].today;
+        else if (diffDays === -1) displayText = UI_DICTIONARY[AppState.currentLang].yesterday;
+        else if (diffDays === 1) displayText = UI_DICTIONARY[AppState.currentLang].tomorrow;
+        else {
+            if (AppState.currentLang === 'ar') {
+                const days = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+                const months = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"];
+                displayText = `${days[d.getDay()]} ${d.getDate()} ${months[d.getMonth()]}`;
+            } else {
+                const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                displayText = `${days[d.getDay()]} ${d.getDate().toString().padStart(2, '0')} ${months[d.getMonth()]}`;
+            }
+        }
+        html += `<div class="date-item ${active}" id="btn-${dateStr}" onclick="selectDate('${dateStr}')">${displayText}</div>`;
     }
     container.innerHTML = html;
     setTimeout(() => { document.querySelector('.date-item.active')?.scrollIntoView({ behavior: 'smooth', inline: 'center' }); }, 100);
@@ -226,26 +317,46 @@ function setupDatesBar() {
 
 function selectDate(dateStr) {
     if (AppState.currentDate === dateStr) return;
-    document.querySelectorAll('.date-item').forEach(el => el.classList.remove('active'));
-    const activeBtn = document.getElementById(`btn-${dateStr}`);
-    if(activeBtn) { activeBtn.classList.add('active'); activeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center' }); }
+    AppState.currentDate = dateStr;
+    setupDatesBar();
     const matchesTabBtn = document.querySelector('.nav-item[data-tab="matches"]');
     if(matchesTabBtn) switchTab(matchesTabBtn);
     fetchMatches(dateStr);
 }
+window.selectDate = selectDate;
+
+// إضافة الحاويات الناقصة لتبويبات يتابع وبحث إذا لم تكن موجودة في HTML
+function ensureTabContainersExist() {
+    if(!document.getElementById('tab-following')) {
+        const followingTab = document.createElement('main');
+        followingTab.className = 'leagues-container hidden';
+        followingTab.id = 'tab-following';
+        followingTab.style.paddingTop = '15px';
+        document.body.insertBefore(followingTab, document.querySelector('.bottom-nav'));
+    }
+    if(!document.getElementById('tab-search')) {
+        const searchTab = document.createElement('main');
+        searchTab.className = 'leagues-container hidden';
+        searchTab.id = 'tab-search';
+        searchTab.style.paddingTop = '15px';
+        searchTab.innerHTML = `<div class="empty-msg">البحث سيكون متاحاً قريباً</div>`;
+        document.body.insertBefore(searchTab, document.querySelector('.bottom-nav'));
+    }
+}
 
 function switchTab(el) {
-    // إغلاق القائمة الجانبية عند تغيير التبويب
+    ensureTabContainersExist();
     const sidebar = document.getElementById('sidebar');
     if (sidebar && sidebar.classList.contains('open')) toggleSidebar();
-
+    
     document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
     el.classList.add('active');
     
-    document.getElementById('tab-matches').classList.add('hidden');
-    document.getElementById('tab-news').classList.add('hidden');
-    document.getElementById('tab-leagues').classList.add('hidden');
-    
+    ['tab-matches', 'tab-news', 'tab-leagues', 'tab-following', 'tab-search'].forEach(id => {
+        const elem = document.getElementById(id);
+        if(elem) elem.classList.add('hidden');
+    });
+
     const tabData = el.getAttribute('data-tab');
     const datesWrapper = document.querySelector('.dates-wrapper');
     
@@ -260,26 +371,99 @@ function switchTab(el) {
         document.getElementById('tab-leagues').classList.remove('hidden');
         datesWrapper.style.display = 'none'; 
         renderLeaguesTab(); 
-    } else {
+    } else if(tabData === 'following') {
+        document.getElementById('tab-following').classList.remove('hidden');
+        datesWrapper.style.display = 'none'; 
+        renderFollowingTab();
+    } else if(tabData === 'search') {
+        document.getElementById('tab-search').classList.remove('hidden');
         datesWrapper.style.display = 'none';
     }
 }
+window.switchTab = switchTab;
 
 function toggleLive(btn) {
     btn.classList.toggle('active');
     AppState.isLiveMode = btn.classList.contains('active');
     renderMatchesList(AppState.globalMatches);
 }
+window.toggleLive = toggleLive;
+
+// === نظام المتابعة (Firebase) ===
+async function toggleFollowLeague(event, leagueId, nameAr, nameEn, logo) {
+    event.stopPropagation(); // لمنع فتح ترتيب الدوري عند الضغط على النجمة
+    const index = AppState.followingLeagues.findIndex(l => l.id === leagueId);
+    if (index > -1) {
+        AppState.followingLeagues.splice(index, 1);
+        event.target.style.fill = 'none';
+        event.target.style.stroke = 'var(--text-muted)';
+    } else {
+        AppState.followingLeagues.push({ id: leagueId, nameAr, nameEn, logo });
+        event.target.style.fill = 'var(--accent-color)';
+        event.target.style.stroke = 'var(--accent-color)';
+    }
+
+    // تحديث واجهة المتابعة إذا كنا فيها
+    if (!document.getElementById('tab-following').classList.contains('hidden')) {
+        renderFollowingTab();
+    }
+
+    // حفظ في Firebase
+    try {
+        await setDoc(doc(db, "users_following", userId), { leagues: AppState.followingLeagues }, { merge: true });
+    } catch(e) { console.error("Firebase save error", e); }
+}
+window.toggleFollowLeague = toggleFollowLeague;
 
 function renderLeaguesTab() {
     const container = document.getElementById('tab-leagues');
     if (!container) return;
     const d = UI_DICTIONARY[AppState.currentLang];
-    
     let html = `<div class="trending-header" style="padding-top:0;">${d.topLeaguesNow}</div><div class="leagues-grid">`;
+    
     TOP_LEAGUES.forEach(l => {
         let displayName = AppState.currentLang === 'ar' ? l.nameAr : l.nameEn;
-        html += `<div class="league-card" onclick="openLeagueStandings(${l.id})"><img src="${l.logo}" class="league-card-logo"><div class="league-card-info"><div class="league-card-name">${displayName}</div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" style="transform: rotate(180deg);"><polyline points="9 18 15 12 9 6"></polyline></svg></div>`;
+        let isFollowed = AppState.followingLeagues.some(fl => fl.id === l.id);
+        let starFill = isFollowed ? 'var(--accent-color)' : 'none';
+        let starStroke = isFollowed ? 'var(--accent-color)' : 'var(--text-muted)';
+
+        html += `
+        <div class="league-card" onclick="openLeagueStandings(${l.id})">
+            <img src="${l.logo}" class="league-card-logo">
+            <div class="league-card-info">
+                <div class="league-card-name">${displayName}</div>
+            </div>
+            <svg onclick="toggleFollowLeague(event, ${l.id}, '${l.nameAr}', '${l.nameEn}', '${l.logo}')" width="22" height="22" viewBox="0 0 24 24" fill="${starFill}" stroke="${starStroke}" stroke-width="2" style="cursor:pointer;">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+        </div>`;
+    });
+    container.innerHTML = html + `</div>`;
+}
+
+function renderFollowingTab() {
+    const container = document.getElementById('tab-following');
+    if (!container) return;
+    const d = UI_DICTIONARY[AppState.currentLang];
+    
+    if (AppState.followingLeagues.length === 0) {
+        container.innerHTML = `<div class="empty-msg" style="margin-top:50px;">${d.noFollowing}</div>`;
+        return;
+    }
+
+    let html = `<div class="trending-header" style="padding-top:0;">${d.following}</div><div class="leagues-grid">`;
+    AppState.followingLeagues.forEach(l => {
+        let displayName = AppState.currentLang === 'ar' ? l.nameAr : l.nameEn;
+        html += `
+        <div class="league-card" onclick="openLeagueStandings(${l.id})">
+            <img src="${l.logo}" class="league-card-logo">
+            <div class="league-card-info">
+                <div class="league-card-name">${displayName}</div>
+            </div>
+            <svg onclick="toggleFollowLeague(event, ${l.id}, '${l.nameAr}', '${l.nameEn}', '${l.logo}')" width="22" height="22" viewBox="0 0 24 24" fill="var(--accent-color)" stroke="var(--accent-color)" stroke-width="2" style="cursor:pointer;">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+        </div>`;
     });
     container.innerHTML = html + `</div>`;
 }
@@ -288,7 +472,6 @@ async function fetchNews() {
     const container = document.getElementById('tab-news');
     if(!container) return;
     const d = UI_DICTIONARY[AppState.currentLang];
-
     const cacheKey = `frsport_news_cache_${AppState.currentLang}`;
     const cachedNews = localStorage.getItem(cacheKey);
     if (cachedNews) {
@@ -296,11 +479,9 @@ async function fetchNews() {
     } else {
         container.innerHTML = `<div class="loader" style="margin-top:50px; color:var(--accent-color);">${d.loadingNews}</div>`;
     }
-    
     try {
         let normalizedArticles = [];
         let transferKeywords = [];
-        
         if (AppState.currentLang === 'ar') {
             const arUrl1 = 'https://www.skynewsarabia.com/rss/sport';
             const arUrl2 = 'https://arabic.rt.com/rss/sport/';
@@ -309,11 +490,9 @@ async function fetchNews() {
                 fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(arUrl2)}`)
             ]);
             const data1 = await res1.json(); const data2 = await res2.json();
-            
             let allArArticles = [];
             if(data1.status === 'ok') allArArticles.push(...data1.items);
             if(data2.status === 'ok') allArArticles.push(...data2.items);
-            
             allArArticles.forEach(a => {
                 normalizedArticles.push({
                     title: a.title, link: a.link, pubDate: a.pubDate,
@@ -328,11 +507,9 @@ async function fetchNews() {
             const laligaUrl = 'https://site.api.espn.com/apis/site/v2/sports/soccer/esp.1/news?limit=50';
             const [eplRes, laligaRes] = await Promise.all([ fetch(eplUrl), fetch(laligaUrl) ]);
             const eplData = await eplRes.json(); const laligaData = await laligaRes.json();
-            
             let allEnArticles = [];
             if(eplData.articles) allEnArticles.push(...eplData.articles);
             if(laligaData.articles) allEnArticles.push(...laligaData.articles);
-            
             allEnArticles.forEach(a => {
                 normalizedArticles.push({
                     title: a.headline, link: a.links?.web?.href, pubDate: a.published,
@@ -342,23 +519,18 @@ async function fetchNews() {
             });
             transferKeywords = ['transfer', 'sign', 'deal', 'loan', 'bid', 'contract', 'move', 'medical', 'agrees', 'swap'];
         }
-
         let uniqueArticles = []; let titles = new Set();
         normalizedArticles.forEach(a => { if(!titles.has(a.title)) { titles.add(a.title); uniqueArticles.push(a); } });
         uniqueArticles.sort((a,b) => new Date(b.pubDate) - new Date(a.pubDate));
         if(uniqueArticles.length === 0) return;
-
         const transferArticles = uniqueArticles.filter(a => transferKeywords.some(kw => a.title.toLowerCase().includes(kw)));
         const defaultImg = 'https://images.unsplash.com/photo-1518605368461-1e1e38ce81c2?q=80&w=600&auto=format&fit=crop';
-
         let combinedHtml = `<div class="news-top-nav"><div class="news-top-tab active" onclick="switchNewsSubTab('foryou', this)">${d.topLeaguesNow}</div><div class="news-top-tab" onclick="switchNewsSubTab('transfers', this)">${d.liveTransfers}</div></div><div id="news-content-area">`;
-
         let forYouHtml = `<div id="news-foryou-content"><div class="trending-header">${d.topNews}</div><div class="news-feed">`;
         uniqueArticles.slice(0, 30).forEach((article, index) => {
             let img = article.img || defaultImg;
             let pDate = Utils.formatTimeLoc(article.pubDate);
             let alignClass = AppState.currentLang === 'ar' ? 'text-align:right; direction:rtl;' : 'text-align:left; direction:ltr;'; 
-
             if (index === 0) { 
                 forYouHtml += `<div class="news-hero-card" onclick="window.open('${article.link}', '_blank')"><img src="${img}" class="news-hero-img" onerror="this.onerror=null; this.src='${defaultImg}'"><div class="news-hero-title" style="${alignClass}">${article.title}</div><div class="news-date" style="${alignClass} color:var(--accent-color);">${article.source} • ${pDate}</div></div>`; 
             } else { 
@@ -366,7 +538,6 @@ async function fetchNews() {
             }
         });
         forYouHtml += `</div></div>`;
-
         let transfersHtml = `<div id="news-transfers-content" class="hidden"><div class="trending-header" style="color:var(--accent-color);">${d.topDeals}</div><div class="news-feed">`;
         if (transferArticles.length > 0) {
             transferArticles.slice(0, 20).forEach(article => {
@@ -377,11 +548,9 @@ async function fetchNews() {
             });
         } else { transfersHtml += `<div class="empty-msg">${d.noData}</div>`; }
         transfersHtml += `</div></div>`;
-        
         combinedHtml += forYouHtml + transfersHtml + `</div>`;
         container.innerHTML = combinedHtml;
         localStorage.setItem(cacheKey, combinedHtml);
-
     } catch (e) { console.error("News sync failed", e); }
 }
 
@@ -392,6 +561,7 @@ function switchNewsSubTab(tabId, el) {
     document.getElementById('news-transfers-content').classList.add('hidden');
     document.getElementById(`news-${tabId}-content`).classList.remove('hidden');
 }
+window.switchNewsSubTab = switchNewsSubTab;
 
 function getLeaguePriority(league) {
     const id = league.id; const name = league.name ? league.name.toLowerCase() : '';
@@ -407,30 +577,49 @@ async function fetchMatches(date) {
     const container = document.getElementById('tab-matches');
     if (!container) return;
     const d = UI_DICTIONARY[AppState.currentLang];
-
-    const cacheKey = `frsport_matches_${date}_${AppState.currentLang}`;
     
-    if (AppState.matchesCache[date]) { 
-        AppState.globalMatches = AppState.matchesCache[date]; 
-        renderMatchesList(AppState.globalMatches); 
-    } else {
-        const cachedHtml = localStorage.getItem(cacheKey);
-        if(cachedHtml) {
-            container.innerHTML = cachedHtml;
-        } else {
-            container.innerHTML = `<div class="loader">${d.loadingMatches}</div>`;
-        }
-    }
+    container.innerHTML = `<div class="loader">${d.loadingMatches}</div>`;
     
     try {
-        const res = await fetch(`${CONFIG.API_URL}/fixtures?date=${date}`);
-        if(!res.ok) throw new Error("Server error");
-        const data = await res.json();
-        const matches = data.response || [];
-        AppState.matchesCache[date] = matches; 
+        const WORKER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
+        const targetUrl = `${WORKER_URL}/apifootball/fixtures?date=${date}`;
+        
+        const response = await fetch(targetUrl);
+        const data = await response.json();
+        
+        let matches = [];
+        
+        if (data && data.response) {
+            data.response.forEach(item => {
+                matches.push({
+                    fixture: {
+                        id: item.fixture.id,
+                        date: item.fixture.date,
+                        status: { short: item.fixture.status.short, elapsed: item.fixture.status.elapsed || 0 }
+                    },
+                    league: {
+                        id: item.league.id,
+                        name: item.league.name,
+                        country: item.league.country,
+                        logo: item.league.logo
+                    },
+                    teams: {
+                        home: { name: item.teams.home.name, logo: item.teams.home.logo },
+                        away: { name: item.teams.away.name, logo: item.teams.away.logo }
+                    },
+                    goals: {
+                        home: item.goals.home !== null ? item.goals.home : null,
+                        away: item.goals.away !== null ? item.goals.away : null
+                    }
+                });
+            });
+        }
+
         AppState.globalMatches = matches;
         await renderMatchesList(matches);
+        
     } catch (error) { 
+        console.error("Fetch Error:", error);
         if(!container.innerHTML.includes('match-row')) {
             container.innerHTML = `<div class="empty-msg">${d.errorLoad}</div>`; 
         }
@@ -440,126 +629,126 @@ async function fetchMatches(date) {
 async function renderMatchesList(matches) {
     const container = document.getElementById('tab-matches');
     const d = UI_DICTIONARY[AppState.currentLang];
-    const cacheKey = `frsport_matches_${AppState.currentDate}_${AppState.currentLang}`;
-
     if (!matches || matches.length === 0) { 
         container.innerHTML = `<div class="empty-msg">${d.noMatches}</div>`; 
-        localStorage.setItem(cacheKey, container.innerHTML);
         return; 
     }
-    
-    let namesToTranslate = [];
-    matches.forEach(m => {
-        if(m.league.name) namesToTranslate.push(m.league.name);
-        if(m.league.country) namesToTranslate.push(m.league.country);
-        if(m.teams.home.name) namesToTranslate.push(m.teams.home.name);
-        if(m.teams.away.name) namesToTranslate.push(m.teams.away.name);
-    });
-
-    if (AppState.currentLang === 'ar') {
-        if(!container.innerHTML.includes('match-row') && !container.innerHTML.includes('league-group')) {
-            container.innerHTML = `<div class="loader" style="margin-top:20px; font-size:12px; color:var(--accent-color);">جاري تعريب الأسماء...</div>`;
-        }
-        await prepareTranslations(namesToTranslate);
-    }
-
     const leaguesGroup = {};
     matches.forEach(m => {
         if (AppState.isLiveMode && !Utils.isLiveMatch(m.fixture.status.short)) return;
         const priority = getLeaguePriority(m.league);
         if (priority === 999) return; 
-
         if (priority === 10 && AppState.currentLang === 'ar') {
-             const isTranslated = !!translateName(m.league.name) || !!translateName(m.league.country);
-             if (!isTranslated) return; 
+             const isT = isTranslated(m.league.name) || isTranslated(m.league.country);
+             if (!isT) return; 
         }
-
         const lId = m.league.id;
         if (!leaguesGroup[lId]) { leaguesGroup[lId] = { info: m.league, games: [] }; }
         leaguesGroup[lId].games.push(m);
     });
-
     const sortedLeagues = Object.values(leaguesGroup).sort((a, b) => {
         let priorityA = getLeaguePriority(a.info); let priorityB = getLeaguePriority(b.info);
         if(priorityA !== priorityB) return priorityA - priorityB;
         return a.info.name.localeCompare(b.info.name);
     });
-
     if (sortedLeagues.length === 0) { 
         container.innerHTML = `<div class="empty-msg">${d.noLiveMatches}</div>`; 
         return; 
     }
-
     let html = '';
     sortedLeagues.forEach(group => {
-        const translatedLeagueName = translateName(group.info.name);
-        const translatedCountry = translateName(group.info.country); 
-
-        html += `<div class="league-group"><div class="league-header"><div class="league-title-wrapper"><img src="${group.info.logo}" class="league-logo"><span class="league-name">${translatedCountry} - ${translatedLeagueName}</span></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg></div>`;
+        const tLeagueName = translateName(group.info.name);
+        const tCountry = translateName(group.info.country); 
+        const attrL = !isTranslated(group.info.name) ? `data-trans="${group.info.name}" class="league-name lazy-text"` : `class="league-name"`;
+        const attrC = !isTranslated(group.info.country) ? `data-trans="${group.info.country}" class="lazy-text"` : ``;
+        html += `<div class="league-group"><div class="league-header" onclick="openLeagueStandings(${group.info.id})"><div class="league-title-wrapper"><img src="${group.info.logo}" class="league-logo"><span ${attrL}><span ${attrC}>${tCountry}</span> - ${tLeagueName}</span></div><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 15l-6-6-6 6"/></svg></div>`;
         group.games.forEach(m => {
             const s = m.fixture.status.short;
-            let hGoals = m.goals.home !== null ? m.goals.home : '';
-            let aGoals = m.goals.away !== null ? m.goals.away : '';
-            let centerContent = '';
+            let hG = m.goals.home !== null ? m.goals.home : '';
+            let aG = m.goals.away !== null ? m.goals.away : '';
+            let center = '';
             if (Utils.isNotStarted(s)) {
-                const timeStr = Utils.formatTimeLoc(m.fixture.date);
-                centerContent = `<div class="match-center" style="direction:ltr;">${timeStr}</div>`;
+                center = `<div class="match-center" style="direction:ltr; font-size:9px;">${Utils.formatTimeLoc(m.fixture.date)}</div>`;
             } else if (Utils.isLiveMatch(s)) {
-                centerContent = `<div class="match-center live"><span style="font-size:10px;">${m.fixture.status.elapsed}'</span><br>${hGoals} - ${aGoals}</div>`;
-            } else { centerContent = `<div class="match-center">${hGoals} - ${aGoals}</div>`; }
-
-            const translatedHomeTeam = translateName(m.teams.home.name);
-            const translatedAwayTeam = translateName(m.teams.away.name);
-
-            html += `<div class="match-row" onclick="openMatchDetails(${m.fixture.id})"><div class="match-teams-score"><span class="team-name home-name">${translatedHomeTeam}</span><img src="${m.teams.home.logo}" class="team-logo">${centerContent}<img src="${m.teams.away.logo}" class="team-logo"><span class="team-name away-name">${translatedAwayTeam}</span></div></div>`;
+                center = `<div class="match-center live" style="font-size:9px;"><span style="font-size:8px;">${m.fixture.status.elapsed}'</span><br>${hG} - ${aG}</div>`;
+            } else { center = `<div class="match-center" style="font-size:9px;">${hG} - ${aG}</div>`; }
+            const tHome = translateName(m.teams.home.name);
+            const tAway = translateName(m.teams.away.name);
+            const attrH = !isTranslated(m.teams.home.name) ? `data-trans="${m.teams.home.name}" class="team-name home-name lazy-text"` : `class="team-name home-name"`;
+            const attrA = !isTranslated(m.teams.away.name) ? `data-trans="${m.teams.away.name}" class="team-name away-name lazy-text"` : `class="team-name away-name"`;
+            html += `<div class="match-row" onclick="openMatchDetails('${m.fixture.id}')"><div class="match-teams-score"><span ${attrH}>${tHome}</span><img src="${m.teams.home.logo}" class="team-logo">${center}<img src="${m.teams.away.logo}" class="team-logo"><span ${attrA}>${tAway}</span></div></div>`;
         });
         html += `</div>`;
     });
-    
     container.innerHTML = html;
-    if (!AppState.isLiveMode) localStorage.setItem(cacheKey, html);
+    observeTranslations();
 }
 
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-function switchModalTab(tab) { document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.add('hidden')); event.target.classList.add('active'); document.getElementById(`modal-${tab}`).classList.remove('hidden'); }
+window.closeModal = closeModal;
 
+function switchModalTab(tab) { 
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
+    document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.add('hidden')); 
+    event.target.classList.add('active'); 
+    document.getElementById(`modal-${tab}`).classList.remove('hidden'); 
+}
+window.switchModalTab = switchModalTab;
+
+// === تكامل API-Football لجلب الترتيب ===
 async function openLeagueStandings(leagueId) {
     const modal = document.getElementById('standings-modal');
     const container = document.getElementById('standings-container');
     const d = UI_DICTIONARY[AppState.currentLang];
     modal.classList.remove('hidden');
-    
-    const cacheKey = `frsport_standings_${leagueId}_${AppState.currentLang}`;
-    const cachedStandings = localStorage.getItem(cacheKey);
-    if(cachedStandings) {
-        container.innerHTML = cachedStandings;
-    } else {
-        container.innerHTML = `<div class="loader" style="margin-top:50px;">${d.loading}</div>`;
-    }
+    container.innerHTML = `<div class="loader" style="margin-top:50px;">${d.loading}</div>`;
 
     try {
-        const res = await fetch(`${CONFIG.API_URL}/standings?league=${leagueId}&season=2025`);
-        const data = await res.json();
-        const leagueData = data.response?.[0]?.league;
-        if(!leagueData || !leagueData.standings || leagueData.standings.length === 0) throw new Error("No standings");
-
-        let namesToTranslate = [leagueData.name];
-        leagueData.standings[0].forEach(row => { if(row.team.name) namesToTranslate.push(row.team.name); });
-        await prepareTranslations(namesToTranslate);
-
-        const translatedLeagueName = translateName(leagueData.name);
-        let html = `<div class="match-hero" style="padding:20px; text-align:center;"><img src="${leagueData.logo}" style="width:70px; height:70px; margin-bottom:10px;"><div class="player-name-large" style="font-size:18px;">${translatedLeagueName}</div></div><div class="standings-table"><div class="st-header"><div class="st-rank">#</div><div class="st-team">${d.team}</div><div class="st-p">${d.played}</div><div class="st-gd">${d.gd}</div><div class="st-pts">${d.pts}</div></div>`;
-
-        leagueData.standings[0].forEach(row => {
-            const translatedTeamName = translateName(row.team.name);
-            html += `<div class="st-row"><div class="st-rank">${row.rank}</div><div class="st-team"><img src="${row.team.logo}" onerror="this.onerror=null; this.style.display='none'">${translatedTeamName}</div><div class="st-p">${row.all.played}</div><div class="st-gd" style="direction:ltr;">${row.goalsDiff > 0 ? '+'+row.goalsDiff : row.goalsDiff}</div><div class="st-pts">${row.points}</div></div>`;
-        });
-        html += `</div>`;
+        const WORKER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
+        const season = Utils.getCurrentSeason(); 
+        const targetUrl = `${WORKER_URL}/apifootball/standings?league=${leagueId}&season=${season}`;
         
-        container.innerHTML = html;
-        localStorage.setItem(cacheKey, html);
-    } catch (e) { if(!container.innerHTML.includes('st-row')) container.innerHTML = `<div class="empty-msg" style="margin-top:50px;">${d.standingsUnavailable}</div>`; }
+        const response = await fetch(targetUrl);
+        const data = await response.json();
+
+        if (data && data.response && data.response.length > 0) {
+            const standings = data.response[0].league.standings[0];
+            let html = `
+                <div class="standings-table">
+                    <div class="st-header">
+                        <div class="st-rank">#</div>
+                        <div class="st-team">${d.team}</div>
+                        <div class="st-p">${d.played}</div>
+                        <div class="st-gd">${d.gd}</div>
+                        <div class="st-pts">${d.pts}</div>
+                    </div>`;
+            
+            standings.forEach(row => {
+                const tName = translateName(row.team.name);
+                const attrT = !isTranslated(row.team.name) ? `data-trans="${row.team.name}" class="lazy-text"` : ``;
+                html += `
+                    <div class="st-row">
+                        <div class="st-rank">${row.rank}</div>
+                        <div class="st-team">
+                            <img src="${row.team.logo}">
+                            <span ${attrT}>${tName}</span>
+                        </div>
+                        <div class="st-p">${row.all.played}</div>
+                        <div class="st-gd">${row.goalsDiff}</div>
+                        <div class="st-pts">${row.points}</div>
+                    </div>`;
+            });
+            html += `</div>`;
+            container.innerHTML = html;
+            observeTranslations();
+        } else {
+            container.innerHTML = `<div class="empty-msg">${d.noData}</div>`;
+        }
+    } catch (e) {
+        container.innerHTML = `<div class="empty-msg">${d.errorLoad}</div>`;
+    }
 }
+window.openLeagueStandings = openLeagueStandings;
 
 function buildPitchHtml(teamLineup, teamInfo) {
     if (!teamLineup || !teamLineup.startXI || teamLineup.startXI.length === 0) return '';
@@ -570,70 +759,107 @@ function buildPitchHtml(teamLineup, teamInfo) {
     Object.keys(rows).sort((a,b)=>a-b).forEach(key => {
         html += `<div class="pitch-row">`;
         rows[key].sort((a,b) => (a.grid ? parseInt(a.grid.split(':')[1]) : 0) - (b.grid ? parseInt(b.grid.split(':')[1]) : 0)).forEach(p => {
-            html += `<div class="pitch-player" onclick="openPlayerDetails(${p.id})"><div class="pitch-player-img-wrapper"><img src="https://media.api-sports.io/football/players/${p.id}.png" class="pitch-player-img" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png'; this.style.backgroundColor='#111';"><div class="pitch-player-num">${p.number || ''}</div></div><div class="pitch-player-name">${p.name.split(' ').pop()}</div></div>`;
+            html += `<div class="pitch-player" onclick="openPlayerDetails('${p.id}')"><div class="pitch-player-img-wrapper"><img src="https://media.api-sports.io/football/players/${p.id}.png" class="pitch-player-img" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png'; this.style.backgroundColor='#111';"><div class="pitch-player-num">${p.number || ''}</div></div><div class="pitch-player-name">${p.name.split(' ').pop()}</div></div>`;
         });
         html += `</div>`;
     });
     return html + `</div></div>`;
 }
 
+// === تكامل API-Football لجلب تفاصيل المباراة ===
 async function openMatchDetails(id) {
     const modal = document.getElementById('match-modal');
     const container = document.getElementById('match-info-container');
     const d = UI_DICTIONARY[AppState.currentLang];
     modal.classList.remove('hidden');
     container.innerHTML = `<div class="loader" style="margin-top:50px;">${d.loading}</div>`;
+    
     try {
-        const [matchRes, injuriesRes] = await Promise.all([fetch(`${CONFIG.API_URL}/fixtures?id=${id}`), fetch(`${CONFIG.API_URL}/injuries?fixture=${id}`)]);
-        const matchData = await matchRes.json(); const injuriesData = await injuriesRes.json();
-        const m = matchData.response?.[0];
+        const WORKER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
+        const targetUrl = `${WORKER_URL}/apifootball/fixtures?id=${id}`;
         
-        if(m) {
-            await prepareTranslations([m.teams.home.name, m.teams.away.name]);
+        const response = await fetch(targetUrl);
+        const data = await response.json();
+        
+        if (data && data.response && data.response.length > 0) {
+            const item = data.response[0];
+            await prepareTranslations([item.teams.home.name, item.teams.away.name]);
+            renderMatchDetailsModal(item, container);
+        } else {
+            throw new Error("Match not found");
         }
-        
-        renderMatchDetailsModal(m, injuriesData.response || [], container);
-    } catch (e) { container.innerHTML = `<div class="empty-msg">${d.errorLoad}</div>`; }
+    } catch (e) { 
+        container.innerHTML = `<div class="empty-msg">${d.errorLoad}</div>`; 
+    }
 }
+window.openMatchDetails = openMatchDetails;
 
-function renderMatchDetailsModal(m, injuries, container) {
-    if(!m) return;
+function renderMatchDetailsModal(item, container) {
+    if(!item) return;
     const d = UI_DICTIONARY[AppState.currentLang];
-    let matchStatus = m.fixture.status.short;
-    let scoreOrTime = Utils.isNotStarted(matchStatus) ? Utils.formatTimeLoc(m.fixture.date) : `${m.goals.home ?? 0} - ${m.goals.away ?? 0}`;
-    let subText = Utils.isNotStarted(matchStatus) ? d.notStarted : Utils.isLiveMatch(matchStatus) ? `<span style="color:var(--accent-color)">${m.fixture.status.elapsed}'</span>` : d.finished;
-    const translatedHomeTeam = translateName(m.teams.home.name); const translatedAwayTeam = translateName(m.teams.away.name);
+    let s = item.fixture.status.short;
+    let score = Utils.isNotStarted(s) ? Utils.formatTimeLoc(item.fixture.date) : `${item.goals.home ?? 0} - ${item.goals.away ?? 0}`;
+    let sub = Utils.isNotStarted(s) ? d.notStarted : Utils.isLiveMatch(s) ? `<span style="color:var(--accent-color)">${item.fixture.status.elapsed}'</span>` : d.finished;
     
-    let html = `<div class="match-hero"><div class="hero-team"><img src="${m.teams.home.logo}"><span class="p-name">${translatedHomeTeam}</span></div><div class="hero-score-time"><div class="hero-score" style="direction:ltr;">${scoreOrTime}</div><div class="hero-sub">${subText}</div></div><div class="hero-team"><img src="${m.teams.away.logo}"><span class="p-name">${translatedAwayTeam}</span></div></div><div class="tabs-container"><div class="tab-btn" onclick="switchModalTab('stats')">${d.stats}</div><div class="tab-btn active" onclick="switchModalTab('lineups')">${d.lineups}</div></div>`;
+    let html = `
+        <div class="match-hero">
+            <div class="hero-team"><img src="${item.teams.home.logo}"><span class="p-name">${translateName(item.teams.home.name)}</span></div>
+            <div class="hero-score-time">
+                <div class="hero-score" style="direction:ltr; font-size:24px;">${score}</div>
+                <div class="hero-sub">${sub}</div>
+            </div>
+            <div class="hero-team"><img src="${item.teams.away.logo}"><span class="p-name">${translateName(item.teams.away.name)}</span></div>
+        </div>
+        <div class="tabs-container">
+            <div class="tab-btn active" onclick="switchModalTab('stats')">${d.stats}</div>
+            <div class="tab-btn" onclick="switchModalTab('lineups')">${d.lineups}</div>
+        </div>`;
     
-    let statsHtml = '<div id="modal-stats" class="modal-tab-content hidden">';
-    if (m.statistics && m.statistics.length > 1) {
-        m.statistics[0].statistics.forEach((stat, i) => {
-            let hVal = stat.value ?? 0; let aVal = m.statistics[1].statistics[i].value ?? 0;
-            let hNum = parseInt(String(hVal).replace('%','')) || 0; let aNum = parseInt(String(aVal).replace('%','')) || 0;
-            let total = hNum + aNum; let hPercent = total > 0 ? (hNum / total) * 100 : 50; let aPercent = total > 0 ? (aNum / total) * 100 : 50;
-            let statType = AppState.currentLang === 'ar' ? (ARABIC_DICTIONARY[stat.type] || stat.type) : stat.type;
-            statsHtml += `<div class="stat-row"><div class="stat-header"><span>${hVal}</span><span>${statType}</span><span>${aVal}</span></div><div class="stat-bar-container"><div class="stat-bar-home" style="width:${hPercent}%"></div><div class="stat-bar-away" style="width:${aPercent}%"></div></div></div>`;
-        });
-    } else { statsHtml += `<div class="empty-msg">${d.statsUnavailable}</div>`; }
-    statsHtml += '</div>';
-    
-    let lineupsHtml = '<div id="modal-lineups" class="modal-tab-content">';
-    if (m.lineups && m.lineups.length > 1) {
-        lineupsHtml += buildPitchHtml(m.lineups[0], m.teams.home) + buildPitchHtml(m.lineups[1], m.teams.away) + `<div class="lineup-section"><div class="section-title">${d.subs}</div>`;
-        let maxSubs = Math.max(m.lineups?.[0]?.substitutes?.length || 0, m.lineups?.[1]?.substitutes?.length || 0);
-        for(let i=0; i<maxSubs; i++) {
-            let hP = m.lineups[0].substitutes[i]?.player; let aP = m.lineups[1].substitutes[i]?.player;
-            lineupsHtml += `<div class="player-row">${hP ? `<div class="player-side player-home" onclick="openPlayerDetails(${hP.id})"><span class="p-num">${hP.number||''}</span><img src="https://media.api-sports.io/football/players/${hP.id}.png" class="sub-player-img" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><span class="p-name">${hP.name||'-'}</span></div>` : '<div class="player-side player-home"></div>'}${aP ? `<div class="player-side player-away" onclick="openPlayerDetails(${aP.id})"><span class="p-name">${aP.name||'-'}</span><img src="https://media.api-sports.io/football/players/${aP.id}.png" class="sub-player-img" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><span class="p-num">${aP.number||''}</span></div>` : '<div class="player-side player-away"></div>'}</div>`;
+    let statsHtml = `<div id="modal-stats" class="modal-tab-content">`;
+    if (item.statistics && item.statistics.length === 2) {
+        const homeStats = item.statistics[0].statistics;
+        const awayStats = item.statistics[1].statistics;
+        for (let i = 0; i < homeStats.length; i++) {
+            let statName = homeStats[i].type;
+            let hVal = homeStats[i].value === null ? 0 : String(homeStats[i].value).replace('%', '');
+            let aVal = awayStats[i].value === null ? 0 : String(awayStats[i].value).replace('%', '');
+            let total = Number(hVal) + Number(aVal);
+            let hPct = total === 0 ? 50 : (Number(hVal) / total) * 100;
+            let aPct = total === 0 ? 50 : (Number(aVal) / total) * 100;
+
+            statsHtml += `
+                <div class="stat-row">
+                    <div class="stat-header">
+                        <span>${hVal}</span>
+                        <span style="color:var(--text-muted); font-size:11px;">${statName}</span>
+                        <span>${aVal}</span>
+                    </div>
+                    <div class="stat-bar-container">
+                        <div class="stat-bar-home" style="width:${hPct}%"></div>
+                        <div class="stat-bar-away" style="width:${aPct}%"></div>
+                    </div>
+                </div>`;
         }
-        lineupsHtml += `</div>`;
-    } else { lineupsHtml += `<div class="empty-msg">${d.lineupsUnavailable}</div>`; }
-    lineupsHtml += '</div>';
+    } else {
+        statsHtml += `<div class="empty-msg">${d.statsUnavailable}</div>`;
+    }
+    statsHtml += `</div>`;
+
+    let lineupsHtml = `<div id="modal-lineups" class="modal-tab-content hidden">`;
+    if (item.lineups && item.lineups.length === 2) {
+        lineupsHtml += buildPitchHtml(item.lineups[0], item.teams.home);
+        lineupsHtml += buildPitchHtml(item.lineups[1], item.teams.away);
+    } else {
+        lineupsHtml += `<div class="empty-msg">${d.lineupsUnavailable}</div>`;
+    }
+    lineupsHtml += `</div>`;
+    
     container.innerHTML = html + statsHtml + lineupsHtml;
+    observeTranslations();
 }
 
+// === تكامل API-Football لجلب تفاصيل اللاعبين ===
 async function openPlayerDetails(playerId) {
-    if(!playerId) return;
     const modal = document.getElementById('player-modal');
     const container = document.getElementById('player-info-container');
     const d = UI_DICTIONARY[AppState.currentLang];
@@ -641,29 +867,112 @@ async function openPlayerDetails(playerId) {
     container.innerHTML = `<div class="loader" style="margin-top:50px;">${d.loading}</div>`;
 
     try {
-        const res = await fetch(`${CONFIG.API_URL}/players?id=${playerId}&season=2025`);
-        const pData = (await res.json()).response?.[0];
-        if(!pData) throw new Error("No data");
-        const p = pData.player; const s = pData.statistics?.[0] || {};
+        const WORKER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
+        const season = Utils.getCurrentSeason(); 
+        const targetUrl = `${WORKER_URL}/apifootball/players?id=${playerId}&season=${season}`;
         
-        let namesToTranslate = [];
-        if(s.team?.name) namesToTranslate.push(s.team.name);
-        if(p.nationality) namesToTranslate.push(p.nationality);
-        await prepareTranslations(namesToTranslate);
+        const response = await fetch(targetUrl);
+        const data = await response.json();
 
-        const translatedTeamName = translateName(s.team?.name);
-        const translatedNationality = translateName(p.nationality);
-        
-        container.innerHTML = `<div class="player-hero"><img src="${p.photo}" class="player-photo-large" onerror="this.onerror=null; this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png';"><div class="player-name-large">${p.firstname} ${p.lastname}</div><div class="player-team-info"><img src="${s.team?.logo}" onerror="this.onerror=null; this.style.display='none'">${translatedTeamName || ''} • ${translatedNationality}</div></div><div class="player-stats-grid"><div class="p-stat-box"><div class="p-stat-title">${d.age}</div><div class="p-stat-value">${p.age || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.height}</div><div class="p-stat-value">${p.height || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.position}</div><div class="p-stat-value">${s.games?.position || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.rating}</div><div class="p-stat-value" style="color:var(--accent-color)">${parseFloat(s.games?.rating || 0).toFixed(1) || '-'}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.goals}</div><div class="p-stat-value">${s.goals?.total || 0}</div></div><div class="p-stat-box"><div class="p-stat-title">${d.assists}</div><div class="p-stat-value">${s.goals?.assists || 0}</div></div></div>`;
-    } catch (e) { container.innerHTML = `<div class="empty-msg">${d.noData}</div>`; }
+        if (data && data.response && data.response.length > 0) {
+            const p = data.response[0].player;
+            const stat = data.response[0].statistics[0]; 
+            
+            let html = `
+                <div class="player-hero">
+                    <img src="${p.photo}" class="player-photo-large" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3281/3281142.png'">
+                    <div class="player-name-large">${p.name}</div>
+                    <div class="player-team-info">
+                        <img src="${stat.team.logo}" style="width:20px;">
+                        <span>${translateName(stat.team.name)}</span>
+                    </div>
+                </div>
+                <div class="player-stats-grid">
+                    <div class="p-stat-box"><div class="p-stat-title">${d.age}</div><div class="p-stat-value">${p.age || '-'}</div></div>
+                    <div class="p-stat-box"><div class="p-stat-title">${d.position}</div><div class="p-stat-value">${stat.games.position || '-'}</div></div>
+                    <div class="p-stat-box"><div class="p-stat-title">${d.rating}</div><div class="p-stat-value">${stat.games.rating ? parseFloat(stat.games.rating).toFixed(1) : '-'}</div></div>
+                    <div class="p-stat-box"><div class="p-stat-title">${d.goals}</div><div class="p-stat-value">${stat.goals.total || 0}</div></div>
+                    <div class="p-stat-box"><div class="p-stat-title">${d.assists}</div><div class="p-stat-value">${stat.goals.assists || 0}</div></div>
+                </div>
+            `;
+            container.innerHTML = html;
+        } else {
+            container.innerHTML = `<div class="empty-msg">${d.noData}</div>`;
+        }
+    } catch (e) {
+        container.innerHTML = `<div class="empty-msg">${d.errorLoad}</div>`;
+    }
 }
+window.openPlayerDetails = openPlayerDetails;
 
 document.getElementById('html-tag').setAttribute('dir', AppState.currentLang === 'ar' ? 'rtl' : 'ltr');
 document.getElementById('html-tag').setAttribute('lang', AppState.currentLang);
+ensureTabContainersExist();
 updateUI();
 setupDatesBar();
-
 if (!AppState.currentDate) {
     const today = new Date().toISOString().split('T')[0];
     fetchMatches(today);
 }
+
+const getLocalYYYYMMDD = (d) => {
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
+
+function renderCustomCalendar() {
+    const body = document.getElementById('calendar-body-scroll');
+    const weekdays = document.getElementById('calendar-weekdays-container');
+    const isAr = AppState.currentLang === 'ar';
+    const names = isAr ? ['ح', 'ن', 'ث', 'ر', 'خ', 'ج', 'س'] : ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+    weekdays.innerHTML = names.map(d => `<div>${d}</div>`).join('');
+    let html = '';
+    const realToday = new Date();
+    const todayStr = getLocalYYYYMMDD(realToday);
+    const selected = AppState.currentDate || todayStr;
+    for(let i = -1; i <= 4; i++) {
+        let currentMonth = new Date(realToday.getFullYear(), realToday.getMonth() + i, 1);
+        html += `<div class="cal-month-title">${currentMonth.toLocaleString(isAr ? 'ar' : 'en-US', { month: 'long' })}</div><div class="cal-grid">`;
+        let start = currentMonth.getDay();
+        let count = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0).getDate();
+        for(let j = 0; j < start; j++) html += `<div class="cal-day empty"></div>`;
+        for(let day = 1; day <= count; day++) {
+            let loopDate = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+            let loopStr = getLocalYYYYMMDD(loopDate);
+            let classes = 'cal-day' + (loopStr === selected ? ' selected' : (loopStr === todayStr ? ' today' : ''));
+            html += `<div class="${classes}" onclick="selectDateFromCalendar('${loopStr}')">${day}</div>`;
+        }
+        html += `</div>`;
+    }
+    body.innerHTML = html;
+    setTimeout(() => {
+        const sel = document.querySelector('.cal-day.selected') || document.querySelector('.cal-day.today');
+        if(sel) sel.scrollIntoView({ behavior: 'auto', block: 'center' });
+    }, 50);
+}
+
+function openCalendarModal() {
+    renderCustomCalendar();
+    document.getElementById('calendar-modal').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+window.openCalendarModal = openCalendarModal;
+
+function closeCalendarModal() {
+    document.getElementById('calendar-modal').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+window.closeCalendarModal = closeCalendarModal;
+
+function selectDateFromCalendar(dateStr) {
+    closeCalendarModal();
+    selectDate(dateStr); 
+}
+window.selectDateFromCalendar = selectDateFromCalendar;
+
+function selectTodayFromCalendar() {
+    selectDateFromCalendar(getLocalYYYYMMDD(new Date()));
+}
+window.selectTodayFromCalendar = selectTodayFromCalendar;
