@@ -28,7 +28,7 @@
         <div class="sidebar-content">
             <div class="sidebar-item">
                 <div class="sidebar-item-right">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#4facfe" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                     <span id="text-sb-account">الحساب</span>
                 </div>
                 <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -38,7 +38,7 @@
 
             <div class="sidebar-item">
                 <div class="sidebar-item-right">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#4facfe" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg>
                     <span id="text-sb-home">قم باختيار الشاشة الرئيسية</span>
                 </div>
                 <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -48,7 +48,7 @@
 
             <div class="sidebar-item" onclick="toggleSidebar(); switchTab(document.querySelector('[data-tab=\'leagues\']'))">
                 <div class="sidebar-item-right">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#4facfe" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path></svg>
                     <span id="text-sb-all-leagues">كل البطولات</span>
                 </div>
                 <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -56,17 +56,22 @@
 
             <div class="sidebar-divider" id="text-sb-settings">إعدادات</div>
 
-            <div class="sidebar-item" onclick="toggleLanguage()">
+            <div class="sidebar-item" onclick="toggleLanguageMenu()">
                 <div class="sidebar-item-right">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#4facfe" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
                     <span id="text-sb-language">اللغة</span>
                 </div>
-                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                <svg id="lang-chevron" class="chevron" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" style="transition: transform 0.3s;"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </div>
+
+            <div id="language-submenu" class="language-submenu">
+                <div class="lang-option" onclick="setLanguage('ar')">العربية</div>
+                <div class="lang-option" onclick="setLanguage('en')">English</div>
             </div>
 
             <div class="sidebar-item">
                 <div class="sidebar-item-right">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="#4facfe" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                     <span id="text-sb-notifications">إشعارات</span>
                 </div>
                 <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><polyline points="15 18 9 12 15 6"></polyline></svg>
@@ -80,6 +85,14 @@
             <button class="live-btn" onclick="toggleLive(this)">
                 <span class="live-dot"></span> <span id="text-live">مباشر</span>
             </button>
+            <div class="icon-btn" onclick="openCalendarModal()" style="margin-left: 5px; margin-right: 5px;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="16" y1="2" x2="16" y2="6"></line>
+                    <line x1="8" y1="2" x2="8" y2="6"></line>
+                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+            </div>
             <div class="icon-btn" onclick="toggleSidebar()">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
             </div>
@@ -138,6 +151,17 @@
         <div class="full-modal-body" id="standings-container" style="padding:0;"></div>
     </div>
 
+    <div id="calendar-modal" class="full-modal hidden" style="z-index: 3600; background-color: #121212;">
+        <div class="calendar-header-top">
+            <div class="cal-btn" onclick="closeCalendarModal()" id="text-cal-close" style="color:var(--text-muted); font-weight: bold;">إغلاق</div>
+            <div class="cal-btn" onclick="selectTodayFromCalendar()" id="text-cal-today" style="color:var(--accent-color); font-weight:bold;">اليوم</div>
+        </div>
+        <div class="calendar-weekdays" id="calendar-weekdays-container">
+            </div>
+        <div class="calendar-body" id="calendar-body-scroll">
+            </div>
+    </div>
+
     <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchTab(this)" data-tab="matches">
             <div class="icon-wrapper"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="3" x2="12" y2="21"></line><circle cx="12" cy="12" r="3"></circle></svg></div>
@@ -161,7 +185,7 @@
         </div>
     </nav>
 
-    <script src="script.js"></script>
+    <script type="module" src="script.js"></script>
 
 </body>
 </html>
