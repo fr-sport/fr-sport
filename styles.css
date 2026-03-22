@@ -435,26 +435,26 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: #000000; /* خلفية سوداء مطابقة للوجو */
-    z-index: 99999; /* أعلى طبقة في التطبيق */
+    width: 100%; /* تم التعديل من 100vw لتجنب مشاكل المتصفح */
+    height: 100%; /* تم التعديل من 100vh لتجنب شريط المهام في الجوال */
+    background-color: #000000;
+    z-index: 99999;
     display: flex;
     justify-content: center;
     align-items: center;
     transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
 }
 
-/* الكلاس الذي سيقوم الجافاسكريبت بإضافته لإخفاء الشاشة */
 #splash-screen.hidden-splash {
     opacity: 0;
     visibility: hidden;
 }
 
-/* حركة الشعار (تكبير بسيط وانبثاق مثل FotMob) */
 #splash-logo {
-    width: 150px; /* يمكنك تصغير أو تكبير الرقم حسب رغبتك */
+    width: 220px; /* تم تكبير الحجم هنا ليكون فخماً وواضحاً */
+    max-width: 80%; /* لضمان عدم خروجه عن الشاشة في الهواتف الصغيرة */
     height: auto;
+    object-fit: contain;
     animation: splashPulse 1.5s ease-out forwards;
 }
 
@@ -462,4 +462,4 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
     0% { transform: scale(0.8); opacity: 0; }
     40% { transform: scale(1.05); opacity: 1; }
     100% { transform: scale(1); opacity: 1; }
-}و
+}
