@@ -408,3 +408,58 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .cal-day.selected {
     background-color: var(--accent-color); color: #000000; font-weight: 800; border: none;
 }
+
+/* ==========================================
+   قسم البحث (Search)
+   ========================================== */
+.search-container { padding: 0 15px; position: sticky; top: 0; background: var(--bg-color); z-index: 10; padding-top: 10px; padding-bottom: 10px;}
+.search-input-wrapper { display: flex; align-items: center; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 10px 15px; }
+.search-icon { width: 20px; height: 20px; color: var(--text-muted); margin-inline-end: 10px; flex-shrink: 0; }
+#search-input { flex: 1; background: transparent; border: none; color: var(--text-main); font-size: 15px; outline: none; font-family: inherit;}
+#search-input::placeholder { color: var(--text-muted); }
+
+.search-result-card { display: flex; align-items: center; gap: 15px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 15px; margin-bottom: 12px; cursor: pointer; transition: transform 0.2s, background-color 0.2s; }
+.search-result-card:active { transform: scale(0.98); background-color: #222; }
+.search-result-logo { width: 40px; height: 40px; object-fit: contain; }
+
+[dir="rtl"] .search-result-info { flex: 1; text-align: right; }
+[dir="ltr"] .search-result-info { flex: 1; text-align: left; }
+
+.search-result-name { font-size: 15px; font-weight: bold; color: var(--text-main); }
+.search-result-country { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* ==========================================
+   شاشة البداية (Splash Screen)
+   ========================================== */
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #000000; /* خلفية سوداء مطابقة للوجو */
+    z-index: 99999; /* أعلى طبقة في التطبيق */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+}
+
+/* الكلاس الذي سيقوم الجافاسكريبت بإضافته لإخفاء الشاشة */
+#splash-screen.hidden-splash {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* حركة الشعار (تكبير بسيط وانبثاق مثل FotMob) */
+#splash-logo {
+    width: 150px; /* يمكنك تصغير أو تكبير الرقم حسب رغبتك */
+    height: auto;
+    animation: splashPulse 1.5s ease-out forwards;
+}
+
+@keyframes splashPulse {
+    0% { transform: scale(0.8); opacity: 0; }
+    40% { transform: scale(1.05); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}و
