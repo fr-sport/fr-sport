@@ -2,13 +2,13 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebas
 import { getFirestore, collection, getDocs, doc, getDoc, query, where, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDL53-XOe8FFCqoWNzHdJJnLksYoxihxGw",
-  authDomain: "fr-sport-19893.firebaseapp.com",
-  projectId: "fr-sport-19893",
-  storageBucket: "fr-sport-19893.firebasestorage.app",
-  messagingSenderId: "627967441082",
-  appId: "1:627967441082:web:4600e2d1ceea5789722a83",
-  measurementId: "G-NS69W4HDMW"
+    apiKey: "AIzaSyDL53-XOe8FFCqoWNzHdJJnLksYoxihxGw",
+    authDomain: "fr-sport-19893.firebaseapp.com",
+    projectId: "fr-sport-19893",
+    storageBucket: "fr-sport-19893.firebasestorage.app",
+    messagingSenderId: "627967441082",
+    appId: "1:627967441082:web:4600e2d1ceea5789722a83",
+    measurementId: "G-NS69W4HDMW"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -97,11 +97,13 @@ let dynamicDictionary = JSON.parse(localStorage.getItem(DYNAMIC_DICTIONARY_KEY) 
 async function fetchGoogleTranslation(text) {
     if (!text) return "";
     try {
-        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=${encodeURIComponent(text)}`;
+        const WORKER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
+        const url = `${WORKER_URL}/translate?text=${encodeURIComponent(text)}`;
         const res = await fetch(url);
         const data = await res.json();
-        return data[0][0][0];
+        return data.translatedText || text;
     } catch (e) {
+        console.error("Worker Translation Error:", e);
         return text; 
     }
 }
@@ -339,7 +341,20 @@ function ensureTabContainersExist() {
         searchTab.className = 'leagues-container hidden';
         searchTab.id = 'tab-search';
         searchTab.style.paddingTop = '15px';
-        searchTab.innerHTML = `<div class="empty-msg">البحث سيكون متاحاً قريباً</div>`;
+        
+        // بناء واجهة البحث
+        const d = UI_DICTIONARY[AppState.currentLang] || UI_DICTIONARY['ar'];
+        searchTab.innerHTML = `
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" id="search-input" placeholder="${d.search}..." oninput="handleSearchInput(event)">
+                </div>
+            </div>
+            <div id="search-results" class="leagues-grid" style="margin-top: 15px;">
+                <div class="empty-msg">${AppState.currentLang === 'ar' ? 'ابحث عن فريقك المفضل...' : 'Search for your favorite team...'}</div>
+            </div>
+        `;
         document.body.insertBefore(searchTab, document.querySelector('.bottom-nav'));
     }
 }
@@ -378,6 +393,11 @@ function switchTab(el) {
     } else if(tabData === 'search') {
         document.getElementById('tab-search').classList.remove('hidden');
         datesWrapper.style.display = 'none';
+        // تفعيل التركيز على مربع البحث عند فتح التبويب
+        setTimeout(() => {
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) searchInput.focus();
+        }, 100);
     }
 }
 window.switchTab = switchTab;
@@ -976,3 +996,95 @@ function selectTodayFromCalendar() {
     selectDateFromCalendar(getLocalYYYYMMDD(new Date()));
 }
 window.selectTodayFromCalendar = selectTodayFromCalendar;
+
+// === نظام البحث عن الفرق ===
+let searchTimeout;
+
+function handleSearchInput(event) {
+    const query = event.target.value.trim();
+    const resultsContainer = document.getElementById('search-results');
+    const d = UI_DICTIONARY[AppState.currentLang];
+
+    // إلغاء أي طلب بحث سابق إذا كان المستخدم لا يزال يكتب (Debounce)
+    clearTimeout(searchTimeout);
+
+    if (query.length < 3) {
+        resultsContainer.innerHTML = `<div class="empty-msg">${AppState.currentLang === 'ar' ? 'أدخل 3 أحرف على الأقل للبحث...' : 'Enter at least 3 characters...'}</div>`;
+        return;
+    }
+
+    // إظهار علامة التحميل
+    resultsContainer.innerHTML = `<div class="loader" style="margin-top:30px; color:var(--accent-color);">${d.loading}</div>`;
+
+    // الانتظار ثانية واحدة بعد توقف المستخدم عن الكتابة قبل إرسال الطلب للسيرفر
+    searchTimeout = setTimeout(() => {
+        performSearch(query);
+    }, 800); 
+}
+window.handleSearchInput = handleSearchInput;
+
+async function performSearch(query) {
+    const resultsContainer = document.getElementById('search-results');
+    const d = UI_DICTIONARY[AppState.currentLang];
+    
+    try {
+        const WORKER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
+        // استخدام مسار البحث عن الفرق في API-Football
+        const targetUrl = `${WORKER_URL}/apifootball/teams?search=${encodeURIComponent(query)}`;
+        
+        const response = await fetch(targetUrl);
+        const data = await response.json();
+        
+        if (data && data.response && data.response.length > 0) {
+            let html = '';
+            // نأخذ أول 10 نتائج فقط لتسريع العرض
+            const teams = data.response.slice(0, 10);
+            
+            // استخراج الأسماء لترجمتها وتجهيزها في الذاكرة أولاً
+            const namesToTranslate = [];
+            teams.forEach(item => {
+                namesToTranslate.push(item.team.name);
+                namesToTranslate.push(item.team.country);
+            });
+            await prepareTranslations(namesToTranslate);
+
+            // رسم النتائج
+            teams.forEach(item => {
+                const t = item.team;
+                const tName = translateName(t.name);
+                const tCountry = translateName(t.country);
+                
+                // يمكنك لاحقاً برمجة هذه الضغطة لفتح صفحة مخصصة للفريق، حالياً ستعطي تنبيهاً بسيطاً
+                html += `
+                <div class="search-result-card" onclick="alert('${AppState.currentLang === 'ar' ? 'قريباً: صفحة تفاصيل فريق' : 'Coming soon: Team details for'} ${tName}!')">
+                    <img src="${t.logo}" class="search-result-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/8812/8812061.png'">
+                    <div class="search-result-info">
+                        <div class="search-result-name">${tName}</div>
+                        <div class="search-result-country">${tCountry}</div>
+                    </div>
+                </div>`;
+            });
+            
+            resultsContainer.innerHTML = html;
+        } else {
+            resultsContainer.innerHTML = `<div class="empty-msg">${d.noData}</div>`;
+        }
+    } catch (e) {
+        console.error("Search Error:", e);
+        resultsContainer.innerHTML = `<div class="empty-msg">${d.errorLoad}</div>`;
+    }
+}
+window.performSearch = performSearch;
+
+// === نظام شاشة البداية (Splash Screen) ===
+window.addEventListener('load', () => {
+    setTimeout(() => {
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+            splash.classList.add('hidden-splash');
+            setTimeout(() => {
+                splash.remove();
+            }, 500); // حذف الشاشة من الكود بعد اختفائها لتخفيف الذاكرة
+        }
+    }, 2000); // 2000 تعني أن الشاشة ستبقى ثانيتين (يمكنك زيادتها أو تقليلها)
+});
