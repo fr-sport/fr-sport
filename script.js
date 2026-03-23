@@ -29,13 +29,17 @@ const CONFIG = {
 const AppState = { 
     matchesCache: {}, 
     globalMatches: [], 
-    followingLeagues: [], // تخزين البطولات المفضلة
+    followingLeagues: [], 
     isLiveMode: false, 
     currentDate: '', 
-    currentLang: localStorage.getItem('frsport_lang') || 'ar' 
+    currentLang: localStorage.getItem('frsport_lang') || 'ar',
+    // المتغيرات الجديدة الخاصة بنافذة المباراة لتوفير الـ API
+    currentMatchLeagueId: null,
+    currentMatchHomeId: null,
+    currentMatchAwayId: null,
+    standingsLoaded: false
 };
 
-// جلب المفضلة من Firebase عند بدء التطبيق
 async function loadFollowingData() {
     try {
         const docSnap = await getDoc(doc(db, "users_following", userId));
@@ -56,12 +60,13 @@ const UI_DICTIONARY = {
         stats: "إحصائيات", lineups: "التشكيلة", subs: "البدلاء", age: "العمر", height: "الطول",
         position: "المركز", rating: "التقييم", goals: "الأهداف", assists: "الصناعة", notStarted: "لم تبدأ", finished: "انتهت",
         loading: "جاري التحميل...", errorLoad: "حدث خطأ في الاتصال بقاعدة البيانات.", noData: "البيانات غير متوفرة حالياً", transfersWord: "انتقالات",
-        statsUnavailable: "الإحصائيات غير متوفرة", lineupsUnavailable: "التشكيلة غير متوفرة", standingsUnavailable: "جدول الترتيب غير متوفر",
+        statsUnavailable: "الإحصائيات غير متوفرة", lineupsUnavailable: "التشكيلة غير متوفرة بعد", standingsUnavailable: "جدول الترتيب غير متوفر",
         close: "إغلاق", todayBtn: "اليوم",
         sbAccount: "الحساب", sbMainScreen: "الشاشة الرئيسية", sbHome: "قم باختيار الشاشة الرئيسية",
         sbNewsLeagues: "الأخبار والبطولات", sbAllLeagues: "كل البطولات", sbSettings: "إعدادات",
         sbLanguage: "اللغة", sbNotifications: "إشعارات",
-        follow: "متابعة", unfollow: "إلغاء المتابعة", noFollowing: "لم تقم بمتابعة أي بطولة بعد."
+        follow: "متابعة", unfollow: "إلغاء المتابعة", noFollowing: "لم تقم بمتابعة أي بطولة بعد.",
+        preview: "معاينة", centers: "المراكز", referee: "حكم الساحة", stadium: "الملعب", capacity: "السعة", weather: "الطقس", matchInfo: "معلومات المباراة", whoWillWin: "من سيربح؟", draw: "تعادل"
     },
     en: {
         live: "Live", matches: "Matches", news: "News", leagues: "Leagues", following: "Following", search: "Search",
@@ -72,12 +77,13 @@ const UI_DICTIONARY = {
         stats: "Stats", lineups: "Lineups", subs: "Substitutes", age: "Age", height: "Height",
         position: "Position", rating: "Rating", goals: "Goals", assists: "Assists", notStarted: "Scheduled", finished: "FT",
         loading: "Loading...", errorLoad: "Error loading database. Please try again.", noData: "Data unavailable", transfersWord: "Transfers",
-        statsUnavailable: "Stats unavailable", lineupsUnavailable: "Lineups unavailable", standingsUnavailable: "Standings unavailable",
+        statsUnavailable: "Stats unavailable", lineupsUnavailable: "Lineups not available yet", standingsUnavailable: "Standings unavailable",
         close: "Close", todayBtn: "Today",
         sbAccount: "Account", sbMainScreen: "Main Screen", sbHome: "Choose Main Screen",
         sbNewsLeagues: "News & Leagues", sbAllLeagues: "All Leagues", sbSettings: "Settings",
         sbLanguage: "Language", sbNotifications: "Notifications",
-        follow: "Follow", unfollow: "Unfollow", noFollowing: "You are not following any leagues yet."
+        follow: "Follow", unfollow: "Unfollow", noFollowing: "You are not following any leagues yet.",
+        preview: "Preview", centers: "Standings", referee: "Referee", stadium: "Stadium", capacity: "Capacity", weather: "Weather", matchInfo: "Match Info", whoWillWin: "Who will win?", draw: "Draw"
     }
 };
 
@@ -193,11 +199,8 @@ const Utils = {
     formatTimeLoc: (dateStr) => {
         if(!dateStr || !dateStr.includes('T')) return dateStr || '';
         const d = new Date(dateStr);
-        let timeEn = d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
-        if (AppState.currentLang === 'ar') {
-            return timeEn.replace('AM', 'ص').replace('PM', 'م');
-        }
-        return timeEn;
+        // نظام 24 ساعة كما طلبت
+        return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false });
     },
     isLiveMatch: (s) => CONFIG.LIVE_STATUSES.includes(s),
     isNotStarted: (s) => CONFIG.NOT_STARTED_STATUSES.includes(s),
@@ -241,7 +244,6 @@ function setLanguage(lang) {
     updateUI();
     setupDatesBar();
     
-    // Refresh current tab
     const activeTab = document.querySelector('.nav-item.active').getAttribute('data-tab');
     if (activeTab === 'matches') {
         if (AppState.globalMatches && AppState.globalMatches.length > 0) renderMatchesList(AppState.globalMatches);
@@ -327,7 +329,6 @@ function selectDate(dateStr) {
 }
 window.selectDate = selectDate;
 
-// إضافة الحاويات الناقصة لتبويبات يتابع وبحث إذا لم تكن موجودة في HTML
 function ensureTabContainersExist() {
     if(!document.getElementById('tab-following')) {
         const followingTab = document.createElement('main');
@@ -342,7 +343,6 @@ function ensureTabContainersExist() {
         searchTab.id = 'tab-search';
         searchTab.style.paddingTop = '15px';
         
-        // بناء واجهة البحث
         const d = UI_DICTIONARY[AppState.currentLang] || UI_DICTIONARY['ar'];
         searchTab.innerHTML = `
             <div class="search-container">
@@ -393,7 +393,6 @@ function switchTab(el) {
     } else if(tabData === 'search') {
         document.getElementById('tab-search').classList.remove('hidden');
         datesWrapper.style.display = 'none';
-        // تفعيل التركيز على مربع البحث عند فتح التبويب
         setTimeout(() => {
             const searchInput = document.getElementById('search-input');
             if (searchInput) searchInput.focus();
@@ -409,9 +408,8 @@ function toggleLive(btn) {
 }
 window.toggleLive = toggleLive;
 
-// === نظام المتابعة (Firebase) ===
 async function toggleFollowLeague(event, leagueId, nameAr, nameEn, logo) {
-    event.stopPropagation(); // لمنع فتح ترتيب الدوري عند الضغط على النجمة
+    event.stopPropagation();
     const index = AppState.followingLeagues.findIndex(l => l.id === leagueId);
     if (index > -1) {
         AppState.followingLeagues.splice(index, 1);
@@ -423,12 +421,10 @@ async function toggleFollowLeague(event, leagueId, nameAr, nameEn, logo) {
         event.target.style.stroke = 'var(--accent-color)';
     }
 
-    // تحديث واجهة المتابعة إذا كنا فيها
     if (!document.getElementById('tab-following').classList.contains('hidden')) {
         renderFollowingTab();
     }
 
-    // حفظ في Firebase
     try {
         await setDoc(doc(db, "users_following", userId), { leagues: AppState.followingLeagues }, { merge: true });
     } catch(e) { console.error("Firebase save error", e); }
@@ -615,17 +611,20 @@ async function fetchMatches(date) {
                     fixture: {
                         id: item.fixture.id,
                         date: item.fixture.date,
-                        status: { short: item.fixture.status.short, elapsed: item.fixture.status.elapsed || 0 }
+                        status: { short: item.fixture.status.short, elapsed: item.fixture.status.elapsed || 0 },
+                        referee: item.fixture.referee, 
+                        venue: item.fixture.venue 
                     },
                     league: {
                         id: item.league.id,
                         name: item.league.name,
                         country: item.league.country,
-                        logo: item.league.logo
+                        logo: item.league.logo,
+                        round: item.league.round 
                     },
                     teams: {
-                        home: { name: item.teams.home.name, logo: item.teams.home.logo },
-                        away: { name: item.teams.away.name, logo: item.teams.away.logo }
+                        home: { id: item.teams.home.id, name: item.teams.home.name, logo: item.teams.home.logo },
+                        away: { id: item.teams.away.id, name: item.teams.away.name, logo: item.teams.away.logo }
                     },
                     goals: {
                         home: item.goals.home !== null ? item.goals.home : null,
@@ -687,16 +686,37 @@ async function renderMatchesList(matches) {
             let hG = m.goals.home !== null ? m.goals.home : '';
             let aG = m.goals.away !== null ? m.goals.away : '';
             let center = '';
+            
             if (Utils.isNotStarted(s)) {
-                center = `<div class="match-center" style="direction:ltr; font-size:9px;">${Utils.formatTimeLoc(m.fixture.date)}</div>`;
+                center = `<div class="match-center time-text" style="direction:ltr;">${Utils.formatTimeLoc(m.fixture.date)}</div>`;
             } else if (Utils.isLiveMatch(s)) {
-                center = `<div class="match-center live" style="font-size:9px;"><span style="font-size:8px;">${m.fixture.status.elapsed}'</span><br>${hG} - ${aG}</div>`;
-            } else { center = `<div class="match-center" style="font-size:9px;">${hG} - ${aG}</div>`; }
+                center = `<div class="match-center">
+                            <span style="font-size:11px; color:var(--accent-color); font-weight:700;">${m.fixture.status.elapsed}'</span>
+                            <span class="score-text" style="color:var(--accent-color);">${hG} - ${aG}</span>
+                          </div>`;
+            } else { 
+                center = `<div class="match-center score-text" style="direction:ltr;">${hG} - ${aG}</div>`; 
+            }
+
             const tHome = translateName(m.teams.home.name);
             const tAway = translateName(m.teams.away.name);
-            const attrH = !isTranslated(m.teams.home.name) ? `data-trans="${m.teams.home.name}" class="team-name home-name lazy-text"` : `class="team-name home-name"`;
-            const attrA = !isTranslated(m.teams.away.name) ? `data-trans="${m.teams.away.name}" class="team-name away-name lazy-text"` : `class="team-name away-name"`;
-            html += `<div class="match-row" onclick="openMatchDetails('${m.fixture.id}')"><div class="match-teams-score"><span ${attrH}>${tHome}</span><img src="${m.teams.home.logo}" class="team-logo">${center}<img src="${m.teams.away.logo}" class="team-logo"><span ${attrA}>${tAway}</span></div></div>`;
+            const attrH = !isTranslated(m.teams.home.name) ? `data-trans="${m.teams.home.name}" class="team-name lazy-text"` : `class="team-name"`;
+            const attrA = !isTranslated(m.teams.away.name) ? `data-trans="${m.teams.away.name}" class="team-name lazy-text"` : `class="team-name"`;
+            
+            // البنية الجديدة لسطر المباراة التي تمنع التداخل وتحافظ على الترتيب الصحيح
+            html += `<div class="match-row" onclick="openMatchDetails('${m.fixture.id}')">
+                        <div class="match-teams-score">
+                            <div class="team-container home">
+                                <img src="${m.teams.home.logo}" class="team-logo">
+                                <span ${attrH}>${tHome}</span>
+                            </div>
+                            ${center}
+                            <div class="team-container away">
+                                <img src="${m.teams.away.logo}" class="team-logo">
+                                <span ${attrA}>${tAway}</span>
+                            </div>
+                        </div>
+                    </div>`;
         });
         html += `</div>`;
     });
@@ -707,15 +727,76 @@ async function renderMatchesList(matches) {
 function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
 window.closeModal = closeModal;
 
-function switchModalTab(tab) { 
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
+function switchModalTab(tab, event) { 
+    document.querySelectorAll('.match-tab-btn').forEach(b => b.classList.remove('active')); 
     document.querySelectorAll('.modal-tab-content').forEach(c => c.classList.add('hidden')); 
-    event.target.classList.add('active'); 
-    document.getElementById(`modal-${tab}`).classList.remove('hidden'); 
+    if(event) event.target.classList.add('active'); 
+    const targetTab = document.getElementById(`modal-${tab}`);
+    if(targetTab) targetTab.classList.remove('hidden'); 
+
+    if (tab === 'standings-in-match' && !AppState.standingsLoaded) {
+        fetchInlineStandings();
+    }
 }
 window.switchModalTab = switchModalTab;
 
-// === تكامل API-Football لجلب الترتيب ===
+async function fetchInlineStandings() {
+    const inlineContainer = document.getElementById('inline-standings-container');
+    const d = UI_DICTIONARY[AppState.currentLang];
+    if (!inlineContainer) return;
+    
+    inlineContainer.innerHTML = `<div class="loader" style="margin-top:20px;">${d.loading}</div>`;
+    
+    try {
+        const WORKER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
+        const season = Utils.getCurrentSeason(); 
+        const targetUrl = `${WORKER_URL}/apifootball/standings?league=${AppState.currentMatchLeagueId}&season=${season}`;
+        const res = await fetch(targetUrl);
+        const data = await res.json();
+        
+        if (data && data.response && data.response.length > 0) {
+            const standings = data.response[0].league.standings[0];
+            let tableHtml = `
+                <div class="standings-table">
+                    <div class="st-header" style="background: var(--card-bg);">
+                        <div class="st-rank">#</div>
+                        <div class="st-team">${d.team}</div>
+                        <div class="st-p">${d.played}</div>
+                        <div class="st-gd">${d.gd}</div>
+                        <div class="st-pts">${d.pts}</div>
+                    </div>`;
+            
+            standings.forEach(row => {
+                const tName = translateName(row.team.name);
+                const attrT = !isTranslated(row.team.name) ? `data-trans="${row.team.name}" class="lazy-text"` : ``;
+                let isPlayingTeam = (row.team.id === AppState.currentMatchHomeId || row.team.id === AppState.currentMatchAwayId) ? 'highlighted-team' : '';
+                
+                tableHtml += `
+                    <div class="st-row ${isPlayingTeam}">
+                        <div class="st-rank">${row.rank}</div>
+                        <div class="st-team">
+                            <img src="${row.team.logo}">
+                            <span ${attrT}>${tName}</span>
+                        </div>
+                        <div class="st-p">${row.all.played}</div>
+                        <div class="st-gd">${row.goalsDiff}</div>
+                        <div class="st-pts">${row.points}</div>
+                    </div>`;
+            });
+            tableHtml += `</div>`;
+            inlineContainer.innerHTML = tableHtml;
+            AppState.standingsLoaded = true;
+            observeTranslations();
+        } else {
+            inlineContainer.innerHTML = `<div class="empty-msg" style="margin-top:20px;">${d.standingsUnavailable}</div>`;
+        }
+    } catch (e) {
+        console.error("Standings fetch error:", e);
+        inlineContainer.innerHTML = `<div class="empty-msg" style="margin-top:20px;">${d.errorLoad}</div>`;
+    }
+}
+window.fetchInlineStandings = fetchInlineStandings;
+
 async function openLeagueStandings(leagueId) {
     const modal = document.getElementById('standings-modal');
     const container = document.getElementById('standings-container');
@@ -786,7 +867,6 @@ function buildPitchHtml(teamLineup, teamInfo) {
     return html + `</div></div>`;
 }
 
-// === تكامل API-Football لجلب تفاصيل المباراة ===
 async function openMatchDetails(id) {
     const modal = document.getElementById('match-modal');
     const container = document.getElementById('match-info-container');
@@ -830,12 +910,78 @@ function renderMatchDetailsModal(item, container) {
             </div>
             <div class="hero-team"><img src="${item.teams.away.logo}"><span class="p-name">${translateName(item.teams.away.name)}</span></div>
         </div>
-        <div class="tabs-container">
-            <div class="tab-btn active" onclick="switchModalTab('stats')">${d.stats}</div>
-            <div class="tab-btn" onclick="switchModalTab('lineups')">${d.lineups}</div>
+        
+        <div class="match-tabs-scroll">
+            <div class="match-tab-btn active" onclick="switchModalTab('preview', event)">${d.preview}</div>
+            <div class="match-tab-btn" onclick="switchModalTab('standings-in-match', event)">${d.centers}</div>
+            <div class="match-tab-btn" onclick="switchModalTab('lineups', event)">${d.lineups}</div>
+            <div class="match-tab-btn" onclick="switchModalTab('stats', event)">${d.stats}</div>
         </div>`;
+
+    let refereeName = item.fixture.referee ? item.fixture.referee.split(',')[0] : 'N/A';
+    let venueName = item.fixture.venue && item.fixture.venue.name ? item.fixture.venue.name : 'N/A';
+    let venueCity = item.fixture.venue && item.fixture.venue.city ? item.fixture.venue.city : '';
     
-    let statsHtml = `<div id="modal-stats" class="modal-tab-content">`;
+    let previewHtml = `<div id="modal-preview" class="modal-tab-content">
+        <div class="info-card">
+            <div class="info-card-title" style="text-align:center;">${d.whoWillWin}</div>
+            <div class="poll-container">
+                <div class="poll-btn"><img src="${item.teams.home.logo}"></div>
+                <div class="poll-btn">${d.draw}</div>
+                <div class="poll-btn"><img src="${item.teams.away.logo}"></div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-row">
+                <div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/><circle cx="12" cy="10" r="3"/></svg></div>
+                <div class="info-content">
+                    <span class="info-main-text">${venueName}</span>
+                    <span class="info-sub-text">${venueCity}</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-row">
+                <div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+                <div class="info-content">
+                    <span class="info-main-text">${Utils.formatDateLoc(new Date(item.fixture.date))} • ${Utils.formatTimeLoc(item.fixture.date)}</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-icon"><img src="${item.league.logo}" style="width:20px; filter: grayscale(100%);"></div>
+                <div class="info-content">
+                    <span class="info-main-text">${translateName(item.league.name)}</span>
+                    <span class="info-sub-text">${item.league.round || ''}</span>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg></div>
+                <div class="info-content">
+                    <span class="info-main-text">${refereeName}</span>
+                    <span class="info-sub-text">${d.referee}</span>
+                </div>
+            </div>
+        </div>
+    </div>`;
+
+    let lineupsHtml = `<div id="modal-lineups" class="modal-tab-content hidden">`;
+    if (item.lineups && item.lineups.length === 2) {
+        lineupsHtml += buildPitchHtml(item.lineups[0], item.teams.home);
+        lineupsHtml += buildPitchHtml(item.lineups[1], item.teams.away);
+    } else {
+        lineupsHtml += `<div class="empty-msg">${d.lineupsUnavailable}</div>`;
+    }
+    lineupsHtml += `</div>`;
+
+    let standingsHtml = `<div id="modal-standings-in-match" class="modal-tab-content hidden">
+        <div id="inline-standings-container" style="position:relative; min-height: 150px;">
+            <div class="loader" style="margin-top:20px;">${d.loading}</div>
+        </div>
+    </div>`;
+
+    let statsHtml = `<div id="modal-stats" class="modal-tab-content hidden">`;
     if (item.statistics && item.statistics.length === 2) {
         const homeStats = item.statistics[0].statistics;
         const awayStats = item.statistics[1].statistics;
@@ -864,21 +1010,18 @@ function renderMatchDetailsModal(item, container) {
         statsHtml += `<div class="empty-msg">${d.statsUnavailable}</div>`;
     }
     statsHtml += `</div>`;
-
-    let lineupsHtml = `<div id="modal-lineups" class="modal-tab-content hidden">`;
-    if (item.lineups && item.lineups.length === 2) {
-        lineupsHtml += buildPitchHtml(item.lineups[0], item.teams.home);
-        lineupsHtml += buildPitchHtml(item.lineups[1], item.teams.away);
-    } else {
-        lineupsHtml += `<div class="empty-msg">${d.lineupsUnavailable}</div>`;
-    }
-    lineupsHtml += `</div>`;
     
-    container.innerHTML = html + statsHtml + lineupsHtml;
+    container.innerHTML = html + previewHtml + standingsHtml + lineupsHtml + statsHtml;
+
+    // حفظ بيانات المباراة للبحث لاحقاً عن الترتيب عند النقر
+    AppState.currentMatchLeagueId = item.league.id;
+    AppState.currentMatchHomeId = item.teams.home.id;
+    AppState.currentMatchAwayId = item.teams.away.id;
+    AppState.standingsLoaded = false;
+
     observeTranslations();
 }
 
-// === تكامل API-Football لجلب تفاصيل اللاعبين ===
 async function openPlayerDetails(playerId) {
     const modal = document.getElementById('player-modal');
     const container = document.getElementById('player-info-container');
@@ -997,15 +1140,12 @@ function selectTodayFromCalendar() {
 }
 window.selectTodayFromCalendar = selectTodayFromCalendar;
 
-// === نظام البحث عن الفرق ===
 let searchTimeout;
-
 function handleSearchInput(event) {
     const query = event.target.value.trim();
     const resultsContainer = document.getElementById('search-results');
     const d = UI_DICTIONARY[AppState.currentLang];
 
-    // إلغاء أي طلب بحث سابق إذا كان المستخدم لا يزال يكتب (Debounce)
     clearTimeout(searchTimeout);
 
     if (query.length < 3) {
@@ -1013,10 +1153,8 @@ function handleSearchInput(event) {
         return;
     }
 
-    // إظهار علامة التحميل
     resultsContainer.innerHTML = `<div class="loader" style="margin-top:30px; color:var(--accent-color);">${d.loading}</div>`;
 
-    // الانتظار ثانية واحدة بعد توقف المستخدم عن الكتابة قبل إرسال الطلب للسيرفر
     searchTimeout = setTimeout(() => {
         performSearch(query);
     }, 800); 
@@ -1029,7 +1167,6 @@ async function performSearch(query) {
     
     try {
         const WORKER_URL = "https://spring-dream-011d.farhad10180.workers.dev";
-        // استخدام مسار البحث عن الفرق في API-Football
         const targetUrl = `${WORKER_URL}/apifootball/teams?search=${encodeURIComponent(query)}`;
         
         const response = await fetch(targetUrl);
@@ -1037,10 +1174,8 @@ async function performSearch(query) {
         
         if (data && data.response && data.response.length > 0) {
             let html = '';
-            // نأخذ أول 10 نتائج فقط لتسريع العرض
             const teams = data.response.slice(0, 10);
             
-            // استخراج الأسماء لترجمتها وتجهيزها في الذاكرة أولاً
             const namesToTranslate = [];
             teams.forEach(item => {
                 namesToTranslate.push(item.team.name);
@@ -1048,13 +1183,11 @@ async function performSearch(query) {
             });
             await prepareTranslations(namesToTranslate);
 
-            // رسم النتائج
             teams.forEach(item => {
                 const t = item.team;
                 const tName = translateName(t.name);
                 const tCountry = translateName(t.country);
                 
-                // يمكنك لاحقاً برمجة هذه الضغطة لفتح صفحة مخصصة للفريق، حالياً ستعطي تنبيهاً بسيطاً
                 html += `
                 <div class="search-result-card" onclick="alert('${AppState.currentLang === 'ar' ? 'قريباً: صفحة تفاصيل فريق' : 'Coming soon: Team details for'} ${tName}!')">
                     <img src="${t.logo}" class="search-result-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/8812/8812061.png'">
@@ -1076,7 +1209,6 @@ async function performSearch(query) {
 }
 window.performSearch = performSearch;
 
-// === نظام شاشة البداية (Splash Screen) ===
 window.addEventListener('load', () => {
     setTimeout(() => {
         const splash = document.getElementById('splash-screen');
@@ -1084,7 +1216,7 @@ window.addEventListener('load', () => {
             splash.classList.add('hidden-splash');
             setTimeout(() => {
                 splash.remove();
-            }, 500); // حذف الشاشة من الكود بعد اختفائها لتخفيف الذاكرة
+            }, 500); 
         }
-    }, 2000); // 2000 تعني أن الشاشة ستبقى ثانيتين (يمكنك زيادتها أو تقليلها)
+    }, 2000); 
 });
