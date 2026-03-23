@@ -1,10 +1,10 @@
 :root {
     --bg-color: #000000;
-    --card-bg: #151515;
+    --card-bg: #1c1c1e; /* لون رمادي داكن مريح للعين مثل كروت فوت موب */
     --text-main: #ffffff;
     --text-muted: #8e8e93;
     --accent-color: #c5934b; /* البرونزي المعتمد */
-    --border-color: rgba(255, 255, 255, 0.10);
+    --border-color: #2c2c2e; /* لون فواصل أنعم */
 }
 
 body { margin: 0; background-color: var(--bg-color); color: var(--text-main); font-family: -apple-system, sans-serif; padding-bottom: 90px; -webkit-tap-highlight-color: transparent; user-select: none; }
@@ -25,103 +25,64 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 
 /* === التواريخ === */
 .dates-wrapper { background: var(--bg-color); border-bottom: 1px solid var(--border-color); }
-.dates-slider { display: flex; overflow-x: auto; padding: 0 10px; scrollbar-width: none; align-items: center; height: 45px;}
+.dates-slider { display: flex; overflow-x: auto; padding: 0 15px; scrollbar-width: none; align-items: center; height: 48px; gap: 15px;}
 .dates-slider::-webkit-scrollbar { display: none; }
-.date-item { padding: 0 15px; font-size: 14px; font-weight: 600; color: var(--text-muted); white-space: nowrap; cursor: pointer; height: 100%; display: flex; align-items: center; position: relative;}
-.date-item.active { color: var(--text-main); }
-.date-item.active::after { content: ''; position: absolute; bottom: 0; left: 10px; right: 10px; height: 3px; background-color: var(--accent-color); border-radius: 3px 3px 0 0; }
+.date-item { padding: 0 5px; font-size: 14px; font-weight: 500; color: var(--text-muted); white-space: nowrap; cursor: pointer; height: 100%; display: flex; align-items: center; position: relative;}
+.date-item.active { font-size: 15px; font-weight: 700; color: var(--text-main); }
+.date-item.active::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background-color: var(--accent-color); border-radius: 4px 4px 0 0; }
 
 /* === المباريات === */
-.leagues-container { padding: 10px; }
-.league-group { background: var(--card-bg); border-radius: 12px; margin-bottom: 15px; overflow: hidden; }
-.league-header { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; background: #1a1a1a; cursor: pointer; border-bottom: 1px solid var(--border-color);}
+.leagues-container { padding: 12px; }
+.league-group { background: var(--card-bg); border-radius: 14px; margin-bottom: 16px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.05); }
+.league-header { display: flex; justify-content: space-between; align-items: center; padding: 10px 16px; background: rgba(255, 255, 255, 0.03); cursor: pointer; border-bottom: 1px solid var(--border-color);}
 .league-title-wrapper { display: flex; align-items: center; gap: 10px; flex-direction: row;} 
-.league-logo { width: 20px; height: 20px; border-radius: 50%; background: transparent; }
-.league-name { font-size: 13px; font-weight: bold; color: var(--text-main); }
+.league-logo { width: 18px; height: 18px; border-radius: 50%; background: transparent; }
+.league-name { font-size: 12px; font-weight: 500; color: #ebebf5; }
 
 /* دعم اللغتين للمباريات */
-.match-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 15px; background: var(--card-bg); border-bottom: 1px solid var(--border-color); cursor: pointer; gap: 10px;}
+.match-row { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; background: transparent; border-bottom: 1px solid var(--border-color); cursor: pointer; gap: 10px;}
 .match-row:last-child { border-bottom: none; }
-.match-teams-score { display: grid; grid-template-columns: 1fr 24px 60px 24px 1fr; align-items: center; flex: 1; width: 100%; }
-.team-name { font-size: 13px; font-weight: 600; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-/* السحر: تعديل المحاذاة حسب اللغة (LTR أو RTL) */
-[dir="rtl"] .home-name { text-align: left; padding-left: 10px; } 
-[dir="rtl"] .away-name { text-align: right; padding-right: 10px; } 
-[dir="ltr"] .home-name { text-align: right; padding-right: 10px; } 
-[dir="ltr"] .away-name { text-align: left; padding-left: 10px; } 
+/* التعديل الجديد: استخدام Flex لتوزيع المساحات بشكل ممتاز ومنع التداخل */
+.match-teams-score { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 
-.team-logo { width: 24px; height: 24px; justify-self: center; }
+.team-container { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+[dir="rtl"] .team-container.home { justify-content: flex-start; }
+[dir="rtl"] .team-container.away { justify-content: flex-end; flex-direction: row-reverse; text-align: right; }
+[dir="ltr"] .team-container.home { justify-content: flex-start; }
+[dir="ltr"] .team-container.away { justify-content: flex-end; flex-direction: row-reverse; text-align: left; }
 
-.match-center { text-align: center; font-size: 10px; font-weight: bold; color: #b3b3b3; direction: ltr;}
+.team-name { font-size: 14.5px; font-weight: 500; color: var(--text-main); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.team-logo { width: 28px; height: 28px; flex-shrink: 0; }
+
+/* === مركز المباراة (النتيجة / الوقت) === */
+.match-center { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; gap: 2px; min-width: 65px; margin: 0 10px;}
+
+.time-text { font-size: 15px !important; font-weight: 700 !important; color: var(--text-muted); }
+.score-text { font-size: 15px !important; font-weight: 700 !important; color: var(--text-main); letter-spacing: 1px; }
+
 .match-center.live { color: var(--accent-color); }
 .tv-icon { width: 20px; color: var(--text-muted); flex-shrink: 0; display:flex; }
 [dir="rtl"] .tv-icon { justify-content:flex-start;}
 [dir="ltr"] .tv-icon { justify-content:flex-end;}
 
-/* === القائمة السفلية (حركة FotMob والآيفون) === */
+/* === القائمة السفلية === */
 .bottom-nav { 
-    position: fixed; 
-    bottom: 0; 
-    left: 0; 
-    width: 100%; 
-    background: rgba(15, 15, 15, 0.85); 
-    backdrop-filter: blur(15px); 
-    -webkit-backdrop-filter: blur(15px);
-    border-top: 1px solid rgba(255, 255, 255, 0.08); 
-    display: flex; 
-    justify-content: space-around; 
-    padding: 10px 5px calc(15px + env(safe-area-inset-bottom)); 
-    z-index: 1000; 
-    box-sizing: border-box; 
+    position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(15, 15, 15, 0.85); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px); border-top: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-around; padding: 10px 5px calc(15px + env(safe-area-inset-bottom)); z-index: 1000; box-sizing: border-box; 
 }
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: #8e8e93; font-size: 10px; font-weight: 500; flex: 1; cursor: pointer; transition: color 0.3s ease; }
+.nav-item svg { width: 24px; height: 24px; stroke: #8e8e93; stroke-width: 1.8; fill: transparent; transition: stroke 0.3s ease, stroke-width 0.3s ease; transform-origin: center;}
+.nav-item.active { color: var(--accent-color); font-weight: 700;}
+.nav-item.active svg { stroke: var(--accent-color); stroke-width: 2.4; animation: fotmobBounce 0.45s ease-in-out forwards; }
 
-.nav-item { 
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    gap: 4px; 
-    color: #8e8e93; 
-    font-size: 10px; 
-    font-weight: 500; 
-    flex: 1; 
-    cursor: pointer; 
-    transition: color 0.3s ease; /* انتقال سلس للون النص */
-}
-
-/* حالة الأيقونة قبل التحديد */
-.nav-item svg { 
-    width: 24px; 
-    height: 24px; 
-    stroke: #8e8e93;
-    stroke-width: 1.8; 
-    fill: transparent;
-    transition: stroke 0.3s ease, stroke-width 0.3s ease;
-    transform-origin: center;
-}
-
-/* حالة النص عند التحديد */
-.nav-item.active { 
-    color: var(--accent-color); 
-    font-weight: 700;
-}
-
-/* حالة الأيقونة عند التحديد (تغيير اللون + زيادة السُمك + تشغيل الحركة) */
-.nav-item.active svg { 
-    stroke: var(--accent-color); 
-    stroke-width: 2.4; /* تصبح الأيقونة عريضة ومليئة مثل FotMob */
-    animation: fotmobBounce 0.45s ease-in-out forwards; /* تشغيل حركة الارتداد */
-}
-
-/* هندسة حركة الارتداد (Pop/Bounce) المطابقة لـ FotMob */
 @keyframes fotmobBounce {
     0%   { transform: scale(1); }
-    35%  { transform: scale(0.75); } /* انكماش سريع للداخل */
-    65%  { transform: scale(1.1); }  /* ارتداد وتمدد للخارج */
-    100% { transform: scale(1); }    /* استقرار في الحجم الطبيعي */
+    35%  { transform: scale(0.75); } 
+    65%  { transform: scale(1.1); }  
+    100% { transform: scale(1); }    
 }
 
-/* === النوافذ المنبثقة (Modals) === */
+/* === النوافذ المنبثقة (Modals) وتفاصيل المباراة === */
 .full-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg-color); z-index: 2000; overflow-y: auto; display: flex; flex-direction: column;}
 .full-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 15px 20px; background: var(--bg-color); position: sticky; top: 0; z-index: 10; }
 .back-btn, .modal-actions { color: var(--text-main); cursor: pointer; display: flex; align-items: center; gap:20px;}
@@ -137,6 +98,21 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .tab-btn { flex: 1; text-align: center; padding: 15px 0; font-size: 14px; font-weight: bold; color: var(--text-muted); cursor: pointer; position: relative;}
 .tab-btn.active { color: var(--text-main); }
 .tab-btn.active::after { content: ''; position: absolute; bottom: -1px; left: 15%; right: 15%; height: 3px; background-color: var(--accent-color); border-radius: 3px 3px 0 0; }
+
+/* === التعديلات الجديدة الخاصة بصفحة تفاصيل المباراة (التصويت ومعلومات الملعب) === */
+.info-card { background: var(--card-bg); border-radius: 14px; padding: 15px; margin-bottom: 15px; border: 1px solid rgba(255, 255, 255, 0.05); }
+.info-card-title { font-size: 14px; font-weight: bold; color: var(--text-muted); margin-bottom: 10px; }
+.poll-container { display: flex; justify-content: space-between; align-items: center; background: #111; border-radius: 12px; padding: 10px; border: 1px solid var(--border-color); }
+.poll-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; padding: 10px; cursor: pointer; border-radius: 8px; transition: background 0.2s; font-size: 13px; font-weight: bold; color: var(--text-muted); }
+.poll-btn:hover { background: #222; }
+.poll-btn img { width: 35px; height: 35px; margin-bottom: 8px; object-fit: contain;}
+
+.info-row { display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border-color); }
+.info-row:last-child { border-bottom: none; padding-bottom: 0; }
+.info-icon { width: 40px; display: flex; justify-content: flex-start; color: var(--text-muted); }
+.info-content { display: flex; flex-direction: column; flex: 1; }
+.info-main-text { font-size: 14px; font-weight: bold; color: var(--text-main); margin-bottom: 4px;}
+.info-sub-text { font-size: 12px; color: var(--text-muted); }
 
 /* === الملعب (Pitch) === */
 .pitch-wrapper { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 15px; border: 1px solid var(--border-color); }
@@ -250,19 +226,18 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 
 .sidebar {
     position: fixed; top: 0; width: 280px; height: 100%;
-    background-color: #000000; /* خلفية القائمة الكبيرة سوداء */
+    background-color: #000000; 
     z-index: 4001; overflow-y: auto;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     display: flex; flex-direction: column;
 }
 
-/* اتجاه فتح القائمة وتقويس الحواف الخارجية الكبيرة حسب اللغة */
 [dir="rtl"] .sidebar { 
     right: 0; 
     transform: translateX(100%); 
-    border-top-left-radius: 35px; /* تقويس الزاوية العلوية الخارجية */
-    border-bottom-left-radius: 35px; /* تقويس الزاوية السفلية الخارجية */
-    border-left: 1px solid var(--accent-color); /* حد جمالي برونزي */
+    border-top-left-radius: 35px; 
+    border-bottom-left-radius: 35px; 
+    border-left: 1px solid var(--accent-color); 
 }
 [dir="ltr"] .sidebar { 
     left: 0; 
@@ -273,7 +248,6 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 }
 .sidebar.open { transform: translateX(0) !important; }
 
-/* الجزء العلوي (صورة البروفايل) */
 .sidebar-profile-section {
     padding: 50px 20px 20px;
     display: flex; justify-content: center; align-items: center;
@@ -281,8 +255,8 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 }
 .sidebar-avatar {
     width: 80px; height: 80px; border-radius: 50%;
-    background: var(--accent-color); /* دائرة برونزية */
-    color: #000000; /* الأيقونة بداخلها باللون الأسود */
+    background: var(--accent-color); 
+    color: #000000; 
     display: flex; justify-content: center; align-items: center;
     box-shadow: 0 4px 15px rgba(197, 147, 75, 0.2);
 }
@@ -290,42 +264,38 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 
 .sidebar-content { padding: 10px 0 30px; }
 
-/* عناوين الأقسام داخل القائمة */
 .sidebar-divider {
     padding: 20px 20px 8px; font-size: 11px; font-weight: 900;
-    color: #ffffff; /* تم تغيير اللون هنا إلى الأبيض */
+    color: #ffffff; 
     text-transform: uppercase; letter-spacing: 1.5px;
 }
 
-/* عناصر القائمة (الخانات البرونزية المقوصة) */
 .sidebar-item {
     display: flex; justify-content: space-between; align-items: center;
     padding: 14px 15px;
-    background-color: var(--accent-color); /* الخانة باللون البرونزي */
+    background-color: var(--accent-color); 
     margin: 6px 15px; 
-    border-radius: 15px; /* زوايا الخانة مقوصة بشدة */
+    border-radius: 15px; 
     cursor: pointer; transition: 0.3s;
 }
 
-/* تأثير عند الضغط على الخانة */
 .sidebar-item:active {
     transform: scale(0.96);
-    background-color: #b08242; /* برونزي أغمق قليلاً عند الضغط */
+    background-color: #b08242; 
 }
 
 .sidebar-item-right {
     display: flex; align-items: center; gap: 12px;
-    color: #000000; /* نص أسود صريح للتباين */
+    color: #000000; 
     font-size: 14px; font-weight: 800;
 }
 .sidebar-item-right svg { 
     width: 22px; height: 22px; 
-    color: #000000; /* أيقونات سوداء داخل الخانة البرونزية */
+    color: #000000; 
 }
 
-.chevron { width: 16px; height: 16px; color: #000000; opacity: 0.8; } /* سهم أسود */
+.chevron { width: 16px; height: 16px; color: #000000; opacity: 0.8; } 
 
-/* تعديل دوران سهم العناصر حسب اللغة */
 [dir="rtl"] .chevron { transform: rotate(0deg); }
 [dir="ltr"] .chevron { transform: rotate(180deg); }
 
@@ -341,7 +311,7 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 }
 
 .language-submenu.open {
-    max-height: 120px; /* التمدد عند الفتح */
+    max-height: 120px; 
     margin-bottom: 10px;
 }
 
@@ -399,12 +369,10 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 .cal-day:active { transform: scale(0.9); }
 .cal-day.empty { visibility: hidden; }
 
-/* تصميم اليوم الحالي */
 .cal-day.today {
     background-color: transparent; border: 1px solid var(--text-muted);
 }
 
-/* تصميم اليوم الذي تم اختياره (لون برونزي يشبه الأخضر في FotMob) */
 .cal-day.selected {
     background-color: var(--accent-color); color: #000000; font-weight: 800; border: none;
 }
@@ -435,8 +403,8 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
     position: fixed;
     top: 0;
     left: 0;
-    width: 100%; /* تم التعديل من 100vw لتجنب مشاكل المتصفح */
-    height: 100%; /* تم التعديل من 100vh لتجنب شريط المهام في الجوال */
+    width: 100%; 
+    height: 100%; 
     background-color: #000000;
     z-index: 99999;
     display: flex;
@@ -451,8 +419,8 @@ body { margin: 0; background-color: var(--bg-color); color: var(--text-main); fo
 }
 
 #splash-logo {
-    width: 220px; /* تم تكبير الحجم هنا ليكون فخماً وواضحاً */
-    max-width: 80%; /* لضمان عدم خروجه عن الشاشة في الهواتف الصغيرة */
+    width: 220px; 
+    max-width: 80%; 
     height: auto;
     object-fit: contain;
     animation: splashPulse 1.5s ease-out forwards;
